@@ -1,0 +1,64 @@
+{
+  "name": "connextscan-ui",
+  "version": "0.0.1",
+  "description": "UI of Connextscan",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build && next export",
+    "deploy": "aws s3 sync out/ s3://connextscan.io --acl public-read",
+    "dev-dev": "env-cmd -f .env.staging next dev",
+    "build-dev": "env-cmd -f .env.staging next build && next export",
+    "deploy-dev": "aws s3 sync out/ s3://staging.connextscan.io --acl public-read",
+    "dev-testnet": "NODE_ENV=test next dev",
+    "build-testnet": "NODE_ENV=test next build && next export",
+    "deploy-testnet": "aws s3 sync out/ s3://testnet.connextscan.io --acl public-read"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CoinHippo-Labs/connextscan-ui.git"
+  },
+  "author": "CoinHippo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/CoinHippo-Labs/connextscan-ui/issues"
+  },
+  "homepage": "https://github.com/CoinHippo-Labs/connextscan-ui#readme",
+  "dependencies": {
+    "@connext/nxtp-sdk": "^0.2.0-alpha.4",
+    "@redux-devtools/extension": "^3.2.2",
+    "config-yml": "^0.10.3",
+    "env-cmd": "^10.1.0",
+    "ethers": "^5.6.4",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.3",
+    "next": "^12.1.5",
+    "nprogress": "^0.2.0",
+    "numeral": "^2.0.6",
+    "postcss-flexbugs-fixes": "^5.0.2",
+    "postcss-import": "^14.1.0",
+    "postcss-preset-env": "^7.4.3",
+    "react": "18.0.0",
+    "react-copy-to-clipboard": "^5.1.0",
+    "react-dom": "18.0.0",
+    "react-hook-form": "^7.30.0",
+    "react-icons": "^4.3.1",
+    "react-image": "^4.0.3",
+    "react-json-view": "^1.21.3",
+    "react-loader-spinner": "^6.0.0-0",
+    "react-popper": "^2.2.5",
+    "react-redux": "^8.0.1",
+    "react-reveal": "^1.2.2",
+    "react-stack-grid": "^0.7.1",
+    "react-switch": "^6.0.0",
+    "react-table": "^7.7.0",
+    "recharts": "^2.1.9",
+    "redux": "^4.2.0",
+    "web3": "^1.7.3"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.5",
+    "postcss": "^8.4.12",
+    "tailwindcss": "^3.0.24"
+  }
+}
