@@ -39,7 +39,7 @@ export default function App({ Component, pageProps }) {
       </Head>
       <Provider store={store}>
         <Layout>
-          <Component {...pageProps} />
+          <Component { ...pageProps } />
         </Layout>
       </Provider>
     </>
