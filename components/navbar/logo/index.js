@@ -5,7 +5,7 @@ export default function Logo() {
   return (
     <div className="logo ml-3 mr-1 sm:mr-3">
       <Link href="/">
-         <a className="w-full flex items-start">
+        <a className="w-full flex items-start">
           <div className="min-w-max sm:mr-3">
             <div className="flex dark:hidden items-center">
               <Image

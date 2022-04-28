@@ -23,7 +23,9 @@ export default function Items({ onClick }) {
                 height={20}
                 className="rounded-full"
               />
-              <span className="leading-4 text-2xs font-medium">{chainName(c)}</span>
+              <span className="leading-4 text-2xs font-medium">
+                {chainName(c)}
+              </span>
             </>
           )
           return c.disabled ?

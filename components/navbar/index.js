@@ -227,7 +227,7 @@ export default function Navbar() {
   useEffect(() => {
     const getAssetBalances = async chain_data => {
       if (chain_data && !chain_data.disabled) {
-        const { id, chain_id } = chain_data
+        const { chain_id } = chain_data
         const response = await assetBalances(sdk, chain_id)
         const data = response?.data?.map(a => { return { ...a, chain_data } })
         dispatch({
