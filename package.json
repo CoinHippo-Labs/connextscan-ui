@@ -25,11 +25,12 @@
   },
   "homepage": "https://github.com/CoinHippo-Labs/connextscan-ui#readme",
   "dependencies": {
-    "@connext/nxtp-sdk": "^0.2.0-alpha.6",
+    "@connext/nxtp-sdk": "^0.2.0-alpha.8",
     "@redux-devtools/extension": "^3.2.2",
     "config-yml": "^0.10.3",
     "env-cmd": "^10.1.0",
     "ethers": "^5.6.4",
+    "graphql": "^16.4.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.3",
     "next": "^12.1.5",
@@ -59,6 +60,7 @@
   "devDependencies": {
     "autoprefixer": "^10.4.5",
     "postcss": "^8.4.12",
+    "postcss-color-function": "^4.1.0",
     "tailwindcss": "^3.0.24"
   }
 }

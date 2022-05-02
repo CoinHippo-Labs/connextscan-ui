@@ -52,7 +52,7 @@ export default function Navbar() {
   // assets
   useEffect(() => {
     const getData = async () => {
-      const response = await assets()
+      const response = await getAssets()
       if (response) {
         dispatch({
           type: ASSETS_DATA,
@@ -66,37 +66,37 @@ export default function Navbar() {
   // price
   useEffect(() => {
     const getData = async is_interval => {
-      if (chains_data && assets_data) {
-        let updated_ids = is_interval ? [] : assets_data.filter(a => a?.price).map(a => a.id)
-        if (updated_ids.length < assets_data.length) {
-          let updated = false
-          for (let i = 0; i < chains_data.length; i++) {
-            const { chain_id } = { ...chains_data[i] }
-            if (chain_id) {
-              const addresses = assets_data.filter(a => !updated_ids.includes(a?.id) && a?.contracts?.findIndex(c => c?.chain_id === chain_id && c.contract_address) > -1).map(a => a.contracts.find(c => c?.chain_id === chain_id).contract_address)
-              if (addresses.length > 0) {
-                const response = await getTokens({ chain_id, addresses })
-                response?.forEach(t => {
-                  const asset_index = assets_data.findIndex(a => a?.id && a.contracts?.findIndex(c => c?.chain_id === t?.chain_id && c.contract_address?.toLowerCase() === t?.contract_address?.toLowerCase()) > -1)
-                  if (asset_index > -1) {
-                    const asset = assets_data[asset_index]
-                    asset.price = t?.price || asset.price
-                    assets_data[asset_index] = asset
-                    updated_ids = _.uniq(_.concat(updated_ids, asset.id))
-                    updated = true
-                  }
-                })
-              }
-            }
-          }
-          if (updated) {
-            dispatch({
-              type: ASSETS_DATA,
-              value: assets_data,
-            })
-          }
-        }
-      }
+      // if (chains_data && assets_data) {
+      //   let updated_ids = is_interval ? [] : assets_data.filter(a => a?.price).map(a => a.id)
+      //   if (updated_ids.length < assets_data.length) {
+      //     let updated = false
+      //     for (let i = 0; i < chains_data.length; i++) {
+      //       const { chain_id } = { ...chains_data[i] }
+      //       if (chain_id) {
+      //         const addresses = assets_data.filter(a => !updated_ids.includes(a?.id) && a?.contracts?.findIndex(c => c?.chain_id === chain_id && c.contract_address) > -1).map(a => a.contracts.find(c => c?.chain_id === chain_id).contract_address)
+      //         if (addresses.length > 0) {
+      //           const response = await getTokens({ chain_id, addresses })
+      //           response?.forEach(t => {
+      //             const asset_index = assets_data.findIndex(a => a?.id && a.contracts?.findIndex(c => c?.chain_id === t?.chain_id && c.contract_address?.toLowerCase() === t?.contract_address?.toLowerCase()) > -1)
+      //             if (asset_index > -1) {
+      //               const asset = assets_data[asset_index]
+      //               asset.price = t?.price || asset.price
+      //               assets_data[asset_index] = asset
+      //               updated_ids = _.uniq(_.concat(updated_ids, asset.id))
+      //               updated = true
+      //             }
+      //           })
+      //         }
+      //       }
+      //     }
+      //     if (updated) {
+      //       dispatch({
+      //         type: ASSETS_DATA,
+      //         value: assets_data,
+      //       })
+      //     }
+      //   }
+      // }
     }
     getData()
     const interval = setInterval(() => getData(true), 5 * 60 * 1000)
@@ -135,8 +135,7 @@ export default function Navbar() {
   useEffect(() => {
     const init = async () => {
       if (chains_data) {
-        const chains_config = ['testnet'].includes(process.env.NEXT_PUBLIC_ENVIRONMENT) ?
-          { 1: { providers: ['https://rpc.ankr.com/eth'] } } : {}
+        const chains_config = {}
         const rpcs_config = {}
         for (let i = 0; i < chains_data.length; i++) {
           const chain_data = chains_data[i]
@@ -144,18 +143,18 @@ export default function Navbar() {
           chains_config[chain_id] = {
             providers: chain_data?.provider_params?.[0]?.rpcUrls?.filter(url => url) || [],
           }
-          rpcs_config[chain_id] = new providers.FallbackProvider(chains_config[chain_id].map(url => new providers.JsonRpcProvider(url)))
+          rpcs_config[chain_id] = new providers.FallbackProvider(chains_config[chain_id].providers.map(url => new providers.JsonRpcProvider(url)))
         }
 
-        dispatch({
-          type: SDK,
-          value: await NxtpSdk.create({
-            chains: chains_config,
-            signerAddress, Wallet.createRandom().address,
-            logLevel: 'info',
-            network: process.env.NEXT_PUBLIC_ENVIRONMENT,
-          }),
-        })
+        // dispatch({
+        //   type: SDK,
+        //   value: NxtpSdk.create({
+        //     chains: chains_config,
+        //     signerAddress: Wallet.createRandom().address,
+        //     logLevel: 'info',
+        //     network: process.env.NEXT_PUBLIC_ENVIRONMENT,
+        //   }),
+        // })
         if (!rpcs) {
           dispatch({
             type: RPCS,
@@ -175,7 +174,7 @@ export default function Navbar() {
         dispatch({
           type: CHAINS_STATUS_DATA,
           value: response?.latestBlock > -1 && {
-            ...chain: chain_data,
+            chain: chain_data,
             ...response,
           },
         })
@@ -196,7 +195,7 @@ export default function Navbar() {
   // routers status
   useEffect(() => {
     const getData = async () => {
-      if (sdk_data) {
+      if (sdk) {
         if (routers_status_trigger) {
           dispatch({
             type: ROUTERS_STATUS_DATA,

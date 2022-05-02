@@ -25,7 +25,7 @@ export default function SubNavbar() {
   const { routers_assets_data } = { ...routers_assets }
 
   const router = useRouter()
-  const { query } = { ...router }
+  const { pathname, query } = { ...router }
   const { address, tx, chain } = { ...query }
 
   const { token_data } = { ...chain_data }

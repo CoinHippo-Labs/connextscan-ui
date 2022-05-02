@@ -6,7 +6,7 @@ import { Puff } from 'react-loader-spinner'
 
 import Items from './items'
 import { connext } from '../../../lib/object/chain'
-import { loader_color } from '../../../utils'
+import { loader_color } from '../../../lib/utils'
 
 export default function DropdownChains() {
   const { preferences, chains } = useSelector(state => ({ preferences: state.preferences, chains: state.chains }), shallowEqual)

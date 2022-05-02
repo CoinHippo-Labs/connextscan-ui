@@ -17,7 +17,6 @@ import '../styles/components/nprogress.css'
 import '../styles/components/recharts.css'
 import '../styles/components/skeleton.css'
 import '../styles/components/table.css'
-import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css'
 
 Router.events.on('routeChangeStart', () => NProgress.start())
 Router.events.on('routeChangeComplete', () => NProgress.done())

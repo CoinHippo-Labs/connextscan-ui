@@ -69,7 +69,7 @@ export default function Search() {
     }
   }
 
-  const canSearch = inputSearch && [address, tx].filter(s => s).findIndex(s => s?.toLowerCase() === inputSearch.toLowerCase()) < -1
+  const canSearch = inputSearch && [address, tx].filter(s => s).findIndex(s => s?.toLowerCase() === inputSearch.toLowerCase()) < 0
 
   return (
     <div className="navbar-search mr-2 sm:mx-3">
@@ -82,15 +82,16 @@ export default function Search() {
             value={inputSearch}
             onChange={e => setInputSearch(e.target.value?.trim())}
             className={`w-52 sm:w-80 xl:w-96 h-10 appearance-none focus:ring-0 rounded-lg text-xs sm:text-sm pl-3 ${canSearch ? 'pr-10' : 'pr-3'}`}
-         />
-         {canSearch && (
-          <button
-            onClick={() => onSubmit()}
-            className="bg-blue-500 dark:bg-blue-800 hover:bg-blue-400 dark:hover:bg-blue-700 absolute rounded-lg left-0 my-auto mr-2"
-          >
-            <FiSearch size={14} />
-          </button>
-        )}
+          />
+          {canSearch && (
+            <button
+              onClick={() => onSubmit()}
+              className="bg-blue-500 dark:bg-blue-800 hover:bg-blue-400 dark:hover:bg-blue-700 absolute rounded-lg text-white right-0 p-1.5 mt-1.5 mr-2"
+            >
+              <FiSearch size={16} />
+            </button>
+          )}
+        </div>
       </form>
     </div>
   )
