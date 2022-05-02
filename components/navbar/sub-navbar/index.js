@@ -206,10 +206,10 @@ export default function SubNavbar() {
           href={chain_data.explorer.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center text-blue-600 dark:text-white font-semibold ml-4"
+          className="flex items-center text-blue-600 dark:text-white font-semibold space-x-1 ml-4"
         >
           <span>{chain_data.explorer.name || 'Explorer'}</span>
-          <TiArrowRight size={18} className="transform -rotate-45" />
+          <TiArrowRight size={18} className="transform -rotate-45 mt-0.5" />
         </a>
       )}
       {chain_data?.website && (
@@ -217,10 +217,10 @@ export default function SubNavbar() {
           href={chain_data.website}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center text-blue-600 dark:text-white font-semibold ml-4"
+          className="flex items-center text-blue-600 dark:text-white font-semibold space-x-1 ml-4"
         >
           <span>Website</span>
-          <TiArrowRight size={18} className="transform -rotate-45" />
+          <TiArrowRight size={18} className="transform -rotate-45 mt-0.5" />
         </a>
       )}
     </div>

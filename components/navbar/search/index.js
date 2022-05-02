@@ -81,12 +81,12 @@ export default function Search() {
             placeholder="Search by Transfer ID / Address / ENS"
             value={inputSearch}
             onChange={e => setInputSearch(e.target.value?.trim())}
-            className={`w-52 sm:w-80 xl:w-96 h-10 appearance-none focus:ring-0 rounded-lg text-xs sm:text-sm pl-3 ${canSearch ? 'pr-10' : 'pr-3'}`}
+            className={`w-52 sm:w-80 h-10 appearance-none focus:ring-0 rounded-lg text-xs sm:text-sm pl-3 ${canSearch ? 'pr-10' : 'pr-3'}`}
           />
           {canSearch && (
             <button
               onClick={() => onSubmit()}
-              className="bg-blue-500 dark:bg-blue-800 hover:bg-blue-400 dark:hover:bg-blue-700 absolute rounded-lg text-white right-0 p-1.5 mt-1.5 mr-2"
+              className="bg-blue-600 dark:bg-blue-700 hover:bg-blue-500 dark:hover:bg-blue-600 absolute rounded-lg text-white right-0 p-1.5 mt-1.5 mr-2"
             >
               <FiSearch size={16} />
             </button>

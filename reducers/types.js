@@ -1,5 +1,6 @@
 // preferences
 export const THEME = 'theme'
+export const CHAIN_ID = 'chain_id'
 
 // chains
 export const CHAINS_DATA = 'chains_data'
