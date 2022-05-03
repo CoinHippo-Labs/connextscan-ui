@@ -29,3 +29,7 @@ export const SDK = 'sdk'
 
 // rpc
 export const RPCS = 'rpcs'
+
+// wallet
+export const WALLET_DATA = 'wallet_data'
+export const WALLET_RESET = 'wallet_reset'

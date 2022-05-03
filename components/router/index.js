@@ -27,10 +27,9 @@ export default () => {
         router.push(`/router/${_address}`)
       }
     }
-    else {
-
+    else if (sdk) {
     }
-  }, [address, ens_data])
+  }, [address, ens_data, sdk])
 
   return (
     <>

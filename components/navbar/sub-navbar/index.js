@@ -7,22 +7,22 @@ import moment from 'moment'
 import { Img } from 'react-image'
 import { TiArrowRight } from 'react-icons/ti'
 import { FiBox } from 'react-icons/fi'
-import { MdOutlineRouter } from 'react-icons/md'
-import { RiFileCodeLine, RiCoinsLine } from 'react-icons/ri'
+import { RiCoinsLine } from 'react-icons/ri'
 
 import Copy from '../../copy'
 import EnsProfile from '../../ens-profile'
+import Wallet from '../../wallet'
 import { currency, currency_symbol } from '../../../lib/object/currency'
 import { number_format, ellipse } from '../../../lib/utils'
 
 export default function SubNavbar() {
-  const { chains, assets, _chain, routers_status, asset_balances, routers_assets } = useSelector(state => ({ chains: state.chains, assets: state.assets, _chain: state.chain, routers_status: state.routers_status, asset_balances: state.asset_balances, routers_assets: state.routers_assets }), shallowEqual)
+  const { chains, assets, _chain, asset_balances, wallet } = useSelector(state => ({ chains: state.chains, assets: state.assets, _chain: state.chain, asset_balances: state.asset_balances, wallet: state.wallet }), shallowEqual)
   const { chains_data } = { ...chains }
   const { assets_data } = { ...assets }
   const { chain_data } = { ..._chain }
-  const { routers_status_data } = { ...routers_status }
   const { asset_balances_data } = { ...asset_balances }
-  const { routers_assets_data } = { ...routers_assets }
+  const { wallet_data } = { ...wallet }
+  const wallet_address = wallet_data?.address
 
   const router = useRouter()
   const { pathname, query } = { ...router }
@@ -62,7 +62,12 @@ export default function SubNavbar() {
       )
       break
     case '/address/[address]':
-      title = (<EnsProfile address={address} />) || 'Address'
+      title = (
+        <EnsProfile
+          address={address}
+          backup_component={<span>Address</span>}
+        />
+      )
       subtitle = (
         <Copy
           value={address}
@@ -79,17 +84,15 @@ export default function SubNavbar() {
       )
       break
     case '/router/[address]':
-      const routerStatus = routers_status_data?.find(r => r?.routerAddress?.toLowerCase() === address?.toLowerCase())
-      title = (<EnsProfile address={address} />) || (<span>Router</span>)
+      title = (
+        <EnsProfile
+          address={address}
+          backup_component={<span>Router</span>}
+        />
+      )
       title = (
         <div className="flex flex-wrap items-center space-x-2">
           {title}
-          {routerStatus?.isRouterContract && (
-            <div className="max-w-min bg-blue-600 dark:bg-blue-500 rounded-lg capitalize flex items-center text-white text-xs space-x-1 py-1 px-2">
-              <RiFileCodeLine size={16} className="-ml-0.5" />
-              <span className="font-medium">Contract</span>
-            </div>
-          )}
         </div>
       )
       subtitle = (
@@ -177,17 +180,6 @@ export default function SubNavbar() {
               </span>
             </a>
           </Link>
-          <Link href="/leaderboard/routers">
-            <a className="flex items-center text-blue-600 dark:text-white space-x-1.5 ml-4">
-              <MdOutlineRouter size={18} />
-              <span className="space-x-1">
-                <span className="font-mono font-semibold">
-                  {number_format(routers_assets_data?.filter(r => _.sumBy(r?.asset_balances, 'amount_value') > 1).length, '0,0')}
-                </span>
-                <span className="uppercase font-semibold">routers</span>
-              </span>
-            </a>
-          </Link>
           <Link href="/routers">
             <a className="flex items-center text-blue-600 dark:text-white space-x-1.5 ml-4">
               <RiCoinsLine size={18} />
@@ -201,27 +193,57 @@ export default function SubNavbar() {
           </Link>
         </>
       )}
-      {chain_data?.explorer?.url && (
-        <a
-          href={chain_data.explorer.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center text-blue-600 dark:text-white font-semibold space-x-1 ml-4"
-        >
-          <span>{chain_data.explorer.name || 'Explorer'}</span>
-          <TiArrowRight size={18} className="transform -rotate-45 mt-0.5" />
-        </a>
+      {!['/router/[address]'].includes(pathname) && (
+        <>
+          {chain_data?.explorer?.url && (
+            <a
+              href={chain_data.explorer.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center text-blue-600 dark:text-white font-semibold space-x-1 ml-4"
+            >
+              <span>{chain_data.explorer.name || 'Explorer'}</span>
+              <TiArrowRight size={18} className="transform -rotate-45 mt-0.5" />
+            </a>
+          )}
+          {chain_data?.website && (
+            <a
+              href={chain_data.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center text-blue-600 dark:text-white font-semibold space-x-1 ml-4"
+            >
+              <span>Website</span>
+              <TiArrowRight size={18} className="transform -rotate-45 mt-0.5" />
+            </a>
+          )}
+        </>
       )}
-      {chain_data?.website && (
-        <a
-          href={chain_data.website}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center text-blue-600 dark:text-white font-semibold space-x-1 ml-4"
-        >
-          <span>Website</span>
-          <TiArrowRight size={18} className="transform -rotate-45 mt-0.5" />
-        </a>
+      {['/router/[address]'].includes(pathname) && (
+        <>
+          <div className="hidden sm:block ml-4">
+            <EnsProfile
+              address={wallet_address}
+              backup_component={wallet_address && (
+                <Copy
+                  value={wallet_address}
+                  title={<span className="text-sm text-gray-400 dark:text-gray-200">
+                    <span className="xl:hidden">
+                      {ellipse(wallet_address, 8)}
+                    </span>
+                    <span className="hidden xl:block">
+                      {ellipse(wallet_address, 12)}
+                    </span>
+                  </span>}
+                  size={18}
+                />
+              )}
+            />
+          </div>
+          <div className="ml-auto sm:ml-4 -mr-2 sm:-mr-4">
+            <Wallet />
+          </div>
+        </>
       )}
     </div>
   )

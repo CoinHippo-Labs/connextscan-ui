@@ -11,6 +11,7 @@ import stats from './stats'
 import transactions from './transactions'
 import dev from './dev'
 import rpc_providers from './rpc-providers'
+import wallet from './wallet'
 
 export default combineReducers({
   preferences,
@@ -24,4 +25,5 @@ export default combineReducers({
   transactions,
   dev,
   rpc_providers,
+  wallet,
 })
