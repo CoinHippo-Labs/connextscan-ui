@@ -41,6 +41,8 @@ export default function App({ Component, pageProps }) {
       <Provider store={store}>
         <Layout>
           <div id="portal" />
+          <div id="modal-chains" />
+          <div id="modal-assets" />
           <Component { ...pageProps } />
         </Layout>
       </Provider>

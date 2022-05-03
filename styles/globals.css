@@ -194,3 +194,10 @@ input[type=number] {
 .main {
   @apply bg-white dark:bg-black;
 }
+
+#modal-chains,
+#modal-assets {
+  .show {
+    animation-duration: 0.1s !important;
+  }
+}

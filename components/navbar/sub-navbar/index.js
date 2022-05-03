@@ -40,10 +40,6 @@ export default function SubNavbar() {
     case '/routers':
       title = 'Routers'
       break
-    case '/leaderboard/routers':
-      title = 'Leaderboard'
-      subtitle = 'Routers'
-      break
     case '/status':
       title = 'Status'
       break

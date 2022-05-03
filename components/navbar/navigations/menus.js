@@ -1,6 +1,6 @@
 import { RiBarChartBoxLine } from 'react-icons/ri'
 import { BiFileBlank, BiHeartCircle, BiTransfer } from 'react-icons/bi'
-import { MdOutlineRouter, MdOutlineTableChart } from 'react-icons/md'
+import { MdOutlineRouter } from 'react-icons/md'
 
 export default [
   {
@@ -20,12 +20,6 @@ export default [
     title: 'Routers',
     path: '/routers',
     icon: <MdOutlineRouter size={20} className="stroke-current" />,
-  },
-  {
-    id: 'leaderboard-routers',
-    title: 'Leaderboard',
-    path: '/leaderboard/routers',
-    icon: <MdOutlineTableChart size={20} className="stroke-current" />,
   },
   {
     id: 'status',
