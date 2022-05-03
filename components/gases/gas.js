@@ -1,10 +1,10 @@
-import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import { BigNumber, utils } from 'ethers'
 import { RotatingSquare } from 'react-loader-spinner'
 
+import Image from '../image'
 import { number_format, loader_color } from '../../lib/utils'
 
 export default ({ chainId, className = '' }) => {

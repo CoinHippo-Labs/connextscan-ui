@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 
+import Image from '../../image'
 import { chainName, connext } from '../../../lib/object/chain'
 
 export default function Items({ onClick }) {

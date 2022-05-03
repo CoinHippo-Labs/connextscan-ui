@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
@@ -9,6 +8,7 @@ import { TiArrowRight } from 'react-icons/ti'
 import { FiBox } from 'react-icons/fi'
 import { RiCoinsLine } from 'react-icons/ri'
 
+import Image from '../../image'
 import Copy from '../../copy'
 import EnsProfile from '../../ens-profile'
 import Wallet from '../../wallet'
@@ -61,7 +61,7 @@ export default function SubNavbar() {
       title = (
         <EnsProfile
           address={address}
-          backup_component={<span>Address</span>}
+          fallback={<span>Address</span>}
         />
       )
       subtitle = (
@@ -83,7 +83,7 @@ export default function SubNavbar() {
       title = (
         <EnsProfile
           address={address}
-          backup_component={<span>Router</span>}
+          fallback={<span>Router</span>}
         />
       )
       title = (
@@ -220,7 +220,7 @@ export default function SubNavbar() {
           <div className="hidden sm:block ml-4">
             <EnsProfile
               address={wallet_address}
-              backup_component={wallet_address && (
+              fallback={wallet_address && (
                 <Copy
                   value={wallet_address}
                   title={<span className="text-sm text-gray-400 dark:text-gray-200">

@@ -1,8 +1,8 @@
-import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import { FallingLines } from 'react-loader-spinner'
 
+import Image from '../../image'
 import Search from './search'
 import Modal from '../../modals'
 import { loader_color } from '../../../lib/utils'

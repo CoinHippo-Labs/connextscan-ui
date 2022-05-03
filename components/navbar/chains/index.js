@@ -1,9 +1,9 @@
-import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { useState, useEffect, useRef } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import { Puff } from 'react-loader-spinner'
 
+import Image from '../../image'
 import Items from './items'
 import { connext } from '../../../lib/object/chain'
 import { loader_color } from '../../../lib/utils'

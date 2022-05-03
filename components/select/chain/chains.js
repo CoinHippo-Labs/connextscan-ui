@@ -1,6 +1,7 @@
-import Image from 'next/image'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
+
+import Image from '../../image'
 
 export default ({ value, inputSearch, onSelect }) => {
   const { chains } = useSelector(state => ({ chains: state.chains }), shallowEqual)

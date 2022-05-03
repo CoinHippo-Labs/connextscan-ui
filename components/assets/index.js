@@ -1,11 +1,11 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import { BigNumber, constants, utils } from 'ethers'
 import { TailSpin } from 'react-loader-spinner'
 import { TiArrowRight } from 'react-icons/ti'
 
+import Image from '../image'
 import SelectChain from '../select/chain'
 import SelectAsset from '../select/asset'
 import Datatable from '../datatable'
