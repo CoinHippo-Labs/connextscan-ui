@@ -13,7 +13,7 @@ export default ({ value, onSelect, chain }) => {
           value={inputSearch}
           onChange={e => setInputSearch(e.target.value)}
           type="search"
-          placeholder="Search..."
+          placeholder="Search"
           className="w-full h-10 bg-transparent appearance-none border border-gray-200 dark:border-gray-800 rounded-xl text-sm pl-10 pr-5"
         />
         <div className="absolute top-0 left-0 mt-3 ml-4">

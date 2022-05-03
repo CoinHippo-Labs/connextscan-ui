@@ -5,7 +5,6 @@ import _ from 'lodash'
 
 import Gases from '../gases'
 import Assets from '../assets'
-// import Transactions from '../../components/transactions'
 import { type } from '../../lib/object/id'
 
 export default () => {
@@ -32,12 +31,9 @@ export default () => {
   }, [address, ens_data, sdk])
 
   return (
-    <div className="flex items-start justify-between space-x-2 -mr-2 sm:-mr-4">
-      <div className="w-full grid grid-flow-row lg:grid-cols-2 gap-4 my-2">
+    <div className="flex items-start justify-between space-x-2 -mr-1.5 sm:-mr-3.5">
+      <div className="w-full grid grid-flow-row lg:grid-cols-2 gap-4 mb-4">
         <Assets />
-      {/*<div>
-        <Transactions addTokenToMetaMaskFunction={addTokenToMetaMask} className="no-border" />
-      </div>*/}
       </div>
       <Gases />
     </div>

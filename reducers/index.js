@@ -12,6 +12,7 @@ import transactions from './transactions'
 import dev from './dev'
 import rpc_providers from './rpc-providers'
 import wallet from './wallet'
+import chain_id from './chain-id'
 
 export default combineReducers({
   preferences,
@@ -26,4 +27,5 @@ export default combineReducers({
   dev,
   rpc_providers,
   wallet,
+  chain_id,
 })

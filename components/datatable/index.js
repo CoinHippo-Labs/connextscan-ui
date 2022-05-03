@@ -86,12 +86,12 @@ export default function Datatable({
 
   return (
     <>
-      <table ref={tableRef} { ...getTableProps() } className={`table rounded-2xl ${className}`}>
+      <table ref={tableRef} { ...getTableProps() } className={`table rounded-lg ${className}`}>
         <thead>
           {headerGroups.map(hg => (
             <tr { ...hg.getHeaderGroupProps() }>
               {hg.headers.map((c, i) => (
-                <th { ...c.getHeaderProps(c.getSortByToggleProps()) } className={`${c.className} ${i === 0 ? 'rounded-tl-xl' : i === hg.headers.length - 1 ? 'rounded-tr-xl' : ''}`}>
+                <th { ...c.getHeaderProps(c.getSortByToggleProps()) } className={`${c.className} ${i === 0 ? 'rounded-tl-lg' : i === hg.headers.length - 1 ? 'rounded-tr-lg' : ''}`}>
                   <div className={`flex flex-row items-center ${c.headerClassName?.includes('justify-') ? '' : 'justify-start'} ${c.headerClassName || ''}`}>
                     <span>
                       {c.render('Header')}

@@ -236,7 +236,7 @@ export default function SubNavbar() {
               )}
             />
           </div>
-          <div className="ml-auto sm:ml-4 -mr-2 sm:-mr-4">
+          <div className="ml-auto sm:ml-4 -mr-1.5 sm:-mr-3.5">
             <Wallet />
           </div>
         </>

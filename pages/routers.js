@@ -1,4 +1,4 @@
-import Routers from '../../components/routers'
+import Routers from '../components/routers'
 
 export default () => {
   return (

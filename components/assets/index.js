@@ -1,17 +1,15 @@
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
-import _ from 'lodash'
-import { constants, utils } from 'ethers'
-import { Img } from 'react-image'
+import { BigNumber, constants, utils } from 'ethers'
 import { TailSpin } from 'react-loader-spinner'
 import { TiArrowRight } from 'react-icons/ti'
 
 import SelectChain from '../select/chain'
 import SelectAsset from '../select/asset'
 import Datatable from '../datatable'
-// import AddToken from '../add-token'
+import AddToken from '../add-token'
 import Copy from '../copy'
 
 import { chainName } from '../../lib/object/chain'
@@ -24,400 +22,31 @@ export default ({ data }) => {
   const { chains_data } = { ...chains }
   const { assets_data } = { ...assets }
 
-  const router = useRouter()
-  const { query } = { ...router }
-  const { address, chain } = { ...query }
-
   const [chainSelect, setChainSelect] = useState('')
   const [assetSelect, setAssetSelect] = useState('')
 
-  const chain_data = chains_data?.find(c => c?.id === chain)
-
-  /*const routersComponent = routers_assets_data?.filter(ra => chain ? !routers_status_data || routers_status_data.findIndex(r => r?.routerAddress?.toLowerCase() === ra?.router_id?.toLowerCase() && r?.supportedChains?.includes(chain_data?.chain_id)) > -1 : ra?.router_id?.toLowerCase() === address?.toLowerCase()).map(ra => {
-    return {
-      ...ra,
-      asset_balances: ra?.asset_balances?.filter(ab => ab?.chain_data?.chain_id === chain_data?.chain_id || address),
-    }
-  }).filter(ra => ra?.asset_balances?.length > 0).map((ra, i) => {
-    const routerStatus = chain && routers_status_data?.find(r => r?.routerAddress?.toLowerCase() === ra?.router_id?.toLowerCase())
-    const assetsByChains = _.orderBy(Object.entries(_.groupBy(ra?.asset_balances || [], 'chain_data.chain_id')).map(([key, value]) => {
-      return {
-        chain_id: Number(key),
-        chain_data: chains_data?.find(c => c?.chain_id === Number(key)),
-        asset_balances: value,
-        total: value?.length || 0,
+  const chain_data = chains_data?.find(c => c?.id === chainSelect)
+  const assets_data_filtered_mapped = assets_data?.filter(a => !assetSelect || a?.id === assetSelect).flatMap(a =>
+    a?.contracts?.filter(c => !chain_data || c?.chain_id === chain_data.chain_id).map((c, i) => {
+      let chain_asset_data = {
+        i,
+        ...a,
+        ...c,
+        chain_data: chains_data?.find(_c => _c?.chain_id === c?.chain_id),
       }
-    }).filter(ac => ac?.total > 0), ['total'], ['desc'])
-
-    const data = _.orderBy(ra?.asset_balances?.flatMap(abs => abs).filter(ab => !(chainIdsFilter?.length > 0) || chainIdsFilter.includes(ab.chain_data?.chain_id)) || [], ['amount_value', 'amount'], ['desc', 'desc'])
-
-    return (
-      <Widget
-        key={i}
-        title={!address && (
-          <div className="flex items-center justify-between space-x-2">
-            <div className={`flex items-${ens_data?.[ra?.router_id.toLowerCase()]?.name ? 'start' : 'center'} space-x-1.5`}>
-              {ra?.router_id && (
-                <div className="space-y-0.5">
-                  {ens_data?.[ra.router_id.toLowerCase()]?.name && (
-                    <div className="flex items-center">
-                      <Img
-                        src={`${process.env.NEXT_PUBLIC_ENS_AVATAR_URL}/${ens_data[ra.router_id.toLowerCase()].name}`}
-                        alt=""
-                        className="w-6 h-6 rounded-full mr-2"
-                      />
-                      <Link href={`/router/${ra.router_id}`}>
-                        <a className="text-blue-600 dark:text-white sm:text-base font-semibold">
-                          {ellipse(ens_data[ra.router_id.toLowerCase()].name, 16)}
-                        </a>
-                      </Link>
-                    </div>
-                  )}
-                  <div className="flex items-center space-x-1">
-                    {ens_data?.[ra.router_id.toLowerCase()]?.name ?
-                      <Copy
-                        text={ra.router_id}
-                        copyTitle={<span className="text-gray-400 dark:text-gray-600 text-xs font-normal">
-                          {ellipse(ra.router_id, 8)}
-                        </span>}
-                      />
-                      :
-                      <>
-                        <Link href={`/router/${ra.router_id}`}>
-                          <a className="text-blue-600 dark:text-white text-xs font-normal">
-                            {ellipse(ra.router_id, 8)}
-                          </a>
-                        </Link>
-                        <Copy text={ra.router_id} />
-                      </>
-                    }
-                  </div>
-                </div>
-              )}
-            </div>
-            {routerStatus && (
-              <div className="text-right space-y-1.5">
-                <div className="whitespace-nowrap uppercase text-gray-400 dark:text-gray-600 text-3xs font-medium">Supported Chains</div>
-                <div className="w-32 sm:w-48 flex flex-wrap items-center justify-end">
-                  {routerStatus.supportedChains?.length > 0 ?
-                    chains_data && routerStatus.supportedChains.map((id, i) => (
-                      <Img
-                        key={i}
-                        src={chains_data.find(c => c?.chain_id === id)?.image}
-                        alt=""
-                        className="w-4 h-4 rounded-full mb-1 ml-1"
-                      />
-                    ))
-                    :
-                    <span>-</span>
-                  }
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-        className={`border-0 ${address ? 'bg-transaparent py-0 px-0' : 'shadow-md'} rounded-2xl`}
-      >
-        {address && (
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:space-x-2 mx-2">
-            {assetsByChains.length > 1 && (
-              <div className="flex flex-wrap items-center justify-center mb-3">
-                {assetsByChains.map((ac, j) => (
-                  <div
-                    key={j}
-                    onClick={() => setChainIdsFilter(_.concat(chainIdsFilter || [], ac.chain_id).filter(id => id !== ac.chain_id || !chainIdsFilter?.includes(id)))}
-                    className={`${chainIdsFilter?.includes(ac.chain?.chain_id) ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-900' : 'hover:bg-gray-100 dark:hover:bg-gray-900'} cursor-pointer rounded-lg flex items-center space-x-1.5 mb-0.5 mr-1 sm:mr-0 ml-0 sm:ml-1 py-1 px-1.5`}
-                  >
-                    <Img
-                      src={ac.chain_data?.image}
-                      alt=""
-                      className="w-4 sm:w-5 h-4 sm:h-5 rounded-full"
-                    />
-                    <span className="font-mono font-semibold">
-                      {number_format(ac.total, '0,0')}
-                    </span>
-                  </div>
-                ))}
-                {chainIdsFilter?.length > 0 && (
-                  <div
-                    onClick={() => setChainIdsFilter(null)}
-                    className="hover:bg-gray-100 dark:hover:bg-gray-900 cursor-pointer rounded-lg flex items-center space-x-1.5 mb-0.5 mr-1 sm:mr-0 ml-0 sm:ml-1 py-1 px-1.5"
-                  >
-                    <span className="font-medium">
-                      Reset
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-        <Datatable
-          columns={[
-            {
-              Header: '#',
-              accessor: 'i',
-              sortType: (rowA, rowB) => rowA.original.i > rowB.original.i ? 1 : -1,
-              Cell: props => (
-                !props.row.original.skeleton ?
-                  <div className="font-mono my-1">
-                    {number_format(props.value + 1, '0,0')}
-                  </div>
-                  :
-                  <div className="skeleton w-6 h-5 my-1" />
-              ),
-            },
-            {
-              Header: 'Chain',
-              accessor: 'chain_data.title',
-              sortType: (rowA, rowB) => chainName(rowA.original.chain) > chainName(rowB.original.chain_data) ? 1 : -1,
-              Cell: props => (
-                !props.row.original.skeleton ?
-                  <Link href={`/${props.row.original.chain_data?.id}`}>
-                    <a className="flex items-center space-x-1.5 my-1">
-                      <Img
-                        src={props.row.original.chain_data?.image}
-                        alt=""
-                        className="w-5 h-5 rounded-full"
-                      />
-                      <span className="font-medium">
-                        {chainName(props.row.original.chain_data)}
-                      </span>
-                    </a>
-                  </Link>
-                  :
-                  <div className="skeleton w-32 h-5 my-1" />
-              ),
-            },
-            {
-              Header: 'Token',
-              accessor: 'asset.name',
-              sortType: (rowA, rowB) => rowA.original.asset?.name > rowB.original.asset?.name ? 1 : -1,
-              Cell: props => {
-                const addToMetaMaskButton = props.row.original?.assetId !== constants.AddressZero && (
-                  <button
-                    onClick={() => addTokenToMetaMask(props.row.original.chain_data?.chain_id, { ...props.row.original.asset })}
-                    className="w-auto min-w-max bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded flex items-center justify-center py-1 px-1.5"
-                  >
-                    <Img
-                      src="/logos/wallets/metamask.png"
-                      alt=""
-                      className="w-3.5 h-3.5"
-                    />
-                  </button>
-                )
-
-                return !props.row.original.skeleton ?
-                  <div className="w-28 flex items-start my-1">
-                    <Img
-                      src={props.row.original.asset?.image}
-                      alt=""
-                      className="w-5 h-5 rounded-full mr-2"
-                    />
-                    <div className="flex flex-col">
-                      <div className="flex items-center space-x-2 -mt-0.5">
-                        <span className="leading-4 text-xs font-semibold">{props.row.original.asset?.name}</span>
-                        {addToMetaMaskButton}
-                      </div>
-                      {props.row.original.assetId && (
-                        <span className="min-w-max flex items-center space-x-0.5">
-                          <Copy
-                            size={14}
-                            text={props.row.original.assetId}
-                            copyTitle={<span className="text-gray-400 dark:text-gray-600 text-xs font-medium">
-                              {ellipse(props.row.original.assetId, 6)}
-                            </span>}
-                          />
-                          {props.row.original.chain_data?.explorer?.url && (
-                            <a
-                              href={`${props.row.original.chain_data.explorer.url}${props.row.original.chain_data.explorer[`contract${props.row.original.assetId === constants.AddressZero ? '_0' : ''}_path`]?.replace('{address}', props.row.original.assetId)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 dark:text-white"
-                            >
-                              {props.row.original.chain_data.explorer.icon ?
-                                <Img
-                                  src={props.row.original.chain_data.explorer.icon}
-                                  alt=""
-                                  className="w-3.5 h-3.5 rounded-full opacity-60 hover:opacity-100"
-                                />
-                                :
-                                <TiArrowRight size={16} className="transform -rotate-45" />
-                              }
-                            </a>
-                          )}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  :
-                  <div className="skeleton w-32 h-5 my-1" />
-              },
-            },
-            {
-              Header: 'Liquidity',
-              accessor: 'amount',
-              sortType: (rowA, rowB) => rowA.original.amount_value > rowB.original.amount_value ? 1 : rowA.original.amount_value < rowB.original.amount_value ? -1 : rowA.original.amount > rowB.original.amount ? 1 : -1,
-              Cell: props => (
-                !props.row.original.skeleton ?
-                  <div className="flex flex-col items-end space-y-1.5 my-1">
-                    <div className="flex items-center space-x-1.5">
-                      <span className={`font-mono uppercase text-xs ${props.row.original.amount_value > 100000 ? 'font-semibold' : 'text-gray-700 dark:text-gray-300'}`}>
-                        {number_format(props.value, props.value > 100000 ? '0,0.00a' : props.value > 1000 ? '0,0' : '0,0.00')}
-                      </span>
-                      <span className="text-gray-700 dark:text-gray-300">
-                        {props.row.original.asset?.symbol}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <span className={`font-mono uppercase text-green-600 dark:text-green-500 text-2xs ${props.row.original.amount_value > 100000 ? 'font-semibold' : 'font-normal'}`}>
-                        {currency_symbol}{number_format(props.row.original.amount_value, props.row.original.amount_value > 100000 ? '0,0.00a' : props.row.original.amount_value > 1000 ? '0,0' : '0,0.00')}
-                      </span>
-                    </div>
-                  </div>
-                  :
-                  <div className="flex flex-col items-end space-y-2 my-1">
-                    <div className="skeleton w-28 h-5" />
-                    <div className="skeleton w-28 h-5" />
-                  </div>
-              ),
-              headerClassName: 'whitespace-nowrap justify-end text-right',
-            },
-            {
-              Header: 'Locked',
-              accessor: 'locked',
-              sortType: (rowA, rowB) => rowA.original.locked_value > rowB.original.locked_value ? 1 : rowA.original.locked_value < rowB.original.locked_value ? -1 : rowA.original.locked > rowB.original.locked ? 1 : -1,
-              Cell: props => (
-                !props.row.original.skeleton ?
-                  <div className="flex flex-col items-end my-1">
-                    <div className="flex items-center space-x-1.5">
-                      <span className={`font-mono uppercase text-xs ${props.row.original.locked_value > 100 ? 'font-semibold' : 'text-gray-700 dark:text-gray-300'}`}>
-                        {number_format(props.value, props.value > 10000 ? '0,0.00a' : props.value > 1000 ? '0,0' : '0,0.00')}
-                      </span>
-                      <span className="text-gray-700 dark:text-gray-300">
-                        {props.row.original.asset?.symbol}
-                      </span>
-                    </div>
-                  </div>
-                  :
-                  <div className="skeleton w-28 h-5 my-1" />
-              ),
-              headerClassName: 'whitespace-nowrap justify-end text-right',
-            },
-            {
-              Header: 'Locked In',
-              accessor: 'lockedIn',
-              sortType: (rowA, rowB) => rowA.original.lockedIn_value > rowB.original.lockedIn_value ? 1 : rowA.original.lockedIn_value < rowB.original.lockedIn_value ? -1 : rowA.original.lockedIn > rowB.original.lockedIn ? 1 : -1,
-              Cell: props => (
-                !props.row.original.skeleton ?
-                  <div className="flex flex-col items-end my-1">
-                    <div className="flex items-center space-x-1.5">
-                      <span className={`font-mono uppercase text-xs ${props.row.original.lockedIn_value > 100000 ? 'font-semibold' : 'text-gray-700 dark:text-gray-300'}`}>
-                        {number_format(props.value, props.value > 100000 ? '0,0.00a' : props.value > 1000 ? '0,0' : '0,0.00')}
-                      </span>
-                      <span className="text-gray-700 dark:text-gray-300">
-                        {props.row.original.asset?.symbol}
-                      </span>
-                    </div>
-                  </div>
-                  :
-                  <div className="skeleton w-28 h-5 my-1" />
-              ),
-              headerClassName: 'whitespace-nowrap justify-end text-right',
-            },
-            {
-              Header: 'Supplied',
-              accessor: 'supplied',
-              sortType: (rowA, rowB) => rowA.original.supplied_value > rowB.original.supplied_value ? 1 : rowA.original.supplied_value < rowB.original.supplied_value ? -1 : rowA.original.supplied > rowB.original.supplied ? 1 : -1,
-              Cell: props => (
-                !props.row.original.skeleton ?
-                  <div className="flex flex-col items-end my-1">
-                    <div className="flex items-center space-x-1.5">
-                      <span className={`font-mono uppercase text-xs ${props.row.original.supplied_value > 100000 ? 'font-semibold' : 'text-gray-700 dark:text-gray-300'}`}>
-                        {number_format(props.value, props.value > 100000 ? '0,0.00a' : props.value > 1000 ? '0,0' : '0,0.00')}
-                      </span>
-                      <span className="text-gray-700 dark:text-gray-300">
-                        {props.row.original.asset?.symbol}
-                      </span>
-                    </div>
-                  </div>
-                  :
-                  <div className="skeleton w-28 h-5 my-1" />
-              ),
-              headerClassName: 'whitespace-nowrap justify-end text-right',
-            },
-            {
-              Header: 'Removed',
-              accessor: 'removed',
-              sortType: (rowA, rowB) => rowA.original.removed_value > rowB.original.removed_value ? 1 : rowA.original.removed_value < rowB.original.removed_value ? -1 : rowA.original.removed > rowB.original.removed ? 1 : -1,
-              Cell: props => (
-                !props.row.original.skeleton ?
-                  <div className="flex flex-col items-end my-1">
-                    <div className="flex items-center space-x-1.5">
-                      <span className={`font-mono uppercase text-xs ${props.row.original.removed_value > 10000 ? 'font-semibold' : 'text-gray-700 dark:text-gray-300'}`}>
-                        {number_format(props.value, props.value > 100000 ? '0,0.00a' : props.value > 1000 ? '0,0' : '0,0.00')}
-                      </span>
-                      <span className="text-gray-700 dark:text-gray-300">
-                        {props.row.original.asset?.symbol}
-                      </span>
-                    </div>
-                  </div>
-                  :
-                  <div className="skeleton w-28 h-5 my-1" />
-              ),
-              headerClassName: 'whitespace-nowrap justify-end text-right',
-            },
-            {
-              Header: 'Volume',
-              accessor: 'volume',
-              sortType: (rowA, rowB) => rowA.original.volume_value > rowB.original.volume_value ? 1 : rowA.original.volume_value < rowB.original.volume_value ? -1 : rowA.original.volume > rowB.original.volume ? 1 : -1,
-              Cell: props => (
-                !props.row.original.skeleton ?
-                  <div className="flex flex-col items-end space-y-1.5 my-1">
-                    <div className="flex items-center space-x-1.5">
-                      <span className={`font-mono uppercase text-xs ${props.row.original.volume_value > 1000000 ? 'font-semibold' : 'text-gray-700 dark:text-gray-300'}`}>
-                        {number_format(props.value, props.value > 10000000 ? '0,0.00a' : props.value > 1000 ? '0,0' : '0,0.00')}
-                      </span>
-                      <span className="text-gray-700 dark:text-gray-300">
-                        {props.row.original.general_asset?.symbol || props.row.original.asset?.symbol}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <span className={`font-mono uppercase text-red-600 dark:text-red-500 text-2xs ${props.row.original.volume_value > 1000000 ? 'font-semibold' : 'font-normal'}`}>
-                        {currency_symbol}{number_format(props.row.original.volume_value, props.row.original.volume_value > 10000000 ? '0,0.00a' : props.row.original.volume_value > 1000 ? '0,0' : '0,0.00')}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <span className={`font-mono uppercase text-blue-600 dark:text-blue-500 text-xs ${props.row.original.receivingFulfillTxCount > 10000 ? 'font-semibold' : 'font-normal'}`}>
-                        {number_format(props.row.original.receivingFulfillTxCount, props.row.original.receivingFulfillTxCount > 1000 ? '0,0.00a' : '0,0')}
-                      </span>
-                      <span className="text-gray-700 dark:text-gray-300">
-                        TXs
-                      </span>
-                    </div>
-                  </div>
-                  :
-                  <div className="flex flex-col items-end space-y-2 my-1">
-                    <div className="skeleton w-28 h-5" />
-                    <div className="skeleton w-28 h-5" />
-                    <div className="skeleton w-20 h-5" />
-                  </div>
-              ),
-              headerClassName: 'whitespace-nowrap justify-end text-right',
-            },
-          ]}
-          data={data ?
-            data.map((ab, j) => { return { ...ab, i: j } })
-            :
-            [...Array(10).keys()].map(j => { return { i: j, skeleton: true } })
-          }
-          noPagination={data?.length <= 10 ? true : false}
-          defaultPageSize={10}
-          className="min-h-full no-border"
-        />
-      </Widget>
-    )
-  })*/
+      delete chain_asset_data.contracts
+      const price = chain_asset_data.price || 0
+      const liquidity = data?.find(d => d?.chain_id === chain_asset_data.chain_id && d?.address?.toLowerCase() === chain_asset_data.contract_address?.toLowerCase())
+      const amount = data ? Number(utils.formatUnits(BigNumber.from(liquidity?.amount || '0'), chain_asset_data.contract_decimals || 6)) : null
+      const value = typeof amount === 'number' ? amount * price : null
+      chain_asset_data = {
+        ...chain_asset_data,
+        amount,
+        value,
+      }
+      return chain_asset_data
+    }) || []
+  )
 
   return (
     <div className="space-y-2">
@@ -437,8 +66,156 @@ export default ({ data }) => {
           />
         </div>
       </div>
-      {data ?
-        null
+      {assets_data_filtered_mapped ?
+        <div className="grid">
+          <Datatable
+            columns={[
+              {
+                Header: '#',
+                accessor: 'i',
+                sortType: (a, b) => a.original.i > b.original.i ? 1 : -1,
+                Cell: props => (
+                  <span className="font-mono font-semibold">
+                    {number_format((props.flatRows?.indexOf(props.row) > -1 ?
+                      props.flatRows.indexOf(props.row) : props.value
+                    ) + 1, '0,0')}
+                  </span>
+                ),
+              },
+              {
+                Header: 'Asset',
+                accessor: 'symbol',
+                sortType: (a, b) => a.original.symbol > b.original.symbol ? 1 : -1,
+                Cell: props => (
+                  <div className="min-w-max flex items-start space-x-2 -mt-0.5">
+                    {props.row.original.image && (
+                      <Image
+                        src={props.row.original.image}
+                        alt=""
+                        width={24}
+                        height={24}
+                        className="rounded-full"
+                      />
+                    )}
+                    <div className="space-y-0.5">
+                      <div className="text-base font-semibold">
+                        {props.value}
+                      </div>
+                      <div className="whitespace-nowrap text-gray-400 dark:text-gray-500 text-xs">
+                        {props.row.original.name}
+                      </div>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                Header: 'Address',
+                accessor: 'contract_address',
+                sortType: (a, b) => a.original.contract_address > b.original.contract_address ? 1 : -1,
+                Cell: props => (
+                  <div className="min-w-max flex items-center space-x-1.5">
+                    <Copy
+                      value={props.value}
+                      size={20}
+                    />
+                    {props.row.original.chain_data?.explorer?.url && (
+                      <a
+                        href={`${props.row.original.chain_data.explorer.url}${props.row.original.chain_data.explorer[`contract${props.value === constants.AddressZero ? '_0' : ''}_path`]?.replace('{address}', props.value)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center text-blue-600 dark:text-white"
+                      >
+                        {props.row.original.chain_data.explorer.icon ?
+                          <Image
+                            src={props.row.original.chain_data.explorer.icon}
+                            alt=""
+                            width={20}
+                            height={20}
+                            className="rounded-full opacity-60 hover:opacity-100"
+                          />
+                          :
+                          <TiArrowRight size={20} className="transform -rotate-45" />
+                        }
+                      </a>
+                    )}
+                    <AddToken token_data={props.row.original} />
+                  </div>
+                ),
+              },
+              {
+                Header: 'Chain',
+                accessor: 'chain_data.name',
+                sortType: (a, b) => chainName(a.original.chain) > chainName(b.original.chain_data) ? 1 : -1,
+                Cell: props => (
+                  <Link href={`/${props.row.original.chain_data?.id || ''}`}>
+                    <a className="min-w-max flex items-center space-x-2">
+                      {props.row.original.chain_data?.image && (
+                        <Image
+                          src={props.row.original.chain_data.image}
+                          alt=""
+                          width={20}
+                          height={20}
+                          className="rounded-full"
+                        />
+                      )}
+                      <div className="text-sm font-semibold">
+                        {props.value}
+                      </div>
+                    </a>
+                  </Link>
+                ),
+              },
+              {
+                Header: 'Liquidity',
+                accessor: 'amount',
+                sortType: (a, b) => a.original.value > b.original.value ? 1 : a.original.value < b.original.value ? -1 : a.original.amount > b.original.amount ? 1 : -1,
+                Cell: props => (
+                  typeof props.value === 'number' ?
+                    <div className="flex flex-col items-end space-y-0.5 -mt-0.5">
+                      <span className="text-base font-bold">
+                        {number_format(props.value, props.value > 1000 ? '0,0' : '0,0.00')}
+                      </span>
+                      <span className="font-mono uppercase text-gray-400 dark:text-gray-500 text-xs font-semibold">
+                        {currency_symbol}{number_format(props.row.original.value, props.row.original.value > 100000 ? '0,0.00a' : props.row.original.value > 1000 ? '0,0' : '0,0.00')}
+                      </span>
+                    </div>
+                    :
+                    <div className="flex flex-col items-end space-y-2">
+                      <div className="skeleton w-24 h-5" />
+                      <div className="skeleton w-24 h-4" />
+                    </div>
+                ),
+                headerClassName: 'whitespace-nowrap justify-end text-right',
+              },
+              {
+                Header: 'Action',
+                accessor: null,
+                disableSortBy: true,
+                Cell: props => (
+                  <div className="flex items-center justify-end space-x-1.5">
+                    <button
+                      onClick={() => {}}
+                      className="bg-red-500 hover:bg-red-400 dark:hover:bg-red-600 rounded-xl text-white font-semibold pt-0.5 pb-1 px-2"
+                    >
+                      remove
+                    </button>
+                    <button
+                      onClick={() => {}}
+                      className="bg-blue-500 hover:bg-blue-400 dark:hover:bg-blue-600 rounded-xl text-white font-semibold pt-0.5 pb-1 px-2"
+                    >
+                      add
+                    </button>
+                  </div>
+                ),
+                headerClassName: 'justify-end',
+              },
+            ]}
+            data={assets_data_filtered_mapped}
+            noPagination={assets_data_filtered_mapped.length <= 10}
+            defaultPageSize={10}
+            className="no-border"
+          />
+        </div>
         :
         <TailSpin color={loader_color(theme)} width="32" height="32" />
       }
