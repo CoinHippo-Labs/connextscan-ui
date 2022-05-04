@@ -21,7 +21,7 @@
   }
   .form-input,
   .form-textarea {
-    @apply w-full h-9 block text-xs xl:text-base py-2 px-3;
+    @apply w-full block text-xs xl:text-base py-2 px-3;
     &.form-input-valid {
       @apply border border-green-500;
     }
@@ -35,6 +35,9 @@
         color: #6B7280;/*theme('colors.white');*/
       }
     }
+  }
+  .form-input {
+    @apply h-9;
   }
   .form-select {
     @apply w-full h-9 block appearance-none text-xs xl:text-base py-2 px-3;
