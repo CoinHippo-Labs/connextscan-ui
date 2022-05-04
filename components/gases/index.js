@@ -1,5 +1,5 @@
 import { useSelector, shallowEqual } from 'react-redux'
-import { BiGasPump } from 'react-icons/bi'
+import { MdLocalGasStation } from 'react-icons/md'
 
 import Gas from './gas'
 
@@ -10,7 +10,7 @@ export default () => {
   return (
     <div className="bg-slate-100 dark:bg-slate-900 right-0 rounded-xl -mt-16">
       <div className="flex items-center justify-center space-x-1 py-2 px-3">
-        <BiGasPump size={20} />
+        <MdLocalGasStation size={20} />
         <span className="font-semibold">Gas</span>
       </div>
       {chains_data && (
