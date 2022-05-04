@@ -52,6 +52,7 @@ export default function Wallet({
   disconnectButton,
   onSwitch,
   children,
+  className = '',
 }) {
   const dispatch = useDispatch()
   const { preferences, chains, wallet } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, wallet: state.wallet }), shallowEqual)
@@ -203,6 +204,7 @@ export default function Wallet({
                 onSwitch()
               }
             }}
+            className={className}
           >
             {children || (
               <div className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg whitespace-nowrap font-medium py-1 px-2">
@@ -214,6 +216,7 @@ export default function Wallet({
           <button
             disabled={disabled}
             onClick={disconnect}
+            className={className}
           >
             {children || (
               <div className="bg-slate-100 hover:bg-slate-200 dark:bg-red-600 dark:hover:bg-red-700 rounded-lg whitespace-nowrap font-medium py-1 px-2">
@@ -225,6 +228,7 @@ export default function Wallet({
         <button
           disabled={disabled}
           onClick={connect}
+          className={className}
         >
           {children || (
             <div className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 rounded-lg whitespace-nowrap text-white font-medium py-1 px-2">

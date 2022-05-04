@@ -137,19 +137,23 @@ export default function Navbar() {
         const chains_config = {}, rpcs_config = {}
         for (let i = 0; i < chains_data.length; i++) {
           const chain_data = chains_data[i]
-          const chain_id = chain_data?.chain_id
-          const domain_id = chain_data?.domain_id
-          const rpc_urls = chain_data?.provider_params?.[0]?.rpcUrls?.filter(url => url) || []
-          chains_config[domain_id] = {
-            providers: rpc_urls,
-            assets: assets_data.filter(a => a?.contracts?.findIndex(c => c?.chain_id === chain_id) > -1).map(a => {
-              const contract = a.contracts.find(c => c?.chain_id === chain_id)
-              const name = contract.symbol || a.symbol || a.name
-              const address = contract.contract_address
-              return { name, address }
-            }),
+          if (!chain_data?.disabled) {
+            const chain_id = chain_data?.chain_id
+            const domain_id = chain_data?.domain_id
+            const rpc_urls = chain_data?.provider_params?.[0]?.rpcUrls?.filter(url => url) || []
+            if (domain_id) {
+              chains_config[domain_id] = {
+                providers: rpc_urls,
+                assets: assets_data.filter(a => a?.contracts?.findIndex(c => c?.chain_id === chain_id) > -1).map(a => {
+                  const contract = a.contracts.find(c => c?.chain_id === chain_id)
+                  const name = contract.symbol || a.symbol || a.name
+                  const address = contract.contract_address
+                  return { name, address }
+                }),
+              }
+            }
+            rpcs_config[chain_id] = new providers.FallbackProvider(rpc_urls.map(url => new providers.JsonRpcProvider(url)))
           }
-          rpcs_config[chain_id] = new providers.FallbackProvider(rpc_urls.map(url => new providers.JsonRpcProvider(url)))
         }
 
         if (!sdk) {

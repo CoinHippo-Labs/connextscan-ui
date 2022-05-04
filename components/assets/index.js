@@ -195,12 +195,6 @@ export default ({ data }) => {
                   <div className="flex items-center justify-end space-x-1.5">
                     <button
                       onClick={() => {}}
-                      className="bg-red-500 hover:bg-red-400 dark:hover:bg-red-600 rounded-xl text-white font-semibold pt-0.5 pb-1 px-2"
-                    >
-                      remove
-                    </button>
-                    <button
-                      onClick={() => {}}
                       className="bg-blue-500 hover:bg-blue-400 dark:hover:bg-blue-600 rounded-xl text-white font-semibold pt-0.5 pb-1 px-2"
                     >
                       add
