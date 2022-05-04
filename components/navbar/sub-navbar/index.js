@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import moment from 'moment'
-import { Img } from 'react-image'
 import { TiArrowRight } from 'react-icons/ti'
 import { FiBox } from 'react-icons/fi'
 import { RiCoinsLine } from 'react-icons/ri'
@@ -108,16 +107,24 @@ export default function SubNavbar() {
     case '/[chain]':
       const _chain_data = chains_data?.find(c => c?.id === chain?.toLowerCase())
       title = (
-        <div className="flex items-center space-x-2">
-          <Img
-            src={chain?.image}
-            alt=""
-            className="w-8 h-8 rounded-full"
-          />
+        <div className="flex items-center space-x-3">
+          {_chain_data?.image && (
+            <Image
+              src={_chain_data.image}
+              alt=""
+              width={24}
+              height={24}
+              className="rounded-full"
+            />
+          )}
           <span>{_chain_data?.short_name || chain}</span>
         </div>
       )
-      subtitle = _chain_data?.name
+      subtitle = (
+        <span className={`${_chain_data?.image ? 'ml-9' : ''}`}>
+          {_chain_data?.name}
+        </span>
+      )
       break
     default:
       break
@@ -132,20 +139,17 @@ export default function SubNavbar() {
           </div>
         )}
         {subtitle && (
-          <div className="text-sm text-gray-400 dark:text-gray-600">
+          <div className="text-sm text-gray-400 dark:text-gray-500">
             {subtitle}
           </div>
         )}
       </div>
       {token_data && (
-        <div className="flex items-center space-x-1.5 mr-4">
+        <div className="bg-gray-100 dark:bg-gray-900 rounded-lg flex items-center space-x-1.5 ml-4 py-2 px-3">
           <div className="min-w-max flex items-center space-x-1.5">
-            <Img
-              src={token_data.image?.thumb}
-              alt=""
-              className="w-5 h-5"
-            />
-            <span className="uppercase font-semibold">{token_data.symbol}</span>
+            <span className="uppercase font-bold">
+              {token_data.symbol}
+            </span>
           </div>
           {typeof token_data.market_data?.current_price?.[currency] === 'number' ?
             <span className="font-mono font-semibold">
@@ -188,7 +192,7 @@ export default function SubNavbar() {
           </Link>
         </>
       )}
-      {!['/router/[address]'].includes(pathname) && (
+      {!address && (
         <>
           {chain_data?.explorer?.url && (
             <a

@@ -46,6 +46,7 @@ export default function App({ Component, pageProps }) {
           <Component { ...pageProps } />
         </Layout>
       </Provider>
+      <div className="text-green-500" />
     </>
   )
 }
