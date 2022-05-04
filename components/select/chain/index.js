@@ -36,7 +36,7 @@ export default ({
       disabled={disabled}
       onClick={open => setHidden(!open)}
       buttonTitle={chains_data ?
-        <div className="bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 rounded-xl shadow flex items-center justify-center text-lg space-x-1.5 py-2 px-3">
+        <div className="bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 rounded-xl shadow flex items-center justify-center space-x-1.5 py-2 px-3">
           {chain_data && (
             <Image
               src={chain_data.image}

@@ -187,22 +187,6 @@ export default ({ data }) => {
                 ),
                 headerClassName: 'whitespace-nowrap justify-end text-right',
               },
-              {
-                Header: 'Action',
-                accessor: null,
-                disableSortBy: true,
-                Cell: props => (
-                  <div className="flex items-center justify-end space-x-1.5">
-                    <button
-                      onClick={() => {}}
-                      className="bg-blue-500 hover:bg-blue-400 dark:hover:bg-blue-600 rounded-xl text-white font-semibold pt-0.5 pb-1 px-2"
-                    >
-                      add
-                    </button>
-                  </div>
-                ),
-                headerClassName: 'justify-end',
-              },
             ]}
             data={assets_data_filtered_mapped}
             noPagination={assets_data_filtered_mapped.length <= 10}

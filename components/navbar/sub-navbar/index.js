@@ -11,18 +11,16 @@ import { RiCoinsLine } from 'react-icons/ri'
 import Image from '../../image'
 import Copy from '../../copy'
 import EnsProfile from '../../ens-profile'
-import Wallet from '../../wallet'
+import AddRouterLiquidity from '../../add-router-liquidity'
 import { currency, currency_symbol } from '../../../lib/object/currency'
 import { number_format, ellipse } from '../../../lib/utils'
 
 export default function SubNavbar() {
-  const { chains, assets, _chain, asset_balances, wallet } = useSelector(state => ({ chains: state.chains, assets: state.assets, _chain: state.chain, asset_balances: state.asset_balances, wallet: state.wallet }), shallowEqual)
+  const { chains, assets, _chain, asset_balances } = useSelector(state => ({ chains: state.chains, assets: state.assets, _chain: state.chain, asset_balances: state.asset_balances }), shallowEqual)
   const { chains_data } = { ...chains }
   const { assets_data } = { ...assets }
   const { chain_data } = { ..._chain }
   const { asset_balances_data } = { ...asset_balances }
-  const { wallet_data } = { ...wallet }
-  const wallet_address = wallet_data?.address
 
   const router = useRouter()
   const { pathname, query } = { ...router }
@@ -87,8 +85,9 @@ export default function SubNavbar() {
         />
       )
       title = (
-        <div className="flex flex-wrap items-center space-x-2">
+        <div className="flex flex-wrap items-center space-x-3">
           {title}
+          <AddRouterLiquidity />
         </div>
       )
       subtitle = (
@@ -213,32 +212,6 @@ export default function SubNavbar() {
               <TiArrowRight size={18} className="transform -rotate-45 mt-0.5" />
             </a>
           )}
-        </>
-      )}
-      {['/router/[address]'].includes(pathname) && (
-        <>
-          <div className="hidden sm:block ml-4">
-            <EnsProfile
-              address={wallet_address}
-              fallback={wallet_address && (
-                <Copy
-                  value={wallet_address}
-                  title={<span className="text-sm text-gray-400 dark:text-gray-200">
-                    <span className="xl:hidden">
-                      {ellipse(wallet_address, 8)}
-                    </span>
-                    <span className="hidden xl:block">
-                      {ellipse(wallet_address, 12)}
-                    </span>
-                  </span>}
-                  size={18}
-                />
-              )}
-            />
-          </div>
-          <div className="ml-auto sm:ml-4 -mr-1.5 sm:-mr-3.5">
-            <Wallet />
-          </div>
         </>
       )}
     </div>
