@@ -45,6 +45,7 @@ export default ({ disabled = false }) => {
       options: chains_data?.map(c => {
         return {
           value: c.id,
+          title: c.name,
           name: c.name,
         }
       }) || [],
