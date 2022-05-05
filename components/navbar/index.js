@@ -18,7 +18,7 @@ import { ens as getEns } from '../../lib/api/ens'
 import { coin } from '../../lib/api/coingecko'
 import { assetBalances } from '../../lib/api/subgraph'
 import { connext } from '../../lib/object/chain'
-import { CHAINS_DATA, ASSETS_DATA, ENS_DATA, CHAIN_DATA, CHAINS_STATUS_DATA, ASSET_BALANCES_DATA, SDK, RPCS } from '../../reducers/types'
+import { CHAINS_DATA, ASSETS_DATA, ENS_DATA, CHAIN_DATA, ASSET_BALANCES_DATA, SDK, RPCS } from '../../reducers/types'
 
 export default function Navbar() {
   const dispatch = useDispatch()
@@ -177,32 +177,6 @@ export default function Navbar() {
     }
     init()
   }, [chains_data, assets_data])
-
-  // chains status
-  useEffect(() => {
-    const getChainStatus = async chain_data => {
-      if (chain_data) {
-        // const response = await sdk.getSubgraphSyncStatus(chain_data.chain_id)
-        // dispatch({
-        //   type: CHAINS_STATUS_DATA,
-        //   value: response?.latestBlock > -1 && {
-        //     chain: chain_data,
-        //     ...response,
-        //   },
-        // })
-      }
-    }
-    const getData = async () => {
-      if (sdk && chains_data) {
-        chains_data.filter(c => !c?.disabled).forEach(c => getChainStatus(c))
-      }
-    }
-    setTimeout(() => getData(), 15 * 1000)
-    const interval = setInterval(() => getData(), 5 * 60 * 1000)
-    return () => {
-      clearInterval(interval)
-    }
-  }, [sdk])
 
   // assets balances
   useEffect(() => {

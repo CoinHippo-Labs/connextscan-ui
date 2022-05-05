@@ -37,9 +37,6 @@ export default function SubNavbar() {
     case '/routers':
       title = 'Routers'
       break
-    case '/status':
-      title = 'Status'
-      break
     case '/tx/[tx]':
       title = 'Transaction'
       subtitle = (
@@ -168,7 +165,7 @@ export default function SubNavbar() {
       <span className="sm:ml-auto" />
       {asset_balances_data && (
         <>
-          <Link href="/status">
+          <Link href="/">
             <a className="flex items-center text-blue-600 dark:text-white space-x-1.5 ml-4">
               <FiBox size={18} />
               <span className="space-x-1">

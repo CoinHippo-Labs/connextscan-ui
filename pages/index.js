@@ -18,6 +18,6 @@ export default () => {
     router.push(is_route_exist(_asPath) ? asPath : '/')
   }
   return !ssr && (
-    <Bridge />
+    <div />
   )
 }

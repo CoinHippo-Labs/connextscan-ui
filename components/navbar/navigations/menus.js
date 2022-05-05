@@ -1,5 +1,5 @@
 import { RiBarChartBoxLine } from 'react-icons/ri'
-import { BiFileBlank, BiHeartCircle, BiTransfer } from 'react-icons/bi'
+import { BiFileBlank, BiTransfer } from 'react-icons/bi'
 import { MdOutlineRouter } from 'react-icons/md'
 
 export default [
@@ -20,12 +20,6 @@ export default [
     title: 'Routers',
     path: '/routers',
     icon: <MdOutlineRouter size={20} className="stroke-current" />,
-  },
-  {
-    id: 'status',
-    title: 'Status',
-    path: '/status',
-    icon: <BiHeartCircle size={20} className="stroke-current" />,
   },
   {
     id: 'bridge',

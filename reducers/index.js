@@ -5,7 +5,6 @@ import chains from './chains'
 import assets from './assets'
 import ens from './ens'
 import chain from './chain'
-import chains_status from './chains-status'
 import asset_balances from './asset-balances'
 import stats from './stats'
 import transactions from './transactions'
@@ -20,7 +19,6 @@ export default combineReducers({
   assets,
   ens,
   chain,
-  chains_status,
   asset_balances,
   stats,
   transactions,
