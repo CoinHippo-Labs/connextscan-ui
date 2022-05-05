@@ -148,11 +148,11 @@ export default ({ disabled = false }) => {
         )}
       </div>}
       onCancel={() => reset()}
-      confirmButtonTitle="Add"
       onConfirm={() => {
         
       }}
       onConfirmHide={false}
+      confirmButtonTitle="Add"
       onClose={() => reset()}
       noButtons={!hasAllFields || !web3_provider}
     />
