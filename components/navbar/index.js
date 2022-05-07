@@ -30,7 +30,7 @@ export default function Navbar() {
   const { sdk } = { ...dev }
   const { rpcs } = { ...rpc_providers }
   const { wallet_data } = { ...wallet }
-  const { address, signer } = { ...wallet_data }
+  const { chain_id, address, signer } = { ...wallet_data }
 
   const router = useRouter()
   const { pathname, query } = { ...router }
@@ -159,15 +159,14 @@ export default function Navbar() {
         }
 
         if (!sdk) {
-          const _signer = signer || Wallet.createRandom()
           dispatch({
             type: SDK,
             value: await NxtpSdk.create({
               chains: chains_config,
-              signerAddress: _signer.address,
+              signerAddress: address || Wallet.createRandom().address,
               logLevel: 'info',
               network: process.env.NEXT_PUBLIC_ENVIRONMENT,
-            }, _signer),
+            }, signer || undefined),
           })
         }
         if (!rpcs) {
@@ -184,10 +183,9 @@ export default function Navbar() {
   // change signer
   useEffect(() => {
     if (sdk) {
-      const _signer = signer || Wallet.createRandom()
-      sdk.changeInjectedSigner(_signer)
+      sdk.changeInjectedSigner(signer)
     }
-  }, [signer])
+  }, [chain_id, address])
 
   // assets balances
   useEffect(() => {
