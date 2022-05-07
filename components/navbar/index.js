@@ -184,6 +184,10 @@ export default function Navbar() {
   useEffect(() => {
     if (sdk) {
       sdk.changeInjectedSigner(signer)
+      dispatch({
+        type: SDK,
+        value: sdk,
+      })
     }
   }, [chain_id, address])
 
