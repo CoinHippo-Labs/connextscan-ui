@@ -22,13 +22,15 @@ import { CHAINS_DATA, ASSETS_DATA, ENS_DATA, CHAIN_DATA, ASSET_BALANCES_DATA, SD
 
 export default function Navbar() {
   const dispatch = useDispatch()
-  const { chains, assets, ens, asset_balances, dev, rpc_providers } = useSelector(state => ({ chains: state.chains, assets: state.assets, ens: state.ens, asset_balances: state.asset_balances, dev: state.dev, rpc_providers: state.rpc_providers }), shallowEqual)
+  const { chains, assets, ens, asset_balances, dev, rpc_providers, wallet } = useSelector(state => ({ chains: state.chains, assets: state.assets, ens: state.ens, asset_balances: state.asset_balances, dev: state.dev, rpc_providers: state.rpc_providers, wallet: state.wallet }), shallowEqual)
   const { chains_data } = { ...chains }
   const { assets_data } = { ...assets }
   const { ens_data } = { ...ens }
   const { asset_balances_data } = { ...asset_balances }
   const { sdk } = { ...dev }
   const { rpcs } = { ...rpc_providers }
+  const { wallet_data } = { ...wallet }
+  const { address, signer } = { ...wallet_data }
 
   const router = useRouter()
   const { pathname, query } = { ...router }
@@ -157,14 +159,15 @@ export default function Navbar() {
         }
 
         if (!sdk) {
+          const _signer = signer || Wallet.createRandom()
           dispatch({
             type: SDK,
-            value: NxtpSdk.create({
+            value: await NxtpSdk.create({
               chains: chains_config,
-              signerAddress: Wallet.createRandom().address,
+              signerAddress: _signer.address,
               logLevel: 'info',
               network: process.env.NEXT_PUBLIC_ENVIRONMENT,
-            }),
+            }, _signer),
           })
         }
         if (!rpcs) {
@@ -177,6 +180,14 @@ export default function Navbar() {
     }
     init()
   }, [chains_data, assets_data])
+
+  // change signer
+  useEffect(() => {
+    if (sdk) {
+      const _signer = signer || Wallet.createRandom()
+      sdk.changeInjectedSigner(_signer)
+    }
+  }, [signer])
 
   // assets balances
   useEffect(() => {
