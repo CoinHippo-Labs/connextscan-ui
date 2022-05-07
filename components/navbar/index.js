@@ -22,13 +22,13 @@ import { CHAINS_DATA, ASSETS_DATA, ENS_DATA, CHAIN_DATA, ASSET_BALANCES_DATA, SD
 
 export default function Navbar() {
   const dispatch = useDispatch()
-  const { chains, assets, ens, asset_balances, dev, rpc_providers, wallet } = useSelector(state => ({ chains: state.chains, assets: state.assets, ens: state.ens, asset_balances: state.asset_balances, dev: state.dev, rpc_providers: state.rpc_providers, wallet: state.wallet }), shallowEqual)
+  const { chains, assets, ens, asset_balances, rpc_providers, dev, wallet } = useSelector(state => ({ chains: state.chains, assets: state.assets, ens: state.ens, asset_balances: state.asset_balances, rpc_providers: state.rpc_providers, dev: state.dev, wallet: state.wallet }), shallowEqual)
   const { chains_data } = { ...chains }
   const { assets_data } = { ...assets }
   const { ens_data } = { ...ens }
   const { asset_balances_data } = { ...asset_balances }
-  const { sdk } = { ...dev }
   const { rpcs } = { ...rpc_providers }
+  const { sdk } = { ...dev }
   const { wallet_data } = { ...wallet }
   const { chain_id, address, signer } = { ...wallet_data }
 
@@ -132,11 +132,35 @@ export default function Navbar() {
     }
   }, [chains_data, chain])
 
-  // sdk & rpcs
+  // rpcs
+  useEffect(() => {
+    const init = async => {
+      if (chains_data) {
+        const _rpcs = {}
+        for (let i = 0; i < chains_data.length; i++) {
+          const chain_data = chains_data[i]
+          if (!chain_data?.disabled) {
+            const chain_id = chain_data?.chain_id
+            const rpc_urls = chain_data?.provider_params?.[0]?.rpcUrls?.filter(url => url) || []
+            _rpcs[chain_id] = new providers.FallbackProvider(rpc_urls.map(url => new providers.JsonRpcProvider(url)))
+          }
+        }
+        if (!rpcs) {
+          dispatch({
+            type: RPCS,
+            value: _rpcs,
+          })
+        }
+      }
+    }
+    init()
+  }, [chains_data])
+
+  // sdk
   useEffect(() => {
     const init = async () => {
-      if (chains_data && assets_data?.findIndex(a => a.price) < 0) {
-        const chains_config = {}, rpcs_config = {}
+      if (chains_data && assets_data?.findIndex(a => !a.price) < 0) {
+        const chains_config = {}
         for (let i = 0; i < chains_data.length; i++) {
           const chain_data = chains_data[i]
           if (!chain_data?.disabled) {
@@ -154,42 +178,21 @@ export default function Navbar() {
                 }),
               }
             }
-            rpcs_config[chain_id] = new providers.FallbackProvider(rpc_urls.map(url => new providers.JsonRpcProvider(url)))
           }
         }
-
-        if (!sdk) {
-          dispatch({
-            type: SDK,
-            value: await NxtpSdk.create({
-              chains: chains_config,
-              signerAddress: address || Wallet.createRandom().address,
-              logLevel: 'info',
-              network: process.env.NEXT_PUBLIC_ENVIRONMENT,
-            }, signer || undefined),
-          })
-        }
-        if (!rpcs) {
-          dispatch({
-            type: RPCS,
-            value: rpcs_config,
-          })
-        }
+        dispatch({
+          type: SDK,
+          value: await NxtpSdk.create({
+            chains: chains_config,
+            signerAddress: address || Wallet.createRandom().address,
+            logLevel: 'info',
+            network: process.env.NEXT_PUBLIC_ENVIRONMENT,
+          }, signer),
+        })
       }
     }
     init()
-  }, [chains_data, assets_data])
-
-  // change signer
-  useEffect(() => {
-    if (sdk) {
-      sdk.changeInjectedSigner(signer)
-      dispatch({
-        type: SDK,
-        value: sdk,
-      })
-    }
-  }, [chain_id, address])
+  }, [chains_data, assets_data, address])
 
   // assets balances
   useEffect(() => {

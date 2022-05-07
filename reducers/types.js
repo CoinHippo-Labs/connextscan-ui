@@ -22,11 +22,11 @@ export const STATS_DATA = 'stats_data'
 // transactions
 export const TRANSACTIONS_DATA = 'transactions_data'
 
-// sdk
-export const SDK = 'sdk'
-
 // rpc
 export const RPCS = 'rpcs'
+
+// sdk
+export const SDK = 'sdk'
 
 // wallet
 export const WALLET_DATA = 'wallet_data'

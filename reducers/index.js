@@ -8,8 +8,8 @@ import chain from './chain'
 import asset_balances from './asset-balances'
 import stats from './stats'
 import transactions from './transactions'
-import dev from './dev'
 import rpc_providers from './rpc-providers'
+import dev from './dev'
 import wallet from './wallet'
 import chain_id from './chain-id'
 
@@ -22,8 +22,8 @@ export default combineReducers({
   asset_balances,
   stats,
   transactions,
-  dev,
   rpc_providers,
+  dev,
   wallet,
   chain_id,
 })
