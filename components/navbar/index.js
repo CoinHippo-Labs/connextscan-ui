@@ -243,11 +243,15 @@ export default function Navbar() {
   return (
     <>
       <div className="navbar">
-        <div className="navbar-inner w-full sm:h-20 flex items-center justify-between">
-          <Logo />
-          <DropdownNavigations />
-          <Navigations />
+        <div className="navbar-inner w-full sm:h-20 flex xl:grid xl:grid-flow-row xl:grid-cols-3 items-center justify-between gap-4">
           <div className="flex items-center">
+            <Logo />
+            <DropdownNavigations />
+          </div>
+          <div className="flex items-center justify-center">
+            <Navigations />
+          </div>
+          <div className="flex items-center justify-end">
             <Search />
             <Chains />
             <Theme />
