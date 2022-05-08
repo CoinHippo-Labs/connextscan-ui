@@ -16,7 +16,9 @@ export default function Items({ onClick }) {
         const item = (
           <>
             {m.icon}
-            <span className="text-xs">{m.title}</span>
+            <span className="text-xs">
+              {m.title}
+            </span>
           </>
         )
         const right_icon = m.emphasize ?

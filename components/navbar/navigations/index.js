@@ -16,7 +16,9 @@ export default function Navigations() {
         const item = (
           <>
             {m.icon}
-            <span className="whitespace-nowrap">{m.title}</span>
+            <span className="whitespace-nowrap">
+              {m.title}
+            </span>
           </>
         )
         const right_icon = m.emphasize ?
