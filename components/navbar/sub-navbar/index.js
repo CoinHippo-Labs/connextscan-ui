@@ -61,7 +61,7 @@ export default function SubNavbar() {
       subtitle = (
         <Copy
           value={address}
-          title={<span className="text-sm xl:text-base text-gray-400 dark:text-gray-200">
+          title={<span className="text-sm xl:text-base text-slate-400 dark:text-slate-200">
             <span className="xl:hidden">
               {ellipse(address, 12)}
             </span>
@@ -89,7 +89,7 @@ export default function SubNavbar() {
       subtitle = (
         <Copy
           value={address}
-          title={<span className="text-sm xl:text-base text-gray-400 dark:text-gray-200">
+          title={<span className="text-sm xl:text-base text-slate-400 dark:text-slate-200">
             <span className="xl:hidden">
               {ellipse(address, 12)}
             </span>
@@ -136,13 +136,13 @@ export default function SubNavbar() {
           </div>
         )}
         {subtitle && (
-          <div className="text-sm text-gray-400 dark:text-gray-500">
+          <div className="text-sm text-slate-400 dark:text-slate-500">
             {subtitle}
           </div>
         )}
       </div>
       {token_data && (
-        <div className="bg-gray-100 dark:bg-gray-900 rounded-lg flex items-center space-x-1.5 ml-4 py-2 px-3">
+        <div className="bg-slate-100 dark:bg-slate-900 rounded-lg flex items-center space-x-1.5 ml-4 py-2 px-3">
           <div className="min-w-max flex items-center space-x-1.5">
             <span className="uppercase font-bold">
               {token_data.symbol}

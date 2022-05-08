@@ -78,7 +78,7 @@ export default ({ disabled = false }) => {
     <Modal
       disabled={disabled}
       buttonTitle={address ?
-        <div className="bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 rounded-lg shadow flex items-center justify-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-100 space-x-1.5 py-1.5 px-2">
+        <div className="bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 rounded-lg shadow flex items-center justify-center text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-100 space-x-1.5 py-1.5 px-2">
           <span className="text-xs font-semibold">
             Manage Router
           </span>
@@ -92,7 +92,7 @@ export default ({ disabled = false }) => {
         {fields.map((f, i) => (
           <div key={i} className="form-element">
             {f.label && (
-              <div className="form-label text-gray-600 dark:text-gray-400 font-medium">
+              <div className="form-label text-slate-600 dark:text-slate-400 font-medium">
                 {f.label}
               </div>
             )}
@@ -101,7 +101,7 @@ export default ({ disabled = false }) => {
                 placeholder={f.placeholder}
                 value={data?.[f.name]}
                 onChange={e => setData({ ...data, [`${f.name}`]: e.target.value })}
-                className="form-select bg-gray-50 border-0 focus:ring-0 rounded-lg"
+                className="form-select bg-slate-50 border-0 focus:ring-0 rounded-lg"
               >
                 {f.options?.map((o, i) => (
                   <option
@@ -131,7 +131,7 @@ export default ({ disabled = false }) => {
               fallback={wallet_address && (
                 <Copy
                   value={wallet_address}
-                  title={<span className="text-sm text-gray-400 dark:text-gray-200">
+                  title={<span className="text-sm text-slate-400 dark:text-slate-200">
                     <span className="xl:hidden">
                       {ellipse(wallet_address, 8)}
                     </span>

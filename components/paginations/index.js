@@ -5,7 +5,7 @@ export const PageWithText = ({
   active,
   onClick,
   activeClassNames = 'btn btn-default bg-blue-600 hover:bg-blue-500 rounded-lg text-white',
-  inactiveClassNames = 'btn btn-default bg-gray-100 hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-100',
+  inactiveClassNames = 'btn btn-default bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 rounded-lg text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-100',
   children,
 }) => (
   <button
@@ -22,7 +22,7 @@ export const Page = ({
   active,
   onClick,
   activeClassNames = 'btn btn-circle bg-blue-600 hover:bg-blue-500 text-white',
-  inactiveClassNames = 'btn btn-circle bg-gray-100 hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-100',
+  inactiveClassNames = 'btn btn-circle bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-100',
   children,
 }) => (
   <button
@@ -48,7 +48,7 @@ export const Pages = ({
           key={i}
           className={`${hide(i - 1) ? 'hidden' : ''}`}
         >
-          <BsThreeDots size={20} className="text-gray-300 dark:text-gray-600 mt-1.5" />
+          <BsThreeDots size={20} className="text-slate-300 dark:text-slate-600 mt-1.5" />
         </div>
         :
         <Page

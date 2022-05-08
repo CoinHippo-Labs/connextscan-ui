@@ -63,7 +63,7 @@ export default function Layout({ children }) {
         className={`antialiased disable-scrollbars font-sans text-sm ${theme}`}
       >
         <div className="wrapper">
-          <div className="main w-full bg-gray-50 dark:bg-black text-gray-900 dark:text-white" style={{ minHeight: 'calc(100vh - 44px)' }}>
+          <div className="main w-full bg-slate-50 dark:bg-black text-slate-900 dark:text-white" style={{ minHeight: 'calc(100vh - 44px)' }}>
             <Navbar />
             <div className="w-full px-2 sm:px-4">
               {children}

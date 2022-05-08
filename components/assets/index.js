@@ -101,7 +101,7 @@ export default ({ data }) => {
                       <div className="text-base font-semibold">
                         {props.value}
                       </div>
-                      <div className="whitespace-nowrap text-gray-400 dark:text-gray-500 text-xs">
+                      <div className="whitespace-nowrap text-slate-400 dark:text-slate-500 text-xs">
                         {props.row.original.name}
                       </div>
                     </div>
@@ -175,7 +175,7 @@ export default ({ data }) => {
                       <span className="text-base font-bold">
                         {number_format(props.value, props.value > 1000 ? '0,0' : '0,0.00')}
                       </span>
-                      <span className="font-mono uppercase text-gray-400 dark:text-gray-500 text-xs font-semibold">
+                      <span className="font-mono uppercase text-slate-400 dark:text-slate-500 text-xs font-semibold">
                         {currency_symbol}{number_format(props.row.original.value, props.row.original.value > 100000 ? '0,0.00a' : props.row.original.value > 1000 ? '0,0' : '0,0.00')}
                       </span>
                     </div>
