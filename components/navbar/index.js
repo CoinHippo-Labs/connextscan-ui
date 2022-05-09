@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import { useSelector, useDispatch, shallowEqual } from 'react-redux'
 import _ from 'lodash'
-import { NxtpSdk } from '@connext/nxtp-sdk'
+import { create } from '@connext/nxtp-sdk'
 import { Bignumber, Wallet, providers, utils } from 'ethers'
 
 import Logo from './logo'
@@ -16,7 +16,6 @@ import { chains as getChains, assets as getAssets } from '../../lib/api/config'
 import { tokens as getTokens } from '../../lib/api/tokens'
 import { ens as getEns } from '../../lib/api/ens'
 import { coin } from '../../lib/api/coingecko'
-import { assetBalances } from '../../lib/api/subgraph'
 import { connext } from '../../lib/object/chain'
 import { CHAINS_DATA, ASSETS_DATA, ENS_DATA, CHAIN_DATA, ASSET_BALANCES_DATA, SDK, RPCS } from '../../reducers/types'
 
@@ -182,17 +181,17 @@ export default function Navbar() {
         }
         dispatch({
           type: SDK,
-          value: await NxtpSdk.create({
+          value: await create({
             chains: chains_config,
             signerAddress: address || Wallet.createRandom().address,
             logLevel: 'info',
             network: process.env.NEXT_PUBLIC_ENVIRONMENT,
-          }, signer),
+          }),
         })
       }
     }
     init()
-  }, [chains_data, assets_data, address])
+  }, [chains_data, assets_data])
 
   // assets balances
   useEffect(() => {
