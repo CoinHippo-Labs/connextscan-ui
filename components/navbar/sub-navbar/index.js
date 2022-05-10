@@ -5,7 +5,7 @@ import _ from 'lodash'
 import moment from 'moment'
 import { TiArrowRight } from 'react-icons/ti'
 import { FiBox } from 'react-icons/fi'
-import { RiCoinsLine } from 'react-icons/ri'
+import { RiCompassDiscoverLine, RiCoinsLine } from 'react-icons/ri'
 
 import Image from '../../image'
 import Copy from '../../copy'
@@ -163,34 +163,45 @@ export default function SubNavbar() {
         </div>
       )}
       <span className="sm:ml-auto" />
-      {asset_balances_data && (
-        <>
-          <Link href="/">
-            <a className="flex items-center text-blue-600 dark:text-white space-x-1.5 ml-4">
-              <FiBox size={18} />
-              <span className="space-x-1">
-                <span className="font-mono font-semibold">
-                  {number_format(Object.keys(asset_balances_data).length, '0,0')}
-                </span>
-                <span className="uppercase font-semibold">chains</span>
-              </span>
-            </a>
-          </Link>
-          <Link href="/routers">
-            <a className="flex items-center text-blue-600 dark:text-white space-x-1.5 ml-4">
-              <RiCoinsLine size={18} />
-              <span className="space-x-1">
-                <span className="font-mono font-semibold">
-                  {number_format(_.uniq(Object.values(asset_balances_data).flatMap(v => v?.map(_v => _v)).filter(a => a?.asset_data?.id)).length, '0,0')}
-                </span>
-                <span className="uppercase font-semibold">assets</span>
-              </span>
-            </a>
-          </Link>
-        </>
-      )}
       {!address && (
         <>
+          {asset_balances_data && (
+            <>
+              <Link href="/">
+                <a className="flex items-center text-blue-600 dark:text-white space-x-1.5 ml-4">
+                  <FiBox size={18} />
+                  <span className="space-x-1">
+                    <span className="font-mono font-semibold">
+                      {number_format(Object.keys(asset_balances_data).length, '0,0')}
+                    </span>
+                    <span className="uppercase font-semibold">chains</span>
+                  </span>
+                </a>
+              </Link>
+              <Link href="/routers">
+                <a className="flex items-center text-blue-600 dark:text-white space-x-1.5 ml-4">
+                  <RiCompassDiscoverLine size={18} />
+                  <span className="space-x-1">
+                    <span className="font-mono font-semibold">
+                      {number_format(_.uniq(Object.values(asset_balances_data).flatMap(v => v?.map(_v => _v)).map(a => a?.router_address?.toLowerCase()).filter(a => a)).length, '0,0')}
+                    </span>
+                    <span className="uppercase font-semibold">routers</span>
+                  </span>
+                </a>
+              </Link>
+              <Link href="/routers">
+                <a className="flex items-center text-blue-600 dark:text-white space-x-1.5 ml-4">
+                  <RiCoinsLine size={18} />
+                  <span className="space-x-1">
+                    <span className="font-mono font-semibold">
+                      {number_format(_.uniq(Object.values(asset_balances_data).flatMap(v => v?.map(_v => _v)).map(a => a?.asset_data?.id).filter(a => a)).length, '0,0')}
+                    </span>
+                    <span className="uppercase font-semibold">assets</span>
+                  </span>
+                </a>
+              </Link>
+            </>
+          )}
           {chain_data?.explorer?.url && (
             <a
               href={chain_data.explorer.url}

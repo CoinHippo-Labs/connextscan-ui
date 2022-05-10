@@ -12,7 +12,7 @@ import Copy from '../copy'
 import EnsProfile from '../ens-profile'
 import { ellipse, loader_color } from '../../lib/utils'
 
-export default ({ disabled = false }) => {
+export default () => {
   const { preferences, chains, assets, dev, wallet } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, assets: state.assets, dev: state.dev, wallet: state.wallet }), shallowEqual)
   const { theme } = { ...preferences }
   const { chains_data } = { ...chains }
@@ -27,6 +27,10 @@ export default ({ disabled = false }) => {
   const { address } = { ...query }
 
   const [data, setData] = useState(null)
+
+  const [approving, setApproving] = useState(null)
+  const [approveResponse, setApproveResponse] = useState(null)
+
   const [adding, setAdding] = useState(null)
   const [addResponse, setAddResponse] = useState(null)
 
@@ -42,6 +46,10 @@ export default ({ disabled = false }) => {
 
   const reset = () => {
     setData(null)
+
+    setApproving(null)
+    setApproveResponse(null)
+
     setAdding(false)
     setAddResponse(null)
   }
@@ -55,26 +63,55 @@ export default ({ disabled = false }) => {
       const contract_data = asset_data?.contracts?.find(c => c?.chain_id === chain_data?.chain_id)
       const symbol = contract_data?.symbol || asset_data?.symbol
       const decimals = contract_data?.contract_decimals || 18
+      const addParams = {
+        domain: chain_data?.domain_id?.toString(),
+        amount: utils.parseUnits(amount?.toString() || '0', decimals).toString(),
+        assetId: contract_data?.contract_address,
+        _router: address,
+      }
+      let failed = false
       try {
-        const add_request = await sdk.nxtpSdkRouter.addLiquidityForRouter({
-          domain: chain_data?.domain_id?.toString(),
-          amount: utils.parseUnits(amount?.toString() || '0', decimals).toString(),
-          assetId: contract_data?.contract_address,
-          _router: address,
-        })
-        if (add_request) {
-          const add_response = await signer.sendTransaction(add_request)
-          const tx_hash = add_response?.hash
-          setAddResponse({ status: 'pending', message: `Wait for adding ${symbol} liquidity`, tx_hash })
-          const add_receipt = await signer.provider.waitForTransaction(tx_hash)
-          setAddResponse({
-            status: add_receipt?.status ? 'success' : 'failed',
-            message: add_receipt?.status ? `add ${symbol} liquidity successful` : `Failed to add ${symbol} liquidity`,
-            tx_hash,
-          })
+        const approve_request = await sdk.nxtpSdkBase.approveIfNeeded(addParams.domain, addParams.assetId, addParams.amount, false)
+        if (approve_request) {
+          setApproving(true)
+          const approve_response = await signer.sendTransaction(approve_request)
+          const tx_hash = approve_response?.hash
+          setApproveResponse({ status: 'pending', message: `Wait for ${source_symbol} approval`, tx_hash })
+          const approve_receipt = await signer.provider.waitForTransaction(tx_hash)
+          setApproveResponse(approve_receipt?.status ?
+            null : {
+              status: 'failed',
+              message: `Failed to approve ${source_symbol}`,
+              tx_hash,
+            }
+          )
+          failed = !approve_receipt?.status
+          setApproving(false)
         }
       } catch (error) {
-        setAddResponse({ status: 'failed', message: error?.data?.message || error?.message })
+        setApproveResponse({ status: 'failed', message: error?.data?.message || error?.message })
+        failed = true
+        setApproving(false)
+      }
+      if (!failed) {
+        try {
+          const add_request = await sdk.nxtpSdkRouter.addLiquidityForRouter(addParams)
+          if (add_request) {
+            const add_response = await signer.sendTransaction(add_request)
+            const tx_hash = add_response?.hash
+            setAddResponse({ status: 'pending', message: `Wait for adding ${symbol} liquidity`, tx_hash })
+            const add_receipt = await signer.provider.waitForTransaction(tx_hash)
+            setAddResponse({
+              status: add_receipt?.status ? 'success' : 'failed',
+              message: add_receipt?.status ? `add ${symbol} liquidity successful` : `Failed to add ${symbol} liquidity`,
+              tx_hash,
+            })
+            failed = !add_receipt?.status
+          }
+        } catch (error) {
+          setAddResponse({ status: 'failed', message: error?.data?.message || error?.message })
+          failed = true
+        }
       }
       setAdding(false)
     }
@@ -117,31 +154,34 @@ export default ({ disabled = false }) => {
   ]
 
   const chain_data = chains_data?.find(c => c?.id === data?.chain)
+  const notificationResponse = addResponse || approveResponse
+
   const hasAllFields = fields.length === fields.filter(f => data?.[f.name]).length
+  const disabled = adding || approving
 
   return (
     <>
-      {addResponse && (
+      {notificationResponse && (
         <Notification
           hideButton={true}
           outerClassNames="w-full h-auto z-50 transform fixed top-0 left-0 p-0"
-          innerClassNames={`${addResponse.status === 'failed' ? 'bg-red-500 dark:bg-red-600' : addResponse.status === 'success' ? 'bg-green-500 dark:bg-green-600' : 'bg-blue-600 dark:bg-blue-700'} text-white`}
+          innerClassNames={`${notificationResponse.status === 'failed' ? 'bg-red-500 dark:bg-red-600' : notificationResponse.status === 'success' ? 'bg-green-500 dark:bg-green-600' : 'bg-blue-600 dark:bg-blue-700'} text-white`}
           animation="animate__animated animate__fadeInDown"
-          icon={addResponse.status === 'failed' ?
+          icon={notificationResponse.status === 'failed' ?
             <BiMessageError className="w-4 h-4 stroke-current mr-2" />
             :
-            addResponse.status === 'success' ?
+            notificationResponse.status === 'success' ?
               <BiMessageCheck className="w-4 h-4 stroke-current mr-2" />
               :
               <Watch color="white" width="16" height="16" className="mr-2" />
           }
           content={<div className="flex flex-wrap items-center space-x-1.5">
             <span>
-              {addResponse.message}
+              {notificationResponse.message}
             </span>
-            {chain_data?.explorer?.url && addResponse.tx_hash && (
+            {chain_data?.explorer?.url && notificationResponse.tx_hash && (
               <a
-                href={`${chain_data.explorer.url}${chain_data.explorer.transaction_path?.replace('{tx}', addResponse.tx_hash)}`}
+                href={`${chain_data.explorer.url}${chain_data.explorer.transaction_path?.replace('{tx}', notificationResponse.tx_hash)}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -225,17 +265,17 @@ export default ({ disabled = false }) => {
             </div>
           )}
         </div>}
-        cancelDisabled={adding}
+        cancelDisabled={disabled}
         onCancel={() => reset()}
-        confirmDisabled={adding}
+        confirmDisabled={disabled}
         onConfirm={() => addLiquidty()}
         onConfirmHide={false}
         confirmButtonTitle={<span className="flex items-center justify-center space-x-1.5">
-          {adding && (
-            <TailSpin color="white" width="18" height="18" />
+          {(adding || approving) && (
+            <TailSpin color="white" width="20" height="20" />
           )}
           <span>
-            {adding ? 'Adding' : 'Add'}
+            {adding ? approving ? 'Approving' : 'Adding' : 'Add'}
           </span>
         </span>}
         onClose={() => reset()}

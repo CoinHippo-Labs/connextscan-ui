@@ -32,7 +32,7 @@ export default () => {
       const getData = async is_interval => {
         const response = await sdk.nxtpSdkUtils.getRoutersData()
         if (response || !is_interval) {
-          setLiquidity(response?.filter(l => equals_ignore_case(l?.router_address, address)).map(l => {
+          const data = response?.filter(l => equals_ignore_case(l?.router_address, address)).map(l => {
             const chain_data = chains_data?.find(c => c?.domain_id?.toString() === l?.domain)
             return {
               ...l,
@@ -40,7 +40,8 @@ export default () => {
               contract_address: l?.adopted,
               amount: BigInt(Number(l?.balance) || 0).toString(),
             }
-          }))
+          }) || []
+          setLiquidity(data)
         }
       }
       getData()

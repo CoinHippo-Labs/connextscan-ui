@@ -28,7 +28,7 @@ export default function Search() {
 
   useEffect(() => {
     if (asset_balances_data) {
-      setRouterIds(_.uniq(Object.values(asset_balances_data).flatMap(a => a || []).map(a => a?.router?.id).filter(a => a)))
+      setRouterIds(_.uniq(Object.values(asset_balances_data).flatMap(a => a || []).map(a => a?.router_address).filter(a => a)))
     }
   }, [asset_balances_data])
 
