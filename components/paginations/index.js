@@ -64,7 +64,7 @@ export const Pages = ({
   )
 }
 
-export default ({
+export const Pagination = ({
   items,
   disabled = false,
   active,

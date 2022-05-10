@@ -243,7 +243,7 @@ export default function Navbar() {
   return (
     <>
       <div className="navbar">
-        <div className="navbar-inner w-full sm:h-20 flex xl:grid xl:grid-flow-row xl:grid-cols-3 items-center justify-between gap-4">
+        <div className="navbar-inner w-full sm:h-20 flex items-center justify-between">
           <div className="flex items-center">
             <Logo />
             <DropdownNavigations />
