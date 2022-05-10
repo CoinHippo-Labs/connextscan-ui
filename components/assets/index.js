@@ -14,7 +14,7 @@ import Copy from '../copy'
 
 import { chainName } from '../../lib/object/chain'
 import { currency_symbol } from '../../lib/object/currency'
-import { number_format, ellipse, loader_color } from '../../lib/utils'
+import { number_format, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
 
 export default ({ data }) => {
   const { preferences, chains, assets } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, assets: state.assets }), shallowEqual)
@@ -36,7 +36,7 @@ export default ({ data }) => {
       }
       delete chain_asset_data.contracts
       const price = chain_asset_data.price || 0
-      const liquidity = data?.find(d => d?.chain_id === chain_asset_data.chain_id && d?.address?.toLowerCase() === chain_asset_data.contract_address?.toLowerCase())
+      const liquidity = data?.find(d => d?.chain_id === chain_asset_data.chain_id && equals_ignore_case(d?.contract_address, chain_asset_data.contract_address))
       const amount = data ? Number(utils.formatUnits(BigNumber.from(liquidity?.amount || '0'), chain_asset_data.contract_decimals || 6)) : null
       const value = typeof amount === 'number' ? amount * price : null
       chain_asset_data = {

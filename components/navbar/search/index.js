@@ -7,6 +7,7 @@ import { FiSearch } from 'react-icons/fi'
 
 import { ens as getEns, domainFromEns } from '../../../lib/api/ens'
 import { type } from '../../../lib/object/id'
+import { equals_ignore_case } from '../../../lib/utils'
 import { ENS_DATA } from '../../../reducers/types'
 
 export default function Search() {
@@ -37,8 +38,8 @@ export default function Search() {
       if (routerIds?.includes(input?.toLowerCase())) {
         input_type = 'router'
       }
-      else if (Object.values({ ...ens_data }).findIndex(v => v?.name?.toLowerCase() === input?.toLowerCase()) > -1) {
-        input = _.head(Object.values(ens_data).find(v => v?.name?.toLowerCase() === input?.toLowerCase()))
+      else if (Object.values({ ...ens_data }).findIndex(v => equals_ignore_case(v?.name, input)) > -1) {
+        input = _.head(Object.values(ens_data).find(v => equals_ignore_case(v?.name, input)))
         input_type = routerIds?.includes(input?.toLowerCase()) ? 'router' : 'address'
       }
       else if (input_type === 'ens') {
@@ -69,7 +70,7 @@ export default function Search() {
     }
   }
 
-  const canSearch = inputSearch && [address, tx].filter(s => s).findIndex(s => s?.toLowerCase() === inputSearch.toLowerCase()) < 0
+  const canSearch = inputSearch && [address, tx].filter(s => s).findIndex(s => equals_ignore_case(s, inputSearch)) < 0
 
   return (
     <div className="navbar-search mr-2 sm:mx-3">

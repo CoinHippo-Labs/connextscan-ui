@@ -6,9 +6,11 @@ import _ from 'lodash'
 import Gases from '../gases'
 import Assets from '../assets'
 import { type } from '../../lib/object/id'
+import { equals_ignore_case } from '../../lib/utils'
 
 export default () => {
-  const { ens, dev } = useSelector(state => ({ ens: state.ens, dev: state.dev }), shallowEqual)
+  const { chains, ens, dev } = useSelector(state => ({ chains: state.chains, ens: state.ens, dev: state.dev }), shallowEqual)
+  const { chains_data} = { ...chains }
   const { ens_data } = { ...ens }
   const { sdk } = { ...dev }
 
@@ -21,15 +23,33 @@ export default () => {
   useEffect(() => {
     let _address = address
     if (type(_address) === 'ens') {
-      if (Object.values({ ...ens_data }).findIndex(d => d?.name?.toLowerCase() === _address?.toLowerCase()) > -1) {
-        _address = Object.entries(ens_data).find(([k, v]) => v?.name?.toLowerCase() === _address?.toLowerCase())[0]
+      if (Object.values({ ...ens_data }).findIndex(d => equals_ignore_case(d?.name, _address)) > -1) {
+        _address = Object.entries(ens_data).find(([k, v]) => equals_ignore_case(v?.name, _address))[0]
         router.push(`/router/${_address}`)
       }
     }
-    else if (sdk) {
-
+    else if (chains_data && sdk) {
+      const getData = async is_interval => {
+        const response = await sdk.nxtpSdkUtils.getRoutersData()
+        if (response || !is_interval) {
+          setLiquidity(response?.filter(l => equals_ignore_case(l?.router_address, address)).map(l => {
+            const chain_data = chains_data?.find(c => c?.domain_id?.toString() === l?.domain)
+            return {
+              ...l,
+              chain_id: chain_data?.chain_id,
+              contract_address: l?.adopted,
+              amount: BigInt(Number(l?.balance) || 0).toString(),
+            }
+          }))
+        }
+      }
+      getData()
+      const interval = setInterval(() => getData(), 0.5 * 60 * 1000)
+      return () => {
+        clearInterval(interval)
+      }
     }
-  }, [address, ens_data, sdk])
+  }, [address, chains_data, ens_data, sdk])
 
   return (
     <div className="flex items-start justify-between space-x-2 -mr-1.5 sm:-mr-3.5">
