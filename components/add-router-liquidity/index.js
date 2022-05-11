@@ -23,7 +23,7 @@ export default () => {
   const wallet_address = wallet_data?.address
 
   const router = useRouter()
-  const { query } = { ...router }
+  const { query, asPath } = { ...router }
   const { address } = { ...query }
 
   const [data, setData] = useState(null)
@@ -101,12 +101,15 @@ export default () => {
             const tx_hash = add_response?.hash
             setAddResponse({ status: 'pending', message: `Wait for adding ${symbol} liquidity`, tx_hash })
             const add_receipt = await signer.provider.waitForTransaction(tx_hash)
+            failed = !add_receipt?.status
             setAddResponse({
-              status: add_receipt?.status ? 'success' : 'failed',
-              message: add_receipt?.status ? `add ${symbol} liquidity successful` : `Failed to add ${symbol} liquidity`,
+              status: failed ? 'failed' : 'success',
+              message: failed ? `Failed to add ${symbol} liquidity` : `add ${symbol} liquidity successful`,
               tx_hash,
             })
-            failed = !add_receipt?.status
+            if (!failed) {
+              router.push(`${asPath}?action=refresh`)
+            }
           }
         } catch (error) {
           setAddResponse({ status: 'failed', message: error?.data?.message || error?.message })

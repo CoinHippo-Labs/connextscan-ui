@@ -16,7 +16,7 @@ export default () => {
 
   const router = useRouter()
   const { query } = { ...router }
-  const { address } = { ...query }
+  const { address, action } = { ...query }
 
   const [liquidity, setLiquidity] = useState(null)
 
@@ -43,6 +43,9 @@ export default () => {
           }) || []
           setLiquidity(data)
         }
+        if (['refresh'].includes(action)) {
+          router.push(`/router/${_address}`)
+        }
       }
       getData()
       const interval = setInterval(() => getData(), 0.5 * 60 * 1000)
@@ -50,7 +53,7 @@ export default () => {
         clearInterval(interval)
       }
     }
-  }, [address, chains_data, ens_data, sdk])
+  }, [address, chains_data, ens_data, sdk, action])
 
   return (
     <div className="flex items-start justify-between space-x-2 -mr-1.5 sm:-mr-3.5">
