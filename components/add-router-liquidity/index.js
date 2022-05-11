@@ -252,7 +252,7 @@ export default () => {
                 fallback={wallet_address && (
                   <Copy
                     value={wallet_address}
-                    title={<span className="text-sm text-slate-400 dark:text-slate-200">
+                    title={<span className="text-slate-400 dark:text-slate-200 text-sm">
                       <span className="xl:hidden">
                         {ellipse(wallet_address, 8)}
                       </span>
