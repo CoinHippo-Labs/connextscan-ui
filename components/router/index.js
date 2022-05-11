@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 
-import Gases from '../gases'
+import AddRouterLiquidity from '../add-router-liquidity'
 import Assets from '../assets'
 import { type } from '../../lib/object/id'
 import { equals_ignore_case } from '../../lib/utils'
@@ -56,11 +56,13 @@ export default () => {
   }, [address, chains_data, ens_data, sdk, action])
 
   return (
-    <div className="flex items-start justify-between space-x-2 -mr-1.5 sm:-mr-3.5">
-      <div className="w-full grid grid-flow-row lg:grid-cols-2 gap-4 mb-4">
-        <Assets data={liquidity} />
+    <>
+      <AddRouterLiquidity />
+      <div className="flex items-start justify-between space-x-2">
+        <div className="w-full grid grid-flow-row lg:grid-cols-2 gap-4 mb-4">
+          <Assets data={liquidity} />
+        </div>
       </div>
-      <Gases />
-    </div>
+    </>
   )
 }

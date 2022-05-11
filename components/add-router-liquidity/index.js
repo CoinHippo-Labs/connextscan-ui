@@ -48,10 +48,7 @@ export default () => {
     setData(null)
 
     setApproving(null)
-    setApproveResponse(null)
-
-    setAdding(false)
-    setAddResponse(null)
+    setAdding(null)
   }
 
   const addLiquidty = async () => {
@@ -171,15 +168,15 @@ export default () => {
           innerClassNames={`${notificationResponse.status === 'failed' ? 'bg-red-500 dark:bg-red-600' : notificationResponse.status === 'success' ? 'bg-green-500 dark:bg-green-600' : 'bg-blue-600 dark:bg-blue-700'} text-white`}
           animation="animate__animated animate__fadeInDown"
           icon={notificationResponse.status === 'failed' ?
-            <BiMessageError className="w-4 h-4 stroke-current mr-2" />
+            <BiMessageError className="w-6 h-6 stroke-current mr-2" />
             :
             notificationResponse.status === 'success' ?
-              <BiMessageCheck className="w-4 h-4 stroke-current mr-2" />
+              <BiMessageCheck className="w-6 h-6 stroke-current mr-2" />
               :
-              <Watch color="white" width="16" height="16" className="mr-2" />
+              <Watch color="white" width="24" height="24" className="mr-2" />
           }
-          content={<div className="flex flex-wrap items-center space-x-1.5">
-            <span>
+          content={<div className="flex items-center">
+            <span className="break-all mr-2">
               {notificationResponse.message}
             </span>
             {chain_data?.explorer?.url && notificationResponse.tx_hash && (
@@ -187,19 +184,31 @@ export default () => {
                 href={`${chain_data.explorer.url}${chain_data.explorer.transaction_path?.replace('{tx}', notificationResponse.tx_hash)}`}
                 target="_blank"
                 rel="noopener noreferrer"
+                className="mr-2"
               >
                 <span className="font-semibold">
                   View on {chain_data.explorer.name}
                 </span>
               </a>
             )}
+            {notificationResponse.status === 'failed' && notificationResponse.message && (
+              <Copy
+                value={notificationResponse.message}
+                size={24}
+                className="cursor-pointer text-slate-200 hover:text-white"
+              />
+            )}
           </div>}
+          onClose={() => {
+            setApproveResponse(null)
+            setAddResponse(null)
+          }}
         />
       )}
       <Modal
         disabled={disabled}
         buttonTitle={address ?
-          <div className="bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 rounded-lg shadow flex items-center justify-center text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-100 space-x-1.5 py-1.5 px-2">
+          <div className="bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 rounded-lg shadow flex items-center justify-center text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white space-x-1.5 py-1.5 px-2">
             <span className="text-xs font-semibold">
               Manage Router
             </span>

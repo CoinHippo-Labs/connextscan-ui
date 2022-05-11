@@ -10,7 +10,6 @@ import { RiCompassDiscoverLine, RiCoinsLine } from 'react-icons/ri'
 import Image from '../../image'
 import Copy from '../../copy'
 import EnsProfile from '../../ens-profile'
-import AddRouterLiquidity from '../../add-router-liquidity'
 import { currency, currency_symbol } from '../../../lib/object/currency'
 import { number_format, ellipse } from '../../../lib/utils'
 
@@ -79,12 +78,6 @@ export default function SubNavbar() {
           address={address}
           fallback={<span>Router</span>}
         />
-      )
-      title = (
-        <div className="flex flex-wrap items-center space-x-3">
-          {title}
-          <AddRouterLiquidity />
-        </div>
       )
       subtitle = (
         <Copy
