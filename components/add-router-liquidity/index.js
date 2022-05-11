@@ -64,7 +64,7 @@ export default () => {
         domain: chain_data?.domain_id?.toString(),
         amount: utils.parseUnits(amount?.toString() || '0', decimals).toString(),
         assetId: contract_data?.contract_address,
-        _router: address,
+        router: address,
       }
       let failed = false
       try {
@@ -73,12 +73,12 @@ export default () => {
           setApproving(true)
           const approve_response = await signer.sendTransaction(approve_request)
           const tx_hash = approve_response?.hash
-          setApproveResponse({ status: 'pending', message: `Wait for ${source_symbol} approval`, tx_hash })
+          setApproveResponse({ status: 'pending', message: `Wait for ${symbol} approval`, tx_hash })
           const approve_receipt = await signer.provider.waitForTransaction(tx_hash)
           setApproveResponse(approve_receipt?.status ?
             null : {
               status: 'failed',
-              message: `Failed to approve ${source_symbol}`,
+              message: `Failed to approve ${symbol}`,
               tx_hash,
             }
           )
@@ -173,7 +173,9 @@ export default () => {
             notificationResponse.status === 'success' ?
               <BiMessageCheck className="w-6 h-6 stroke-current mr-2" />
               :
-              <Watch color="white" width="24" height="24" className="mr-2" />
+              <div className="mr-2">
+                <Watch color="white" width="24" height="24" />
+              </div>
           }
           content={<div className="flex items-center">
             <span className="break-all mr-2">
@@ -277,6 +279,7 @@ export default () => {
             </div>
           )}
         </div>}
+        noCancelOnClickOutside={true}
         cancelDisabled={disabled}
         onCancel={() => reset()}
         confirmDisabled={disabled}
