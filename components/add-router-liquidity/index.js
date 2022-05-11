@@ -104,7 +104,7 @@ export default () => {
             failed = !add_receipt?.status
             setAddResponse({
               status: failed ? 'failed' : 'success',
-              message: failed ? `Failed to add ${symbol} liquidity` : `add ${symbol} liquidity successful`,
+              message: failed ? `Failed to add ${symbol} liquidity` : `Add ${symbol} liquidity successful`,
               tx_hash,
             })
             if (!failed) {
