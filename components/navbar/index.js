@@ -192,7 +192,7 @@ export default function Navbar() {
       }
     }
     init()
-  }, [chains_data, assets_data])
+  }, [chains_data, assets_data, address])
 
   // assets balances
   useEffect(() => {
