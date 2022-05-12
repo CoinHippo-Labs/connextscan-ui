@@ -186,7 +186,8 @@ export default function Navbar() {
             chains: chains_config,
             signerAddress: address || Wallet.createRandom().address,
             logLevel: 'info',
-            network: process.env.NEXT_PUBLIC_ENVIRONMENT,
+            network: process.env.NEXT_PUBLIC_NETWORK,
+            environment: process.env.NEXT_PUBLIC_ENVIRONMENT,
           }),
         })
       }
