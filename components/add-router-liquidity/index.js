@@ -54,7 +54,7 @@ export default () => {
         const contract_data = asset_data?.contracts?.find(c => c?.chain_id === chain_data?.chain_id)
         const contract_address = contract_data?.contract_address 
         const decimals = contract_data?.contract_decimals || 18
-        const rpc = rpcs?.[chain_id]
+        const rpc = rpcs?.[chain_data?.chain_id]
         let balance
         if (rpc && contract_address) {
           if (contract_address === constants.AddressZero) {
