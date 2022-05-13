@@ -126,13 +126,13 @@ export default function Datatable({
         </tbody>
       </table>
       {!noPagination && data?.length > 0 && (
-        <div className={`flex flex-col sm:flex-row items-center justify-${noRecordPerPage ? 'center' : 'between'} my-4 mx-3`}>
+        <div className={`flex flex-col sm:flex-row items-center justify-${noRecordPerPage ? 'center' : 'between'} my-4`}>
           {!noRecordPerPage && (
             <select
               disabled={loading}
               value={pageSize}
               onChange={event => setPageSize(Number(event.target.value))}
-              className="form-select dark:bg-slate-900 outline-none border-slate-200 dark:border-slate-900 shadow-none focus:shadow-none rounded-lg text-xs"
+              className="form-select dark:bg-slate-900 outline-none border-slate-200 dark:border-slate-900 appearance-none shadow-none focus:shadow-none rounded-lg text-xs p-2 pl-3.5"
             >
               {[10, 25, 50, 100].map((s, i) => (
                 <option key={i} value={s}>

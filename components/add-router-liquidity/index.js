@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
-import { utils } from 'ethers'
+import { Contract, constants, utils } from 'ethers'
 import { FallingLines, TailSpin, Watch } from 'react-loader-spinner'
 import { BiMessageError, BiMessageCheck } from 'react-icons/bi'
 
@@ -10,13 +10,14 @@ import Modal from '../modals'
 import Wallet from '../wallet'
 import Copy from '../copy'
 import EnsProfile from '../ens-profile'
-import { ellipse, loader_color } from '../../lib/utils'
+import { number_format, ellipse, loader_color } from '../../lib/utils'
 
 export default () => {
-  const { preferences, chains, assets, dev, wallet } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, assets: state.assets, dev: state.dev, wallet: state.wallet }), shallowEqual)
+  const { preferences, chains, assets, rpc_providers, dev, wallet } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, assets: state.assets, rpc_providers: state.rpc_providers, dev: state.dev, wallet: state.wallet }), shallowEqual)
   const { theme } = { ...preferences }
   const { chains_data } = { ...chains }
   const { assets_data } = { ...assets }
+  const { rpcs } = { ...rpc_providers }
   const { sdk } = { ...dev }
   const { wallet_data } = { ...wallet }
   const { chain_id, web3_provider, signer } = { ...wallet_data }
@@ -27,6 +28,7 @@ export default () => {
   const { address } = { ...query }
 
   const [data, setData] = useState(null)
+  const [balance, setBalance] = useState(null)
 
   const [approving, setApproving] = useState(null)
   const [approveResponse, setApproveResponse] = useState(null)
@@ -43,6 +45,34 @@ export default () => {
       })
     }
   }, [chains_data, assets_data, data])
+
+  useEffect(() => {
+    const getData = async () => {
+      if (chains_data && assets_data && data?.chain && data.asset && wallet_address) {
+        const chain_data = chains_data.find(c => c?.id === data.chain)
+        const asset_data = assets_data.find(a => a?.id === data.asset)
+        const contract_data = asset_data?.contracts?.find(c => c?.chain_id === chain_data?.chain_id)
+        const contract_address = contract_data?.contract_address 
+        const decimals = contract_data?.contract_decimals || 18
+        const rpc = rpcs?.[chain_id]
+        let balance
+        if (rpc && contract_address) {
+          if (contract_address === constants.AddressZero) {
+            balance = await rpc.getBalance(wallet_address)
+          }
+          else {
+            const contract = new Contract(contract_address, ['function balanceOf(address owner) view returns (uint256)'], rpc)
+            balance = await contract.balanceOf(wallet_address)
+          }
+        }
+        setBalance(balance ? Number(utils.formatUnits(balance, decimals)) : null)
+      }
+      else {
+        setBalance(null)
+      }
+    }
+    getData()
+  }, [chains_data, assets_data, rpcs, data, wallet_address])
 
   const reset = () => {
     setData(null)
@@ -155,6 +185,7 @@ export default () => {
 
   const chain_data = chains_data?.find(c => c?.id === data?.chain)
   const notificationResponse = addResponse || approveResponse
+  const max_amount = balance || 0
 
   const hasAllFields = fields.length === fields.filter(f => data?.[f.name]).length
   const disabled = adding || approving
@@ -224,8 +255,23 @@ export default () => {
           {fields.map((f, i) => (
             <div key={i} className="form-element">
               {f.label && (
-                <div className="form-label text-slate-600 dark:text-slate-400 font-medium">
-                  {f.label}
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="form-label text-slate-600 dark:text-slate-400 font-medium">
+                    {f.label}
+                  </div>
+                  {f.name === 'amount' && wallet_address && typeof balance === 'number' && (
+                    <div
+                      onClick={() => setData({ ...data, [`${f.name}`]: max_amount })}
+                      className="cursor-pointer flex items-center text-black dark:text-white space-x-1.5 mb-2"
+                    >
+                      <span>
+                        Balance:
+                      </span>
+                      <span className="font-bold">
+                        {number_format(balance, '0,0.000000', true)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
               {f.type === 'select' ?
@@ -256,33 +302,31 @@ export default () => {
               }
             </div>
           ))}
-          {hasAllFields && (
-            <div className="w-full flex items-center justify-end space-x-3 pt-2">
-              <EnsProfile
-                address={wallet_address}
-                fallback={wallet_address && (
-                  <Copy
-                    value={wallet_address}
-                    title={<span className="text-slate-400 dark:text-slate-200 text-sm">
-                      <span className="xl:hidden">
-                        {ellipse(wallet_address, 8)}
-                      </span>
-                      <span className="hidden xl:block">
-                        {ellipse(wallet_address, 12)}
-                      </span>
-                    </span>}
-                    size={18}
-                  />
-                )}
-              />
-              <Wallet connectChainId={chain_data?.chain_id} />
-            </div>
-          )}
+          <div className="w-full flex items-center justify-end space-x-3 pt-2">
+            <EnsProfile
+              address={wallet_address}
+              fallback={wallet_address && (
+                <Copy
+                  value={wallet_address}
+                  title={<span className="text-slate-400 dark:text-slate-200 text-sm">
+                    <span className="xl:hidden">
+                      {ellipse(wallet_address, 8)}
+                    </span>
+                    <span className="hidden xl:block">
+                      {ellipse(wallet_address, 12)}
+                    </span>
+                  </span>}
+                  size={18}
+                />
+              )}
+            />
+            <Wallet connectChainId={chain_data?.chain_id} />
+          </div>
         </div>}
-        noCancelOnClickOutside={true}
+        noCancelOnClickOutside={approveResponse || addResponse}
         cancelDisabled={disabled}
         onCancel={() => reset()}
-        confirmDisabled={disabled}
+        confirmDisabled={disabled || !(data?.amount > 0 && data.amount <= max_amount)}
         onConfirm={() => addLiquidty()}
         onConfirmHide={false}
         confirmButtonTitle={<span className="flex items-center justify-center space-x-1.5">
