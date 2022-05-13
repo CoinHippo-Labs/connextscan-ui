@@ -205,7 +205,7 @@ export default () => {
               <BiMessageCheck className="w-6 h-6 stroke-current mr-2" />
               :
               <div className="mr-2">
-                <Watch color="white" width="24" height="24" />
+                <Watch color="white" width="20" height="20" />
               </div>
           }
           content={<div className="flex items-center">
