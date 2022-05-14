@@ -164,6 +164,10 @@ body {
   max-width: 76rem;
 }
 
+.h-108 {
+  height: 25.5rem !important;
+}
+
 .text-2xs {
   font-size: .65rem;
 }

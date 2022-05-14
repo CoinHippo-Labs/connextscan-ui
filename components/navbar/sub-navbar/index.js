@@ -156,9 +156,9 @@ export default function SubNavbar() {
         </div>
       )}
       <span className="sm:ml-auto" />
-      {!address && (
+      {!address && !tx && (
         <>
-          {asset_balances_data && (
+          {!chain && asset_balances_data && (
             <>
               <Link href="/">
                 <a className="flex items-center text-blue-600 dark:text-white space-x-1.5 ml-4">
