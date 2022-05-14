@@ -195,7 +195,7 @@ export default function SubNavbar() {
               </Link>
             </>
           )}
-          {chain_data?.explorer?.url && (
+          {chain && chain_data?.explorer?.url && (
             <a
               href={chain_data.explorer.url}
               target="_blank"
