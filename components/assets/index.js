@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { useState } from 'react'
+import { useRouter } from 'next/router'
+import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import { BigNumber, constants, utils } from 'ethers'
 import { TailSpin } from 'react-loader-spinner'
@@ -22,8 +23,18 @@ export default ({ data }) => {
   const { chains_data } = { ...chains }
   const { assets_data } = { ...assets }
 
+  const router = useRouter()
+  const { query } = { ...router }
+  const { chain } = { ...query }
+
   const [chainSelect, setChainSelect] = useState('')
   const [assetSelect, setAssetSelect] = useState('')
+
+  useEffect(() => {
+    if (chain) {
+      setChainSelect(chain)
+    }
+  }, [chain])
 
   const chain_data = chains_data?.find(c => c?.id === chainSelect)
   const assets_data_filtered_mapped = assets_data?.filter(a => !assetSelect || a?.id === assetSelect).flatMap(a =>
@@ -37,8 +48,17 @@ export default ({ data }) => {
       delete chain_asset_data.contracts
       const decimals = chain_asset_data.contract_decimals || 18
       const price = chain_asset_data.price || 0
-      const liquidity = data?.find(d => d?.chain_id === chain_asset_data.chain_id && equals_ignore_case(d?.contract_address, chain_asset_data.contract_address))
-      const amount = data ? Number(utils.formatUnits(BigNumber.from(liquidity?.amount || '0'), decimals)) : null
+      const liquidity = !chain && data?.find(d => d?.chain_id === chain_asset_data.chain_id && equals_ignore_case(d?.contract_address, chain_asset_data.contract_address))
+      const amount = data ?
+        chain ?
+          _.sumBy(data?.filter(d => d?.chain_id === chain_asset_data.chain_id && equals_ignore_case(d?.contract_address, chain_asset_data.contract_address)).map(_a => {
+            return {
+              ..._a,
+              amount: Number(utils.formatUnits(BigNumber.from(_a?.amount || '0'), decimals)),
+            }
+          }) || [], 'amount')
+          :
+          Number(utils.formatUnits(BigNumber.from(liquidity?.amount || '0'), decimals)) : null
       const value = typeof amount === 'number' ? amount * price : null
       chain_asset_data = {
         ...chain_asset_data,
@@ -48,7 +68,7 @@ export default ({ data }) => {
       return chain_asset_data
     }) || []
   )
-
+console.log(data)
   return (
     <div className="space-y-2">
       <div className="sm:flex sm:items-center sm:justify-between">
@@ -56,10 +76,12 @@ export default ({ data }) => {
           Liquidity
         </div>
         <div className="flex items-center space-x-2">
-          <SelectChain
-            value={chainSelect}
-            onSelect={c => setChainSelect(c)}
-          />
+          {!chain && (
+            <SelectChain
+              value={chainSelect}
+              onSelect={c => setChainSelect(c)}
+            />
+          )}
           <SelectAsset
             value={assetSelect}
             onSelect={a => setAssetSelect(a)}
@@ -117,6 +139,16 @@ export default ({ data }) => {
                   <div className="min-w-max flex items-center space-x-1.5">
                     <Copy
                       value={props.value}
+                      title={chain && props.value && (
+                        <span className="text-slate-400 dark:text-slate-200 text-sm">
+                          <span className="xl:hidden">
+                            {ellipse(props.value, 8)}
+                          </span>
+                          <span className="hidden xl:block">
+                            {ellipse(props.value, 12)}
+                          </span>
+                        </span>
+                      )}
                       size={20}
                     />
                     {props.row.original.chain_data?.explorer?.url && (
@@ -188,7 +220,7 @@ export default ({ data }) => {
                 ),
                 headerClassName: 'whitespace-nowrap justify-end text-right',
               },
-            ]}
+            ].filter(c => !chain || !['chain_data.name'].includes(c.accessor))}
             data={assets_data_filtered_mapped}
             noPagination={assets_data_filtered_mapped.length <= 10}
             defaultPageSize={10}

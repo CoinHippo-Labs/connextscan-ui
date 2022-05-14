@@ -1,7 +1,6 @@
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
-import _ from 'lodash'
 
 import AddRouterLiquidity from '../add-router-liquidity'
 import Assets from '../assets'
