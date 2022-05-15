@@ -39,7 +39,7 @@ export default function Search() {
         input_type = 'router'
       }
       else if (Object.values({ ...ens_data }).findIndex(v => equals_ignore_case(v?.name, input)) > -1) {
-        input = _.head(Object.values(ens_data).find(v => equals_ignore_case(v?.name, input)))
+        input = Object.values(ens_data).find(v => equals_ignore_case(v?.name, input))?.resolvedAddress?.id
         input_type = routerIds?.includes(input?.toLowerCase()) ? 'router' : 'address'
       }
       else if (input_type === 'ens') {

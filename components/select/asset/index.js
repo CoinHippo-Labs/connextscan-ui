@@ -27,7 +27,7 @@ export default ({
     setHidden(!hidden)
   }
 
-  const chain_data = chains_data?.find(c => c?.id === chain)
+  const chain_data = chains_data?.find(c => Array.isArray(chain) ? chain.includes(c?.id) : c?.id === chain)
   const asset_data = assets_data?.find(c => c?.id === value)
   const contract_data = asset_data?.contracts?.find(c => c?.chain_id === chain_data?.chain_id)
   const image = contract_data?.image || asset_data?.image

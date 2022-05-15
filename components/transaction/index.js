@@ -15,7 +15,7 @@ import Image from '../image'
 import EnsProfile from '../ens-profile'
 import AddToken from '../add-token'
 import Copy from '../copy'
-import { number_format, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
+import { number_format, ellipse, equals_ignore_case, total_time_string, loader_color } from '../../lib/utils'
 
 export default () => {
   const { preferences, chains, assets, dev } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, assets: state.assets, dev: state.dev }), shallowEqual)
@@ -82,17 +82,6 @@ export default () => {
     return () => clearInterval(interval)
   }, [data, timer])
 
-  const total_time_string = (a, b) => {
-    if (!(a && b)) return null
-    a = a * 1000
-    b = b * 1000
-    const total_time = moment(b).diff(moment(a), 'seconds')
-    return total_time < 60 ?
-    `${total_time}s` : total_time < 60 * 60 ?
-    `${Math.floor(total_time / 60)} min${total_time % 60 > 0 ? ` ${total_time % 60}s` : ''}` : total_time < 24 * 60 * 60 ?
-    moment.utc(total_time * 1000).format('HH:mm:ss') : `${moment(b).diff(moment(a), 'days')} day`
-  }
-
   const {
     status,
     source_chain_data,
@@ -110,11 +99,11 @@ export default () => {
   const source_symbol = source_asset_data?.symbol
   const source_decimals = source_asset_data?.contract_decimals || 18
   const source_asset_image = source_asset_data?.image
-  const source_amount = origin_transacting_amount && Number(utils.formatUnits(BigNumber.from(origin_transacting_amount.toString()), source_decimals))
+  const source_amount = origin_transacting_amount && Number(utils.formatUnits(BigNumber.from(BigInt(origin_transacting_amount).toString()), source_decimals))
   const destination_symbol =destination_asset_data?.symbol
   const destination_decimals = destination_asset_data?.contract_decimals || 18
   const destination_asset_image = destination_asset_data?.image
-  const destination_amount = destination_transacting_amount && Number(utils.formatUnits(BigNumber.from(destination_transacting_amount.toString()), destination_decimals))
+  const destination_amount = destination_transacting_amount && Number(utils.formatUnits(BigNumber.from(BigInt(destination_transacting_amount).toString()), destination_decimals))
 
   const pending = ![XTransferStatus.Executed, XTransferStatus.Completed].includes(data?.status)
 
@@ -178,13 +167,6 @@ export default () => {
             <Bounce left>
               <div className="flex flex-col">
                 <div className="flex items-center justify-center space-x-1 sm:space-x-2">
-                  {source_amount ?
-                    <span className="font-mono text-lg font-bold">
-                      {number_format(source_amount, '0,0.000000', true)}
-                    </span>
-                    :
-                    <RotatingSquare color={loader_color(theme)} width="32" height="32" />
-                  }
                   {source_asset_image && (
                     <Image
                       src={source_asset_image}
@@ -194,6 +176,13 @@ export default () => {
                       className="rounded-full"
                     />
                   )}
+                  {source_amount ?
+                    <span className="font-mono text-lg font-bold">
+                      {number_format(source_amount, '0,0.000000', true)}
+                    </span>
+                    :
+                    <RotatingSquare color={loader_color(theme)} width="32" height="32" />
+                  }
                   <span className="text-lg font-semibold">
                     {source_symbol}
                   </span>
@@ -228,20 +217,13 @@ export default () => {
                   <TailSpin color={loader_color(theme)} width="32" height="32" />
                 </div>
               }
-              <div className="font-mono text-yellow-600 dark:text-yellow-400 text-base font-semibold">
+              <div className={`font-mono ${pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} text-base font-semibold`}>
                 {total_time_string(xcall_timestamp, execute_timestamp || moment().unix())}
               </div>
             </div>
             <Bounce right>
               <div className="flex flex-col sm:items-end">
                 <div className="flex items-center justify-center space-x-1 sm:space-x-2">
-                  {destination_amount ?
-                    <span className="font-mono text-lg font-bold">
-                      {number_format(destination_amount, '0,0.000000', true)}
-                    </span>
-                    :
-                    <RotatingSquare color={loader_color(theme)} width="32" height="32" />
-                  }
                   {destination_asset_image && (
                     <Image
                       src={destination_asset_image}
@@ -251,6 +233,13 @@ export default () => {
                       className="rounded-full"
                     />
                   )}
+                  {destination_amount ?
+                    <span className="font-mono text-lg font-bold">
+                      {number_format(destination_amount, '0,0.000000', true)}
+                    </span>
+                    :
+                    <RotatingSquare color={loader_color(theme)} width="32" height="32" />
+                  }
                   <span className="text-lg font-semibold">
                     {destination_symbol}
                   </span>

@@ -68,7 +68,7 @@ export default ({ data }) => {
       return chain_asset_data
     }) || []
   )
-console.log(data)
+
   return (
     <div className="space-y-2">
       <div className="sm:flex sm:items-center sm:justify-between">
@@ -134,7 +134,7 @@ console.log(data)
               {
                 Header: 'Address',
                 accessor: 'contract_address',
-                sortType: (a, b) => a.original.contract_address > b.original.contract_address ? 1 : -1,
+                disableSortBy: true,
                 Cell: props => (
                   <div className="min-w-max flex items-center space-x-1.5">
                     <Copy

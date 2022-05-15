@@ -7,7 +7,7 @@ export default ({ value, inputSearch, onSelect, chain }) => {
   const { chains_data } = { ...chains }
   const { assets_data } = { ...assets }
 
-  const chain_data = chains_data?.find(c => c?.id === chain)
+  const chain_data = chains_data?.find(c => Array.isArray(chain) ? chain.includes(c?.id) : c?.id === chain)
 
   const assets_data_sorted = _.concat({ id: '', name: 'All Assets' }, _.orderBy(
     assets_data?.filter(a => !inputSearch || a).map(a => {
