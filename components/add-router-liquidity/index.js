@@ -72,7 +72,7 @@ export default () => {
       }
     }
     getData()
-  }, [chains_data, assets_data, rpcs, data, wallet_address])
+  }, [chains_data, assets_data, rpcs, data, wallet_address, adding])
 
   const reset = () => {
     setData(null)
