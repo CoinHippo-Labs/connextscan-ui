@@ -30,7 +30,7 @@ export default function Navbar() {
   const { rpcs } = { ...rpc_providers }
   const { sdk } = { ...dev }
   const { wallet_data } = { ...wallet }
-  const { chain_id, address, signer } = { ...wallet_data }
+  const { chain_id, provider, web3_provider, address, signer } = { ...wallet_data }
 
   const router = useRouter()
   const { pathname, query } = { ...router }
@@ -212,7 +212,7 @@ export default function Navbar() {
       }
     }
     update()
-  }, [address])
+  }, [provider, web3_provider, address, signer])
 
   // assets balances
   useEffect(() => {
