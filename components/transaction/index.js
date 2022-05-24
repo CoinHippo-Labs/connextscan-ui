@@ -105,7 +105,7 @@ export default () => {
   const destination_asset_image = destination_asset_data?.image
   const destination_amount = destination_transacting_amount && Number(utils.formatUnits(BigNumber.from(BigInt(destination_transacting_amount).toString()), destination_decimals))
 
-  const pending = ![XTransferStatus.Executed, XTransferStatus.Completed].includes(data?.status)
+  const pending = ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(data?.status)
 
   return (
     <div className="space-y-8 mt-4 mb-8">

@@ -20,7 +20,7 @@ import AddToken from '../add-token'
 import Copy from '../copy'
 import { number_format, ellipse, equals_ignore_case, total_time_string, loader_color } from '../../lib/utils'
 
-const STATUSES = [XTransferStatus.Executed, XTransferStatus.Reconciled, XTransferStatus.Completed]
+const STATUSES = [XTransferStatus.XCalled, XTransferStatus.Executed, XTransferStatus.Reconciled, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow]
 
 export default () => {
   const { preferences, chains, assets, dev } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, assets: state.assets, dev: state.dev }), shallowEqual)
@@ -98,7 +98,7 @@ export default () => {
                 ...destination_asset_data,
                 ...destination_contract_data,
               },
-              pending: ![XTransferStatus.Executed, XTransferStatus.Completed].includes(t?.status),
+              pending: ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(t?.status),
             }
           }).map(t => {
             const { source_asset_data, destination_asset_data, origin_transacting_amount, destination_transacting_amount } = { ...t }

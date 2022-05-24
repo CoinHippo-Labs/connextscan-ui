@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { XTransferStatus } from '@connext/nxtp-utils'
 
-const STATUSES = [XTransferStatus.Executed, XTransferStatus.Reconciled, XTransferStatus.Completed]
+const STATUSES = [XTransferStatus.XCalled, XTransferStatus.Executed, XTransferStatus.Reconciled, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow]
 
 export default ({
   value,
