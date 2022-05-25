@@ -160,7 +160,7 @@ export default () => {
         <div className="text-base font-bold">
           Latest Transfers
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 space-x-0 sm:space-x-4 mt-2 sm:mt-0 mb-4 sm:mb-0">
           <div className="flex items-center space-x-2">
             {!address && (
               <span className="font-semibold">
@@ -179,15 +179,17 @@ export default () => {
               onSelect={c => setToChainSelect(c)}
             />
           </div>
-          <SelectAsset
-            value={assetSelect}
-            onSelect={a => setAssetSelect(a)}
-            chain={[fromChainSelect, toChainSelect]}
-          />
-          <SelectStatus
-            value={statusSelect}
-            onSelect={s => setStatusSelect(s)}
-          />
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <SelectAsset
+              value={assetSelect}
+              onSelect={a => setAssetSelect(a)}
+              chain={[fromChainSelect, toChainSelect]}
+            />
+            <SelectStatus
+              value={statusSelect}
+              onSelect={s => setStatusSelect(s)}
+            />
+          </div>
         </div>
       </div>
       {data_filtered ?

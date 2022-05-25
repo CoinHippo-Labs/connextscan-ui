@@ -46,14 +46,14 @@ export default ({
               className="rounded-full"
             />
           )}
-          <span className="text-sm sm:text-base font-semibold">
+          <span className="whitespace-nowrap text-sm sm:text-base font-semibold">
             {chain_data ? chainName(chain_data) : 'All Chains'}
           </span>
         </div>
         :
         <FallingLines color={loader_color(theme)} width="24" height="24" />
       }
-      buttonClassName={`min-w-max h-16 ${disabled ? 'cursor-not-allowed' : ''} flex items-center justify-center`}
+      buttonClassName={`min-w-max sm:h-16 ${disabled ? 'cursor-not-allowed' : ''} flex items-center justify-center`}
       title="Select Chain"
       body={(
         <Search
