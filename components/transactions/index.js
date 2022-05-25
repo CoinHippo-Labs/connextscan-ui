@@ -21,6 +21,7 @@ import Copy from '../copy'
 import { number_format, ellipse, equals_ignore_case, total_time_string, loader_color } from '../../lib/utils'
 
 const STATUSES = [XTransferStatus.XCalled, XTransferStatus.Executed, XTransferStatus.Reconciled, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow]
+const LIMIT = 100
 
 export default () => {
   const { preferences, chains, assets, dev } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, assets: state.assets, dev: state.dev }), shallowEqual)
@@ -34,6 +35,9 @@ export default () => {
   const { address } = { ...query }
 
   const [data, setData] = useState(null)
+  const [offset, setOffet] = useState(0)
+  const [fetchTrigger, setFetchTrigger] = useState(null)
+  const [fetching, setFetching] = useState(false)
   const [fromChainSelect, setFromChainSelect] = useState('')
   const [toChainSelect, setToChainSelect] = useState('')
   const [assetSelect, setAssetSelect] = useState('')
@@ -53,31 +57,70 @@ export default () => {
   }, [toChainSelect])
 
   useEffect(() => {
-    const getData = async is_interval => {
+    const triggering = is_interval => {
       if (sdk) {
-        if (!is_interval) {
+        setFetchTrigger(is_interval ? moment().valueOf() : 0)
+      }
+    }
+    triggering()
+    const interval = setInterval(() => triggering(true), 0.25 * 60 * 1000)
+    return () => {
+      clearInterval(interval)
+    }
+  }, [sdk, pathname, address, statusSelect])
+
+  useEffect(() => {
+    if (offset) {
+      setFetchTrigger(moment().valueOf())
+    }
+  }, [offset])
+
+  useEffect(() => {
+    const getData = async () => {
+      if (sdk) {
+        setFetching(true)
+        if (!fetchTrigger) {
           setData(null)
+          setOffet(0)
         }
         let response
+        const status = statusSelect || undefined,
+          _data = !fetchTrigger ? [] : (data || []),
+          limit = LIMIT
+        const offset = _data.length
         switch (pathname) {
           case '/address/[address]':
+            if (address) {
+              try {
+                response = await sdk.nxtpSdkUtils.getTransfersByUser({ userAddress: address, status, range: { limit, offset } })
+              } catch (error) {}
+            }
+            break
           case '/router/[address]':
             if (address) {
-              response = await sdk.nxtpSdkUtils.getTransfersByUser({ userAddress: address, status: statusSelect || undefined })
-              response = _.orderBy(response || [], ['xcall_timestamp'], ['desc'])
+              try {
+                response = await sdk.nxtpSdkUtils.getTransfersByRouter({ routerAddress: address, status, range: { limit, offset } })
+              } catch (error) {}
             }
             break
           default:
-            let _data = []
-            const statuses = STATUSES.filter(s => !statusSelect || equals_ignore_case(s, statusSelect))
-            for (let i = 0; i < statuses.length; i++) {
-              const status = statuses[i]
-              response = await sdk.nxtpSdkUtils.getTransfersByStatus(status)
-              _data = _.orderBy(_.uniqBy(_.concat(_data, response || []), 'transfer_id'), ['xcall_timestamp'], ['desc'])
+            try {
+              response = await sdk.nxtpSdkUtils.getTransfersByStatus({ status, range: { limit, offset } })
+            } catch (error) {
+              try {
+                let _response = []
+                const statuses = STATUSES.filter(s => !statusSelect || equals_ignore_case(s, statusSelect))
+                for (let i = 0; i < statuses.length; i++) {
+                  const status = statuses[i]
+                  response = await sdk.nxtpSdkUtils.getTransfersByStatus(status)
+                  _response = _.concat(_response, response || [])
+                }
+                response = _response
+              } catch (error) {}
             }
-            response = _data
             break
         }
+        response = _.orderBy(_.uniqBy(_.concat(_data, response || []), 'transfer_id'), ['xcall_timestamp'], ['desc'])
         if (response) {
           response = response.map(t => {
             const source_chain_data = chains_data?.find(c => c?.chain_id === Number(t?.origin_chain))
@@ -120,19 +163,16 @@ export default () => {
           })
           setData(response)
         }
-        else if (!is_interval) {
+        else if (!fetchTrigger) {
           setData([])
         }
+        setFetching(false)
       }
     }
     getData()
-    const interval = setInterval(() => getData(true), 0.25 * 60 * 1000)
-    return () => {
-      clearInterval(interval)
-    }
-  }, [sdk, pathname, address, statusSelect])
+  }, [fetchTrigger])
 
-  useEffect(() => {
+  /*useEffect(() => {
     const run = async () => {
       if (data && !data.execute_timestamp) {
         setTimer(moment().unix())
@@ -143,7 +183,7 @@ export default () => {
     }
     const interval = setInterval(() => run(), 1 * 1000)
     return () => clearInterval(interval)
-  }, [data, timer])
+  }, [data, timer])*/
 
   const source_chain_data = chains_data?.find(c => c?.id === fromChainSelect)
   const destination_chain_data = chains_data?.find(c => c?.id === toChainSelect)
@@ -193,7 +233,7 @@ export default () => {
         </div>
       </div>
       {data_filtered ?
-        <div className="grid">
+        <div className={`grid gap-${data_filtered.length <= 10 ? 4 : 2} pb-4`}>
           <Datatable
             columns={[
               {
@@ -253,9 +293,11 @@ export default () => {
                             }
                           </a>
                         </Link>
-                        <div className={`font-mono ${props.row.original.pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}>
-                          {total_time_string(props.row.original.xcall_timestamp, props.row.original.execute_timestamp || moment().unix())}
-                        </div>
+                        {!props.row.original.pending && (
+                          <div className={`font-mono ${props.row.original.pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}>
+                            {total_time_string(props.row.original.xcall_timestamp, props.row.original.execute_timestamp || moment().unix())}
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
@@ -288,9 +330,11 @@ export default () => {
                         }
                       </a>
                     </Link>
-                    <div className={`font-mono ${props.row.original.pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}>
-                      {total_time_string(props.row.original.xcall_timestamp, props.row.original.execute_timestamp || moment().unix())}
-                    </div>
+                    {!props.row.original.pending && (
+                      <div className={`font-mono ${props.row.original.pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}>
+                        {total_time_string(props.row.original.xcall_timestamp, props.row.original.execute_timestamp || moment().unix())}
+                      </div>
+                    )}
                   </div>
                 ),
               },
@@ -455,9 +499,22 @@ export default () => {
             ].filter(c => !address || !['status'].includes(c.accessor))}
             data={data_filtered}
             noPagination={data_filtered.length <= 10}
-            defaultPageSize={10}
+            defaultPageSize={address ? 10 : 25}
             className="no-border"
           />
+          {data.length > 0 && data.length % LIMIT === 0 && (
+            !fetching ?
+              <button
+                onClick={() => setOffet(data.length)}
+                className="max-w-min hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg whitespace-nowrap font-medium hover:font-bold mx-auto py-1.5 px-2.5"
+              >
+                Load more
+              </button>
+              :
+              <div className="flex justify-center p-1.5">
+                <TailSpin color={loader_color(theme)} width="24" height="24" />
+              </div>
+          )}
         </div>
         :
         <TailSpin color={loader_color(theme)} width="32" height="32" />
