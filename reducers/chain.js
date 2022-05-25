@@ -10,7 +10,7 @@ export default function data(
     case CHAIN_DATA:
       return {
         ...state,
-        [`${CHAIN_DATA}`]: action.value ? { ...state[`${CHAIN_DATA}`], ...action.value }  : {},
+        [`${CHAIN_DATA}`]: action.value ? { ...state[`${CHAIN_DATA}`], ...action.value } : {},
       }
     default:
       return state
