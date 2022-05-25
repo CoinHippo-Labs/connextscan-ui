@@ -296,7 +296,20 @@ export default () => {
                   type={f.type}
                   placeholder={f.placeholder}
                   value={data?.[f.name]}
-                  onChange={e => setData({ ...data, [`${f.name}`]: e.target.value })}
+                  onChange={e => {
+                    let value
+                    if (f.type === 'number') {
+                      const regex = /^[0-9.\b]+$/
+                      if (e.target.value === '' || regex.test(e.target.value)) {
+                        value = e.target.value
+                      }
+                      value = value < 0 ? 0 : value
+                    }
+                    else {
+                      value = e.target.value
+                    }
+                    setData({ ...data, [`${f.name}`]: value })
+                  }}
                   className="form-input border-0 focus:ring-0 rounded-lg"
                 />
               }
