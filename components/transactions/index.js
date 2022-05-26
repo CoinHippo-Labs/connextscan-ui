@@ -20,7 +20,6 @@ import AddToken from '../add-token'
 import Copy from '../copy'
 import { number_format, ellipse, equals_ignore_case, total_time_string, loader_color } from '../../lib/utils'
 
-const STATUSES = [XTransferStatus.XCalled, XTransferStatus.Executed, XTransferStatus.Reconciled, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow]
 const LIMIT = 100
 
 export default () => {
@@ -105,19 +104,13 @@ export default () => {
             break
           default:
             try {
-              response = await sdk.nxtpSdkUtils.getTransfersByStatus({ status, range: { limit, offset } })
-            } catch (error) {
-              try {
-                let _response = []
-                const statuses = STATUSES.filter(s => !statusSelect || equals_ignore_case(s, statusSelect))
-                for (let i = 0; i < statuses.length; i++) {
-                  const status = statuses[i]
-                  response = await sdk.nxtpSdkUtils.getTransfersByStatus(status)
-                  _response = _.concat(_response, response || [])
-                }
-                response = _response
-              } catch (error) {}
-            }
+              if (status) {
+                response = await sdk.nxtpSdkUtils.getTransfersByStatus({ status, range: { limit, offset } })
+              }
+              else {
+                response = await sdk.nxtpSdkUtils.getTransfers({ range: { limit, offset } })
+              }
+            } catch (error) {}
             break
         }
         response = _.orderBy(_.uniqBy(_.concat(_data, response || []), 'transfer_id'), ['xcall_timestamp'], ['desc'])
