@@ -301,7 +301,7 @@ export default () => {
             </Bounce>
           </div>
           <div className="grid grid-flow-row md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
-            {['xcall', 'reconcile', 'execute'].map((s, i) => (
+            {['xcall', 'execute', 'reconcile'].map((s, i) => (
               <Fade key={i} left delay={i * 0.2 * 1000}>
                 <div className={`form rounded-3xl border-2 shadow ${!data?.[`${s}_transaction_hash`] ? 'border-blue-300 dark:border-blue-500 shadow-blue-300 dark:shadow-blue-500' : 'border-green-500 dark:border-green-400 shadow-green-500 dark:shadow-green-400'} space-y-3 pt-4 pb-5 px-6`}>
                   <div className="capitalize text-3xl font-bold pb-0.5">
