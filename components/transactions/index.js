@@ -495,7 +495,7 @@ export default () => {
             defaultPageSize={address ? 10 : 25}
             className="no-border"
           />
-          {data.length > 0/* && data.length % LIMIT === 0*/ && (
+          {data.length > 0 && data.length % LIMIT === 0 && (
             !fetching ?
               <button
                 onClick={() => setOffet(data.length)}
