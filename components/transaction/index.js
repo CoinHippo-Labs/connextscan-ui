@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
+import _ from 'lodash'
 import moment from 'moment'
 import { BigNumber, utils } from 'ethers'
 import { XTransferStatus } from '@connext/nxtp-utils'
@@ -37,10 +38,10 @@ export default () => {
         const response = await sdk.nxtpSdkUtils.getTransferById(tx)
         if (response?.[0]) {
           const _data = response[0]
-          const source_chain_data = chains_data?.find(c => c?.chain_id === Number(_data.origin_chain))
+          const source_chain_data = chains_data?.find(c => c?.chain_id === Number(_data.origin_chain) || c?.domain_id === Number(_data.origin_domain))
           const source_asset_data = assets_data?.find(a => a?.contracts?.findIndex(c => c?.chain_id === source_chain_data?.chain_id && [_data?.origin_transacting_asset, _data?.origin_bridged_asset].findIndex(_a => equals_ignore_case(_a, c?.contract_address)) > -1) > -1)
           const source_contract_data = source_asset_data?.contracts?.find(c => c?.chain_id === source_chain_data?.chain_id)
-          const destination_chain_data = chains_data?.find(c => c?.chain_id === Number(_data.destination_chain))
+          const destination_chain_data = chains_data?.find(c => c?.chain_id === Number(_data.destination_chain) || c?.domain_id === Number(_data.destination_domain))
           const destination_asset_data = assets_data?.find(a => a?.contracts?.findIndex(c => c?.chain_id === destination_chain_data?.chain_id && [_data?.destination_transacting_asset, _data?.destination_local_asset].findIndex(_a => equals_ignore_case(_a, c?.contract_address)) > -1) > -1)
           const destination_contract_data = destination_asset_data?.contracts?.find(c => c?.chain_id === destination_chain_data?.chain_id)
           setData({
@@ -301,29 +302,38 @@ export default () => {
             </Bounce>
           </div>
           <div className="grid grid-flow-row md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
-            {['xcall', 'execute', 'reconcile'].map((s, i) => (
+            {_.concat(['xcall'], data?.force_slow ? ['reconcile', 'execute'] : ['execute', 'reconcile']).map((s, i) => (
               <Fade key={i} left delay={i * 0.2 * 1000}>
                 <div className={`form rounded-3xl border-2 shadow ${!data?.[`${s}_transaction_hash`] ? 'border-blue-300 dark:border-blue-500 shadow-blue-300 dark:shadow-blue-500' : 'border-green-500 dark:border-green-400 shadow-green-500 dark:shadow-green-400'} space-y-3 pt-4 pb-5 px-6`}>
-                  <div className="capitalize text-3xl font-bold pb-0.5">
-                    {s}
+                  <div className="flex items-center justify-between pb-0.5">
+                    <span className="capitalize text-3xl font-bold">
+                      {s}
+                    </span>
+                    {s === 'reconcile' && data?.force_slow && (
+                      <div className={`rounded-xl border-2 ${data?.status === XTransferStatus.CompletedSlow ? 'border-green-500 dark:border-green-300 text-green-500 dark:text-green-300' : 'border-blue-500 dark:border-blue-300 text-blue-500 dark:text-blue-300'} flex items-center space-x-2 py-1 px-2.5`}>
+                        <span className="uppercase text-lg font-bold">
+                          Slow
+                        </span>
+                      </div>
+                    )}
                   </div>
                   {!data?.[`${s}_transaction_hash`] ?
                     <div className="h-108 flex items-center justify-center pb-12">
                       <Triangle color={loader_color(theme)} width="64" height="64" />
                     </div>
                     :
-                    ['transaction_hash', 'block_number', 'timestamp', 'caller', s === 'xcall' ? 'relayer_fee' : s === 'execute' ? 'origin_sender' : undefined, 'gas_price', 'gas_limit'].filter(f => f).map(((f, j) => (
+                    ['transaction_hash', 'block_number', 'timestamp', 'caller', s === 'xcall' ? 'recovery' : s === 'execute' ? 'origin_sender' : undefined, ['xcall', 'execute'].includes(s) ? 'relayer_fee' : undefined, 'gas_price', 'gas_limit'].filter(f => f).map(((f, j) => (
                       <div key={j} className="space-y-1">
                         <div className="form-label tracking-wider capitalize text-slate-500 dark:text-blue-200 text-base font-medium">
                           {f?.split('_').join(' ')}
                         </div>
                         <div className="form-element">
-                          {data?.[`${s}_${f}`] === null ?
+                          {data?.[['recovery'].includes(f) ? `${f}` : `${s}_${f}`] === null ?
                             <span className="text-slate-400 dark:text-slate-200">
                               -
                             </span>
                             :
-                            [data?.[`${s}_${f}`]].map((v, k) => {
+                            [data?.[['recovery'].includes(f) ? `${f}` : `${s}_${f}`]].map((v, k) => {
                               const chain_data = s === 'xcall' ? data?.source_chain_data : data?.destination_chain_data
                               const native_token = chain_data?.provider_params?.[0]?.nativeCurrency
                               let _v, value_component
@@ -379,6 +389,7 @@ export default () => {
                                   break
                                 case 'caller':
                                 case 'origin_sender':
+                                case 'recovery':
                                   _v = (
                                     <EnsProfile
                                       address={v}
