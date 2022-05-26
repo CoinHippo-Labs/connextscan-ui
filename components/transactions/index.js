@@ -58,7 +58,7 @@ export default () => {
   useEffect(() => {
     const triggering = is_interval => {
       if (sdk) {
-        setFetchTrigger(is_interval ? moment().valueOf() : 0)
+        setFetchTrigger(is_interval ? moment().valueOf() : typeof fetchTrigger === 'number' ? null : 0)
       }
     }
     triggering()
@@ -67,12 +67,6 @@ export default () => {
       clearInterval(interval)
     }
   }, [sdk, pathname, address, statusSelect])
-
-  useEffect(() => {
-    if (offset) {
-      setFetchTrigger(moment().valueOf())
-    }
-  }, [offset])
 
   useEffect(() => {
     const getData = async () => {
@@ -495,10 +489,13 @@ export default () => {
             defaultPageSize={address ? 10 : 25}
             className="no-border"
           />
-          {data.length > 0 && data.length % LIMIT === 0 && (
+          {data.length > 0 && (
             !fetching ?
               <button
-                onClick={() => setOffet(data.length)}
+                onClick={() => {
+                  setOffet(data.length)
+                  setFetchTrigger(moment().valueOf())
+                }}
                 className="max-w-min hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg whitespace-nowrap font-medium hover:font-bold mx-auto py-1.5 px-2.5"
               >
                 Load more
