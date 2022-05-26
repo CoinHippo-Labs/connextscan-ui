@@ -33,7 +33,7 @@ export default () => {
 
   useEffect(() => {
     const getData = async is_interval => {
-      if (sdk && tx) {
+      if (sdk && tx && (!is_interval || !data || ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(data.status))) {
         const response = await sdk.nxtpSdkUtils.getTransferById(tx)
         if (response?.[0]) {
           const _data = response[0]
@@ -100,7 +100,7 @@ export default () => {
   const source_decimals = source_asset_data?.contract_decimals || 18
   const source_asset_image = source_asset_data?.image
   const source_amount = origin_transacting_amount && Number(utils.formatUnits(BigNumber.from(BigInt(origin_transacting_amount).toString()), source_decimals))
-  const destination_symbol =destination_asset_data?.symbol
+  const destination_symbol = destination_asset_data?.symbol
   const destination_decimals = destination_asset_data?.contract_decimals || 18
   const destination_asset_image = destination_asset_data?.image
   const destination_amount = destination_transacting_amount && Number(utils.formatUnits(BigNumber.from(BigInt(destination_transacting_amount).toString()), destination_decimals))
