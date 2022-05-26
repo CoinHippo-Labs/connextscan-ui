@@ -37,7 +37,7 @@ export default function SubNavbar() {
       title = 'Routers'
       break
     case '/tx/[tx]':
-      title = 'Transaction'
+      title = 'xTransfer'
       subtitle = (
         <div className="flex items-center text-sm xl:text-base space-x-2 xl:space-x-1">
           <span className="xl:hidden">
