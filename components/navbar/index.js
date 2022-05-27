@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { useSelector, useDispatch, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import { create } from '@connext/nxtp-sdk'
-import { Bignumber, Wallet, providers, utils } from 'ethers'
+import { Bignumber, providers, utils } from 'ethers'
 
 import Logo from './logo'
 import DropdownNavigations from './navigations/dropdown'
@@ -184,7 +184,7 @@ export default function Navbar() {
           type: SDK,
           value: await create({
             chains: chains_config,
-            signerAddress: address || Wallet.createRandom().address,
+            signerAddress: address,
             logLevel: 'info',
             network: process.env.NEXT_PUBLIC_NETWORK,
             environment: process.env.NEXT_PUBLIC_ENVIRONMENT,
