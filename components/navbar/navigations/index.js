@@ -6,7 +6,7 @@ import { TiArrowRight } from 'react-icons/ti'
 
 import menus from './menus'
 
-export default function Navigations() {
+export default () => {
   const router = useRouter()
   const { pathname } = { ...router }
 

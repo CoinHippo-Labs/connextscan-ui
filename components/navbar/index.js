@@ -20,7 +20,7 @@ import { connext } from '../../lib/object/chain'
 import { equals_ignore_case } from '../../lib/utils'
 import { CHAINS_DATA, ASSETS_DATA, ENS_DATA, CHAIN_DATA, ASSET_BALANCES_DATA, SDK, RPCS } from '../../reducers/types'
 
-export default function Navbar() {
+export default () => {
   const dispatch = useDispatch()
   const { chains, assets, ens, asset_balances, rpc_providers, dev, wallet } = useSelector(state => ({ chains: state.chains, assets: state.assets, ens: state.ens, asset_balances: state.asset_balances, rpc_providers: state.rpc_providers, dev: state.dev, wallet: state.wallet }), shallowEqual)
   const { chains_data } = { ...chains }

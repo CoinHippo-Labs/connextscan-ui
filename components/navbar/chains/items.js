@@ -5,7 +5,7 @@ import _ from 'lodash'
 import Image from '../../image'
 import { chainName, connext } from '../../../lib/object/chain'
 
-export default function Items({ onClick }) {
+export default ({ onClick }) => {
   const { chains } = useSelector(state => ({ chains: state.chains }), shallowEqual)
   const { chains_data } = { ...chains }
 

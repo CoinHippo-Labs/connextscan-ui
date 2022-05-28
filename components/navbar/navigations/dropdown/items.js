@@ -6,7 +6,7 @@ import { TiArrowRight } from 'react-icons/ti'
 
 import menus from '../menus'
 
-export default function Items({ onClick }) {
+export default ({ onClick }) => {
   const router = useRouter()
   const { pathname } = { ...router }
 

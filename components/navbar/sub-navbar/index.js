@@ -5,7 +5,7 @@ import _ from 'lodash'
 import moment from 'moment'
 import { TiArrowRight } from 'react-icons/ti'
 import { FiBox } from 'react-icons/fi'
-import { RiCompassDiscoverLine, RiCoinsLine } from 'react-icons/ri'
+import { RiServerLine, RiCoinsLine } from 'react-icons/ri'
 
 import Image from '../../image'
 import Copy from '../../copy'
@@ -13,7 +13,7 @@ import EnsProfile from '../../ens-profile'
 import { currency, currency_symbol } from '../../../lib/object/currency'
 import { number_format, ellipse } from '../../../lib/utils'
 
-export default function SubNavbar() {
+export default () => {
   const { chains, assets, _chain, asset_balances } = useSelector(state => ({ chains: state.chains, assets: state.assets, _chain: state.chain, asset_balances: state.asset_balances }), shallowEqual)
   const { chains_data } = { ...chains }
   const { assets_data } = { ...assets }
@@ -173,7 +173,7 @@ export default function SubNavbar() {
               </Link>
               <Link href="/routers">
                 <a className="flex items-center text-blue-600 dark:text-white space-x-1.5 ml-4">
-                  <RiCompassDiscoverLine size={18} />
+                  <RiServerLine size={18} />
                   <span className="space-x-1">
                     <span className="font-mono font-semibold">
                       {number_format(_.uniq(Object.values(asset_balances_data).flatMap(v => v?.map(_v => _v)).map(a => a?.router_address?.toLowerCase()).filter(a => a)).length, '0,0')}
@@ -182,7 +182,7 @@ export default function SubNavbar() {
                   </span>
                 </a>
               </Link>
-              <Link href="/routers">
+              <Link href="/">
                 <a className="flex items-center text-blue-600 dark:text-white space-x-1.5 ml-4">
                   <RiCoinsLine size={18} />
                   <span className="space-x-1">

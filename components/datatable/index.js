@@ -23,7 +23,7 @@ const IndeterminateCheckbox = forwardRef(({ indeterminate, ...rest }, ref) => {
   )
 })
 
-export default function Datatable({
+export default ({
   columns,
   data,
   rowSelectEnable = false,
@@ -31,7 +31,7 @@ export default function Datatable({
   noPagination = false,
   noRecordPerPage = false,
   className = '',
-}) {
+}) => {
   const tableRef = useRef()
   const {
     getTableProps,

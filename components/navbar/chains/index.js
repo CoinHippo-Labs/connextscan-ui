@@ -8,7 +8,7 @@ import Items from './items'
 import { connext } from '../../../lib/object/chain'
 import { loader_color } from '../../../lib/utils'
 
-export default function DropdownChains() {
+export default () => {
   const { preferences, chains } = useSelector(state => ({ preferences: state.preferences, chains: state.chains }), shallowEqual)
   const { theme } = { ...preferences }
   const { chains_data } = { ...chains }

@@ -6,7 +6,7 @@ import { FaHeart } from 'react-icons/fa'
 import Image from '../image'
 import _package from '../../package.json'
 
-export default function Footer() {
+export default () => {
   const { preferences, chains } = useSelector(state => ({ preferences: state.preferences, chains: state.chains }), shallowEqual)
   const { theme } = { ...preferences }
   const { chains_data } = { ...chains }
