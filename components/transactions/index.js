@@ -80,7 +80,7 @@ export default () => {
         const status = statusSelect || undefined,
           _data = !fetchTrigger ? [] : (data || []),
           limit = LIMIT
-        const offset = _data.length
+        const offset = fetchTrigger === true || fetchTrigger === 1 ? _data.length : 0
         switch (pathname) {
           case '/address/[address]':
             if (address) {
@@ -508,7 +508,7 @@ export default () => {
               <button
                 onClick={() => {
                   setOffet(data.length)
-                  setFetchTrigger(moment().valueOf())
+                  setFetchTrigger(typeof fetchTrigger === 'number' ? true : 1)
                 }}
                 className="max-w-min hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg whitespace-nowrap font-medium hover:font-bold mx-auto py-1.5 px-2.5"
               >
