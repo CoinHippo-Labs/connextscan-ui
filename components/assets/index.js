@@ -136,7 +136,7 @@ export default ({ data }) => {
                 accessor: 'contract_address',
                 disableSortBy: true,
                 Cell: props => (
-                  <div className="min-w-max flex items-center space-x-1.5">
+                  <div className="min-w-max flex items-center space-x-1.5 -mt-1">
                     <Copy
                       value={props.value}
                       title={chain && props.value && (

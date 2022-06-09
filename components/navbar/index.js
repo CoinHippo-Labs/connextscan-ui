@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { useSelector, useDispatch, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import { create } from '@connext/nxtp-sdk'
-import { Bignumber, providers, utils } from 'ethers'
+import { BigNumber, providers, utils } from 'ethers'
 
 import Logo from './logo'
 import DropdownNavigations from './navigations/dropdown'
@@ -234,6 +234,13 @@ export default () => {
               contract_address: l?.adopted,
               asset_data,
               amount: BigInt(Number(l?.balance) || 0).toString(),
+            }
+          }).map(l => {
+            const { asset_data, amount } = { ...l }
+            const { decimals, price } = { ...asset_data }
+            return {
+              ...l,
+              value: Number(utils.formatUnits(BigNumber.from(amount), decimals)) * price,
             }
           }) || [], 'chain_id')
           dispatch({
