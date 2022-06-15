@@ -16,7 +16,7 @@ provider "aws" {
 module "next_image_optimizer" {
   source = "milliHQ/next-js-image-optimization/aws"
 
-  next_image_domains = ["metadata.ens.domains", "connextscan.io", "www.connextscan.io", "staging.connextscan.io", "testnet.connextscan.io", "bridge.connext.network", "staging.bridge.connext.network", "testnet.bridge.connext.network", "amarok.connextscan.io", "staging.amarok.connextscan.io", "testnet.amarok.connextscan.io", "amarok.bridge.connext.network", "staging.amarok.bridge.connext.network", "testnet.amarok.bridge.connext.network", "staging.testnet.amarok.bridge.connext.network", "amarok-testnet.coinhippo.io", "amarok-testnet-staging.coinhippo.io"]
+  next_image_domains = ["metadata.ens.domains", "connextscan.io", "www.connextscan.io", "staging.connextscan.io", "testnet.connextscan.io", "bridge.connext.network", "staging.bridge.connext.network", "testnet.bridge.connext.network", "amarok.connextscan.io", "staging.amarok.connextscan.io", "testnet.amarok.connextscan.io", "amarok.bridge.connext.network", "staging.amarok.bridge.connext.network", "testnet.amarok.bridge.connext.network", "staging.testnet.amarok.bridge.connext.network", "amarok.coinhippo.io", "amarok-testnet.coinhippo.io", "amarok-testnet-staging.coinhippo.io", "d3f1g7sq6u4698.cloudfront.net", "d1h9h37hgxfzvk.cloudfront.net"]
 }
 
 output "domain" {
