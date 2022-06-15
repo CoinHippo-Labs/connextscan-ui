@@ -225,7 +225,7 @@ export default () => {
         const response = await sdk.nxtpSdkUtils.getRoutersData()
         if (response || !is_interval) {
           const data = _.groupBy(response?.map(l => {
-            const chain_data = chains_data?.find(c => c?.domain_id?.toString() === l?.domain)
+            const chain_data = chains_data?.find(c => c?.domain_id === l?.domain)
             const asset_data = assets_data?.find(a => a?.contracts?.findIndex(c => c?.chain_id === chain_data?.chain_id && equals_ignore_case(c?.contract_address, l?.adopted)) > -1)
             return {
               ...l,

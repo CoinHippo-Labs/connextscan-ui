@@ -38,10 +38,10 @@ export default () => {
         const response = await sdk.nxtpSdkUtils.getTransferById(tx)
         if (response?.[0]) {
           const _data = response[0]
-          const source_chain_data = chains_data?.find(c => c?.chain_id === Number(_data.origin_chain) || c?.domain_id === Number(_data.origin_domain))
+          const source_chain_data = chains_data?.find(c => c?.chain_id === Number(_data.origin_chain) || c?.domain_id === _data.origin_domain)
           const source_asset_data = assets_data?.find(a => a?.contracts?.findIndex(c => c?.chain_id === source_chain_data?.chain_id && [_data?.origin_transacting_asset, _data?.origin_bridged_asset].findIndex(_a => equals_ignore_case(_a, c?.contract_address)) > -1) > -1)
           const source_contract_data = source_asset_data?.contracts?.find(c => c?.chain_id === source_chain_data?.chain_id)
-          const destination_chain_data = chains_data?.find(c => c?.chain_id === Number(_data.destination_chain) || c?.domain_id === Number(_data.destination_domain))
+          const destination_chain_data = chains_data?.find(c => c?.chain_id === Number(_data.destination_chain) || c?.domain_id === _data.destination_domain)
           const destination_asset_data = assets_data?.find(a => a?.contracts?.findIndex(c => c?.chain_id === destination_chain_data?.chain_id && [_data?.destination_transacting_asset, _data?.destination_local_asset].findIndex(_a => equals_ignore_case(_a, c?.contract_address)) > -1) > -1)
           const destination_contract_data = destination_asset_data?.contracts?.find(c => c?.chain_id === destination_chain_data?.chain_id)
           setData({

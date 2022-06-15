@@ -22,7 +22,7 @@ export default () => {
         const response = await sdk.nxtpSdkUtils.getRoutersData()
         if (response || !is_interval) {
           const chain_data = chains_data?.find(c => c?.id === chain)
-          const data = response?.filter(l => l?.domain === chain_data?.domain_id?.toString()).map(l => {
+          const data = response?.filter(l => l?.domain === chain_data?.domain_id).map(l => {
             return {
               ...l,
               chain_id: chain_data?.chain_id,

@@ -91,7 +91,7 @@ export default () => {
       const symbol = contract_data?.symbol || asset_data?.symbol
       const decimals = contract_data?.contract_decimals || 18
       const addParams = {
-        domain: chain_data?.domain_id?.toString(),
+        domain: chain_data?.domain_id,
         amount: utils.parseUnits(amount?.toString() || '0', decimals).toString(),
         assetId: contract_data?.contract_address,
         router: address,

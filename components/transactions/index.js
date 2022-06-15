@@ -110,10 +110,10 @@ export default () => {
         response = _.orderBy(_.uniqBy(_.concat(_data, response || []), 'transfer_id'), ['xcall_timestamp'], ['desc'])
         if (response) {
           response = response.map(t => {
-            const source_chain_data = chains_data?.find(c => c?.chain_id === Number(t?.origin_chain) || c?.domain_id === Number(t?.origin_domain))
+            const source_chain_data = chains_data?.find(c => c?.chain_id === Number(t?.origin_chain) || c?.domain_id === t?.origin_domain)
             const source_asset_data = assets_data?.find(a => a?.contracts?.findIndex(c => c?.chain_id === source_chain_data?.chain_id && [t?.origin_transacting_asset, t?.origin_bridged_asset].findIndex(_a => equals_ignore_case(_a, c?.contract_address)) > -1) > -1)
             const source_contract_data = source_asset_data?.contracts?.find(c => c?.chain_id === source_chain_data?.chain_id)
-            const destination_chain_data = chains_data?.find(c => c?.chain_id === Number(t?.destination_chain) || c?.domain_id === Number(t?.destination_domain))
+            const destination_chain_data = chains_data?.find(c => c?.chain_id === Number(t?.destination_chain) || c?.domain_id === t?.destination_domain)
             const destination_asset_data = assets_data?.find(a => a?.contracts?.findIndex(c => c?.chain_id === destination_chain_data?.chain_id && [t?.destination_transacting_asset, t?.destination_local_asset].findIndex(_a => equals_ignore_case(_a, c?.contract_address)) > -1) > -1)
             const destination_contract_data = destination_asset_data?.contracts?.find(c => c?.chain_id === destination_chain_data?.chain_id)
             return {
