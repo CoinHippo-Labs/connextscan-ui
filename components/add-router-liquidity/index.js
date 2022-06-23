@@ -153,7 +153,7 @@ export default () => {
       name: 'chain',
       type: 'select',
       placeholder: 'Select chain',
-      options: chains_data?.map(c => {
+      options: chains_data?.filter(c => !c?.view_only).map(c => {
         return {
           value: c.id,
           title: c.name,
