@@ -28,7 +28,11 @@ export default () => {
         router.push(`/router/${_address}`)
       }
     }
-    else if (chains_data && sdk) {
+  }, [address, ens_data])
+
+  useEffect(() => {
+    let _address = address
+    if (chains_data && sdk) {
       const getData = async is_interval => {
         const response = await sdk.nxtpSdkUtils.getRoutersData()
         if (response || !is_interval) {
@@ -53,7 +57,7 @@ export default () => {
         clearInterval(interval)
       }
     }
-  }, [address, chains_data, ens_data, sdk, action])
+  }, [address, chains_data, sdk, action])
 
   return (
     <>
