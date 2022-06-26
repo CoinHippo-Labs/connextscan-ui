@@ -2,7 +2,12 @@ import { Image } from 'react-image'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 
-export default ({ value, inputSearch, onSelect, chain }) => {
+export default ({
+  value,
+  inputSearch,
+  onSelect,
+  chain,
+}) => {
   const { chains, assets } = useSelector(state => ({ chains: state.chains, assets: state.assets }), shallowEqual)
   const { chains_data } = { ...chains }
   const { assets_data } = { ...assets }

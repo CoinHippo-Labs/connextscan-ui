@@ -3,7 +3,11 @@ import _ from 'lodash'
 
 import Image from '../../image'
 
-export default ({ value, inputSearch, onSelect }) => {
+export default ({
+  value,
+  inputSearch,
+  onSelect,
+}) => {
   const { chains } = useSelector(state => ({ chains: state.chains }), shallowEqual)
   const { chains_data } = { ...chains }
 

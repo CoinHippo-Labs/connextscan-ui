@@ -7,7 +7,10 @@ import { RotatingSquare } from 'react-loader-spinner'
 import Image from '../image'
 import { number_format, loader_color } from '../../lib/utils'
 
-export default ({ chainId, className = '' }) => {
+export default ({
+  chainId,
+  className = '',
+}) => {
   const { preferences, chains, rpc_providers } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, rpc_providers: state.rpc_providers }), shallowEqual)
   const { theme } = { ...preferences }
   const { chains_data } = { ...chains }

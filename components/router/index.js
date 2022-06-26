@@ -4,7 +4,7 @@ import { useSelector, shallowEqual } from 'react-redux'
 
 import AddRouterLiquidity from '../add-router-liquidity'
 import Assets from '../assets'
-import Transactions from '../transactions'
+import Transfers from '../transfers'
 import { type } from '../../lib/object/id'
 import { equals_ignore_case } from '../../lib/utils'
 
@@ -65,7 +65,7 @@ export default () => {
       <div className="flex items-start justify-between space-x-2">
         <div className="w-full grid grid-flow-row lg:grid-cols-2 gap-4 lg:gap-6 mb-4">
           <Assets data={liquidity} />
-          <Transactions />
+          <Transfers />
         </div>
       </div>
     </>

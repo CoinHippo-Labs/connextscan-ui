@@ -15,7 +15,7 @@ import SubNavbar from './sub-navbar'
 import { chains as getChains, assets as getAssets } from '../../lib/api/config'
 import { tokens as getTokens } from '../../lib/api/tokens'
 import { ens as getEns } from '../../lib/api/ens'
-import { coin } from '../../lib/api/coingecko'
+import { token as getToken } from '../../lib/api/coingecko'
 import { connext } from '../../lib/object/chain'
 import { equals_ignore_case } from '../../lib/utils'
 import { CHAINS_DATA, ASSETS_DATA, ENS_DATA, CHAIN_DATA, ASSET_BALANCES_DATA, SDK, RPCS } from '../../reducers/types'
@@ -116,7 +116,7 @@ export default () => {
           value: chain_data,
         })
         if (chain_data.coingecko_id) {
-          const response = await coin(chain_data.coingecko_id)
+          const response = await getToken(chain_data.coingecko_id)
           chain_data.token_data = !response?.error && response
           dispatch({
             type: CHAIN_DATA,

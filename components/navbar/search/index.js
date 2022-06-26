@@ -63,7 +63,6 @@ export default () => {
           })
         }
       }
-
       router.push(`/${input_type}/${input}${['tx'].includes(input_type) ? '?src=search' : ''}`)
       setInputSearch('')
       inputSearchRef?.current?.blur()

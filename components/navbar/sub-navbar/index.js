@@ -30,8 +30,8 @@ export default () => {
     case '/':
       title = 'Overview'
       break
-    case '/transactions':
-      title = 'Transactions'
+    case '/transfers':
+      title = 'Transfers'
       break
     case '/routers':
       title = 'Routers'
@@ -54,7 +54,9 @@ export default () => {
       title = (
         <EnsProfile
           address={address}
-          fallback={<span>Address</span>}
+          fallback={<span>
+            Address
+          </span>}
         />
       )
       subtitle = (
@@ -76,7 +78,9 @@ export default () => {
       title = (
         <EnsProfile
           address={address}
-          fallback={<span>Router</span>}
+          fallback={<span>
+            Router
+          </span>}
         />
       )
       subtitle = (

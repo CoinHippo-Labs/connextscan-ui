@@ -9,9 +9,9 @@ export default [
     icon: <RiBarChartBoxLine size={20} className="stroke-current" />,
   },
   {
-    id: 'transactions',
-    title: 'Transactions',
-    path: '/transactions',
+    id: 'transfers',
+    title: 'Transfers',
+    path: '/transfers',
     icon: <BiFileBlank size={20} className="stroke-current" />,
   },
   {

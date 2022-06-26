@@ -103,7 +103,11 @@ export default () => {
           setApproving(true)
           const approve_response = await signer.sendTransaction(approve_request)
           const tx_hash = approve_response?.hash
-          setApproveResponse({ status: 'pending', message: `Wait for ${symbol} approval`, tx_hash })
+          setApproveResponse({
+            status: 'pending',
+            message: `Wait for ${symbol} approval`,
+            tx_hash,
+          })
           const approve_receipt = await signer.provider.waitForTransaction(tx_hash)
           setApproveResponse(approve_receipt?.status ?
             null : {
@@ -126,7 +130,11 @@ export default () => {
           if (add_request) {
             const add_response = await signer.sendTransaction(add_request)
             const tx_hash = add_response?.hash
-            setAddResponse({ status: 'pending', message: `Wait for adding ${symbol} liquidity`, tx_hash })
+            setAddResponse({
+              status: 'pending',
+              message: `Wait for adding ${symbol} liquidity`,
+              tx_hash,
+            })
             const add_receipt = await signer.provider.waitForTransaction(tx_hash)
             failed = !add_receipt?.status
             setAddResponse({
@@ -199,11 +207,9 @@ export default () => {
           innerClassNames={`${notificationResponse.status === 'failed' ? 'bg-red-500 dark:bg-red-600' : notificationResponse.status === 'success' ? 'bg-green-500 dark:bg-green-600' : 'bg-blue-600 dark:bg-blue-700'} text-white`}
           animation="animate__animated animate__fadeInDown"
           icon={notificationResponse.status === 'failed' ?
-            <BiMessageError className="w-6 h-6 stroke-current mr-2" />
-            :
+            <BiMessageError className="w-6 h-6 stroke-current mr-2" /> :
             notificationResponse.status === 'success' ?
-              <BiMessageCheck className="w-6 h-6 stroke-current mr-2" />
-              :
+              <BiMessageCheck className="w-6 h-6 stroke-current mr-2" /> :
               <div className="mr-2">
                 <Watch color="white" width="20" height="20" />
               </div>

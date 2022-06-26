@@ -12,11 +12,6 @@ node_modules
 /.next
 /out
 
-# terraform
-.terraform
-.terraform.*
-terraform.*
-
 # production
 /build
 package-lock.json
