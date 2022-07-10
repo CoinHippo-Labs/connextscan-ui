@@ -2,6 +2,7 @@ import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
+import moment from 'moment'
 import {
   ResponsiveContainer,
   BarChart,
@@ -9,22 +10,23 @@ import {
   stop,
   XAxis,
   Bar,
-  LabelList,
   Cell,
 } from 'recharts'
 import { TailSpin } from 'react-loader-spinner'
 
 import Image from '../../image'
+import { timeframes } from '../../../lib/object/timeframe'
 import { currency_symbol } from '../../../lib/object/currency'
 import { number_format, loader_color } from '../../../lib/utils'
 
 export default ({
-  title = 'TVL',
-  description = 'Total value locked by chain',
+  title = 'Fee',
+  description = 'Transfer fee by',
+  timeframe = null,
+  fees,
 }) => {
-  const { preferences, asset_balances } = useSelector(state => ({ preferences: state.preferences, asset_balances: state.asset_balances }), shallowEqual)
+  const { preferences } = useSelector(state => ({ preferences: state.preferences }), shallowEqual)
   const { theme } = { ...preferences }
-  const { asset_balances_data } = { ...asset_balances }
 
   const router = useRouter()
 
@@ -32,24 +34,30 @@ export default ({
   const [xFocus, setXFocus] = useState(null)
 
   useEffect(() => {
-    if (asset_balances_data) {
-      setData(Object.values(asset_balances_data).map(ls => {
+    if (fees) {
+      const _timeframe = timeframes.find(t => t?.day === timeframe)
+      setData(fees.map(d => {
+        const {
+          timestamp,
+          fee,
+        } = { ...d }
         return {
-          ..._.head(ls)?.chain_data,
-          value: _.sumBy(ls, 'value'),
-        }
-      }).map(l => {
-        const { value } = { ...l }
-        return {
-          ...l,
-          value_string: number_format(value, value > 1000000 ? '0,0.00a' : value > 10000 ? '0,0' : '0,0.00'),
+          ...d,
+          id: timestamp,
+          time_string: `${moment(timestamp).startOf(_timeframe?.timeframe).format('MMM D, YYYY')}${_timeframe?.timeframe === 'week' ? ` - ${moment(timestamp).endOf(_timeframe?.timeframe).format('MMM D, YYYY')}` : ''}`,
+          short_name: moment(timestamp).startOf(_timeframe?.timeframe).format('D MMM'),
+          value: fee,
+          value_string: number_format(fee, fee > 10000 ? '0,0.00a' : fee > 1000 ? '0,0' : '0,0.00'),
         }
       }))
     }
-  }, [asset_balances_data])
+  }, [fees])
 
-  const d = data?.find(d => d.id === xFocus)
-  const { name, image, value } = { ...d }
+  const d = data?.find(d => d.id === xFocus) || _.last(data)
+  const {
+    time_string,
+    value,
+  } = { ...d }
 
   return (
     <div className="h-80 bg-white dark:bg-black border border-slate-100 dark:border-slate-800 shadow dark:shadow-slate-400 rounded-lg space-y-0.5 pt-5 pb-0 sm:pb-1 px-5">
@@ -59,7 +67,7 @@ export default ({
             {title}
           </span>
           <span className="text-slate-400 dark:text-slate-200 text-xs font-medium">
-            {description}
+            {description} {timeframes.find(t => t?.day === timeframe)?.timeframe}
           </span>
         </div>
         {d && (
@@ -67,20 +75,9 @@ export default ({
             <span className="uppercase font-bold">
               {currency_symbol}{number_format(value, '0,0.00')}
             </span>
-            <div className="flex items-center space-x-1.5">
-              {image && (
-                <Image
-                  src={image}
-                  alt=""
-                  width={18}
-                  height={18}
-                  className="rounded-full"
-                />
-              )}
-              <span className="text-xs font-medium">
-                {name}
-              </span>
-            </div>
+            <span className="text-slate-400 dark:text-slate-200">
+              {time_string}
+            </span>
           </div>
         )}
       </div>
@@ -106,30 +103,27 @@ export default ({
                 bottom: 4,
                 left: 2,
               }}
-              className="small-x"
+              className="mobile-hidden-x small-x"
             >
               <defs>
-                {data.map((d, i) => (
-                  <linearGradient
-                    key={i}
-                    id={`gradient-tvl-${d?.id}`}
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="25%"
-                      stopColor={d?.color}
-                      stopOpacity={0.95}
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor={d?.color}
-                      stopOpacity={0.75}
-                    />
-                  </linearGradient>
-                ))}
+                <linearGradient
+                  id="gradient-fee"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="25%"
+                    stopColor="#eab308"
+                    stopOpacity={0.95}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor="#eab308"
+                    stopOpacity={0.75}
+                  />
+                </linearGradient>
               </defs>
               <XAxis
                 dataKey="short_name"
@@ -138,20 +132,13 @@ export default ({
               />
               <Bar
                 dataKey="value"
-                minPointSize={10}
-                onClick={d => router.push(`/${d?.id}`)}
+                minPointSize={5}
               >
-                <LabelList
-                  dataKey="value_string"
-                  position="top"
-                  cursor="default"
-                />
                 {data.map((d, i) => (
                   <Cell
                     key={i}
-                    cursor="pointer"
                     fillOpacity={1}
-                    fill={`url(#gradient-tvl-${d?.id})`}
+                    fill="url(#gradient-fee)"
                   />
                 ))}
               </Bar>

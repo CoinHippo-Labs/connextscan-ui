@@ -75,7 +75,7 @@ export default ({ data }) => {
         <div className="text-base font-bold">
           Liquidity
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 mt-2 sm:mt-0 mb-4 sm:mb-0">
           {!chain && (
             <SelectChain
               value={chainSelect}

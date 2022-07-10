@@ -1,5 +1,5 @@
-import { RiBarChartBoxLine, RiServerLine } from 'react-icons/ri'
-import { BiFileBlank, BiTransfer } from 'react-icons/bi'
+import { RiBarChartBoxLine, RiServerLine, RiCodeFill } from 'react-icons/ri'
+import { BiFileBlank } from 'react-icons/bi'
 
 export default [
   {
@@ -25,6 +25,6 @@ export default [
     title: 'Bridge',
     path: process.env.NEXT_PUBLIC_BRIDGE_URL,
     external: true,
-    icon: <BiTransfer size={20} className="stroke-current" />,
+    icon: <RiCodeFill size={20} className="stroke-current" />,
   },
 ]

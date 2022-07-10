@@ -39,6 +39,9 @@ export default () => {
     return {
       ...r,
       total_value: _.sumBy(r.assets, 'value'),
+      total_transfers: 1000,
+      total_volume: 10000000,
+      total_fee: 33.33,
       supported_chains: _.uniqBy(r.assets?.map(a => a?.chain_data), 'id'),
     }
   }), ['total_value'], ['desc'])
@@ -102,6 +105,65 @@ export default () => {
                   <span className="uppercase">
                     {currency_symbol}
                     {number_format(props.value, props.value > 1000000 ? '0,0.00a' : props.value > 10000 ? '0,0' : '0,0.00')}
+                  </span>
+                  :
+                  <span className="text-slate-400 dark:text-slate-500">
+                    n/a
+                  </span>
+                }
+              </div>
+            ),
+            headerClassName: 'whitespace-nowrap justify-end text-right',
+          },
+          {
+            Header: 'Transfers',
+            accessor: 'total_transfers',
+            sortType: (a, b) => a.original.total_transfers > b.original.total_transfers ? 1 : -1,
+            Cell: props => (
+              <div className="text-base font-bold text-right">
+                {typeof props.value === 'number' ?
+                  <span className="uppercase">
+                    {number_format(props.value, props.value > 100000 ? '0,0.00a' : '0,0')}
+                  </span>
+                  :
+                  <span className="text-slate-400 dark:text-slate-500">
+                    n/a
+                  </span>
+                }
+              </div>
+            ),
+            headerClassName: 'whitespace-nowrap justify-end text-right',
+          },
+          {
+            Header: 'Volume',
+            accessor: 'total_volume',
+            sortType: (a, b) => a.original.total_volume > b.original.total_volume ? 1 : -1,
+            Cell: props => (
+              <div className="text-base font-bold text-right">
+                {typeof props.value === 'number' ?
+                  <span className="uppercase">
+                    {currency_symbol}
+                    {number_format(props.value, props.value > 10000000 ? '0,0.00a' : props.value > 100000 ? '0,0' : '0,0.00')}
+                  </span>
+                  :
+                  <span className="text-slate-400 dark:text-slate-500">
+                    n/a
+                  </span>
+                }
+              </div>
+            ),
+            headerClassName: 'whitespace-nowrap justify-end text-right',
+          },
+          {
+            Header: 'Fee',
+            accessor: 'total_fee',
+            sortType: (a, b) => a.original.total_fee > b.original.total_fee ? 1 : -1,
+            Cell: props => (
+              <div className="text-base font-bold text-right">
+                {typeof props.value === 'number' ?
+                  <span className="uppercase">
+                    {currency_symbol}
+                    {number_format(props.value, props.value > 100000 ? '0,0.00a' : props.value > 1000 ? '0,0' : '0,0.00')}
                   </span>
                   :
                   <span className="text-slate-400 dark:text-slate-500">

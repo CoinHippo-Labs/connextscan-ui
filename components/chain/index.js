@@ -7,7 +7,7 @@ import { equals_ignore_case } from '../../lib/utils'
 
 export default () => {
   const { chains, dev } = useSelector(state => ({ chains: state.chains, dev: state.dev }), shallowEqual)
-  const { chains_data} = { ...chains }
+  const { chains_data } = { ...chains }
   const { sdk } = { ...dev }
 
   const router = useRouter()

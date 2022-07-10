@@ -2,6 +2,7 @@ import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 
+import Info from './info'
 import AddRouterLiquidity from '../add-router-liquidity'
 import Assets from '../assets'
 import Transfers from '../transfers'
@@ -10,7 +11,7 @@ import { equals_ignore_case } from '../../lib/utils'
 
 export default () => {
   const { chains, ens, dev } = useSelector(state => ({ chains: state.chains, ens: state.ens, dev: state.dev }), shallowEqual)
-  const { chains_data} = { ...chains }
+  const { chains_data } = { ...chains }
   const { ens_data } = { ...ens }
   const { sdk } = { ...dev }
 
@@ -18,6 +19,7 @@ export default () => {
   const { query } = { ...router }
   const { address, action } = { ...query }
 
+  const [info, setInfo] = useState(null)
   const [liquidity, setLiquidity] = useState(null)
 
   useEffect(() => {
@@ -45,6 +47,13 @@ export default () => {
               amount: BigInt(Number(l?.balance) || 0).toString(),
             }
           }) || []
+          setInfo({
+            version: '0.2.0 beta',
+            transfers: 1000,
+            volume: 10000000,
+            fee: 33.33,
+            supported_chains: data.map(d => d?.chain_id),
+          })
           setLiquidity(data)
         }
         if (['refresh'].includes(action)) {
@@ -61,9 +70,12 @@ export default () => {
 
   return (
     <>
-      <AddRouterLiquidity />
+      <div className="flex flex-col sm:flex-row items-start justify-between space-y-4 sm:space-y-0 sm:space-x-8 mb-6">
+        <AddRouterLiquidity />
+        <Info data={info} />
+      </div>
       <div className="flex items-start justify-between space-x-2">
-        <div className="w-full grid grid-flow-row lg:grid-cols-2 gap-4 lg:gap-6 mb-4">
+        <div className="w-full grid grid-flow-row lg:grid-cols-2 gap-6 mb-4">
           <Assets data={liquidity} />
           <Transfers />
         </div>
