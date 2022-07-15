@@ -46,7 +46,7 @@ export default ({ Component, pageProps }) => {
           <Component { ...pageProps } />
         </Layout>
       </Provider>
-      <div className="text-green-500" />
+      <div className="text-green-500 lg:grid-cols-5" />
     </>
   )
 }
