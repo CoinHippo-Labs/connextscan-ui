@@ -14,33 +14,22 @@ export default ({ data }) => {
   const titleClassName = 'text-slate-400 dark:text-slate-200 text-base font-medium'
 
   const {
-    version,
-    transfers,
+    liquidity,
     volume,
+    transfers,
     fee,
     supported_chains,
   } = { ...data }
 
   return (
-    <div className="w-full grid grid-flow-row sm:grid-cols-2 lg:grid-cols-5 gap-5">
+    <div className={`w-full grid grid-flow-row sm:grid-cols-2 lg:grid-cols-${supported_chains ? 5 : 4} gap-5`}>
       <div className={`${metricClassName}`}>
         <span className={titleClassName}>
-          Version
+          Liquidity
         </span>
         <div className="text-3xl font-bold">
           {data ?
-            version :
-            <TailSpin color={loader_color(theme)} width="32" height="32" />
-          }
-        </div>
-      </div>
-      <div className={`${metricClassName}`}>
-        <span className={titleClassName}>
-          Transfers
-        </span>
-        <div className="text-3xl font-bold">
-          {data ?
-            number_format(transfers, '0,0') :
+            `${currency_symbol}${number_format(liquidity, '0,0')}` :
             <TailSpin color={loader_color(theme)} width="32" height="32" />
           }
         </div>
@@ -58,6 +47,17 @@ export default ({ data }) => {
       </div>
       <div className={`${metricClassName}`}>
         <span className={titleClassName}>
+          Transfers
+        </span>
+        <div className="text-3xl font-bold">
+          {data ?
+            number_format(transfers, '0,0') :
+            <TailSpin color={loader_color(theme)} width="32" height="32" />
+          }
+        </div>
+      </div>
+      <div className={`${metricClassName}`}>
+        <span className={titleClassName}>
           Fee
         </span>
         <div className="text-3xl font-bold">
@@ -67,36 +67,38 @@ export default ({ data }) => {
           }
         </div>
       </div>
-      <div className={`${metricClassName}`}>
-        <span className={titleClassName}>
-          Supported Chains
-        </span>
-        <div className="text-3xl font-bold">
-          {data ?
-            <div className="flex items-center mt-1">
-              {supported_chains.map((id, i) => {
-                const {
-                  image,
-                } = { ...chains_data?.find(c => c?.chain_id, id) }
-                return image && (
-                  <div
-                    key={i}
-                    className="mr-1"
-                  >
-                    <Image
-                      src={image}
-                      alt=""
-                      width={24}
-                      height={24}
-                    />
-                  </div>
-                )
-              }).filter(c => c)}
-            </div> :
-            <TailSpin color={loader_color(theme)} width="32" height="32" />
-          }
+      {supported_chains && (
+        <div className={`${metricClassName}`}>
+          <span className={titleClassName}>
+            Supported Chains
+          </span>
+          <div className="text-3xl font-bold">
+            {data ?
+              <div className="flex items-center mt-1">
+                {supported_chains.map((id, i) => {
+                  const {
+                    image,
+                  } = { ...chains_data?.find(c => c?.chain_id, id) }
+                  return image && (
+                    <div
+                      key={i}
+                      className="mr-1"
+                    >
+                      <Image
+                        src={image}
+                        alt=""
+                        width={24}
+                        height={24}
+                      />
+                    </div>
+                  )
+                }).filter(c => c)}
+              </div> :
+              <TailSpin color={loader_color(theme)} width="32" height="32" />
+            }
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

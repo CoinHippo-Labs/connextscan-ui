@@ -31,9 +31,11 @@ export default () => {
   const [balance, setBalance] = useState(null)
 
   const [approving, setApproving] = useState(null)
+  const [approveProcessing, setApproveProcessing] = useState(null)
   const [approveResponse, setApproveResponse] = useState(null)
 
   const [adding, setAdding] = useState(null)
+  const [addProcessing, setAddProcessing] = useState(null)
   const [addResponse, setAddResponse] = useState(null)
 
   useEffect(() => {
@@ -78,11 +80,15 @@ export default () => {
     setData(null)
 
     setApproving(null)
+    setApproveProcessing(null)
+
     setAdding(null)
+    setAddProcessing(null)
   }
 
   const addLiquidty = async () => {
     if (chains_data && sdk && signer && data) {
+      setApproving(null)
       setAdding(true)
       const { chain, asset, amount } = { ...data }
       const chain_data = chains_data?.find(c => c?.id === chain)
@@ -108,6 +114,7 @@ export default () => {
             message: `Wait for ${symbol} approval`,
             tx_hash,
           })
+          setApproveProcessing(true)
           const approve_receipt = await signer.provider.waitForTransaction(tx_hash)
           setApproveResponse(approve_receipt?.status ?
             null : {
@@ -117,11 +124,16 @@ export default () => {
             }
           )
           failed = !approve_receipt?.status
+          setApproveProcessing(false)
+          setApproving(false)
+        }
+        else {
           setApproving(false)
         }
       } catch (error) {
         setApproveResponse({ status: 'failed', message: error?.data?.message || error?.message })
         failed = true
+        setApproveProcessing(false)
         setApproving(false)
       }
       if (!failed) {
@@ -135,6 +147,7 @@ export default () => {
               message: `Wait for adding ${symbol} liquidity`,
               tx_hash,
             })
+            setAddProcessing(true)
             const add_receipt = await signer.provider.waitForTransaction(tx_hash)
             failed = !add_receipt?.status
             setAddResponse({
@@ -151,6 +164,7 @@ export default () => {
           failed = true
         }
       }
+      setAddProcessing(false)
       setAdding(false)
     }
   }
@@ -353,7 +367,18 @@ export default () => {
             <TailSpin color="white" width="20" height="20" />
           )}
           <span>
-            {adding ? approving ? 'Approving' : 'Adding' : 'Add'}
+            {adding ?
+              approving ?
+                approveProcessing ?
+                  'Approving' :
+                  'Please Approve' :
+                addProcessing ?
+                  'Adding' :
+                  typeof approving === 'boolean' ?
+                    'Please Confirm' :
+                    'Checking Approval' :
+              'Add'
+            }
           </span>
         </span>}
         onClose={() => reset()}
