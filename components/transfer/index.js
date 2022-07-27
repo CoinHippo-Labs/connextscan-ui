@@ -98,11 +98,11 @@ export default () => {
   } = { ...data }
 
   const source_symbol = source_asset_data?.symbol
-  const source_decimals = source_asset_data?.contract_decimals || 18
+  const source_decimals = source_asset_data?.decimals || 18
   const source_asset_image = source_asset_data?.image
   const source_amount = ['number', 'string'].includes(typeof origin_transacting_amount) && Number(utils.formatUnits(BigNumber.from(BigInt(origin_transacting_amount).toString()), source_decimals))
   const destination_symbol = destination_asset_data?.symbol
-  const destination_decimals = destination_asset_data?.contract_decimals || 18
+  const destination_decimals = destination_asset_data?.decimals || 18
   const destination_asset_image = destination_asset_data?.image
   const destination_amount = ['number', 'string'].includes(typeof destination_transacting_amount) && Number(utils.formatUnits(BigNumber.from(BigInt(destination_transacting_amount).toString()), destination_decimals))
 

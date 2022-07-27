@@ -24,7 +24,7 @@ export default () => {
       router_address: k,
       assets: _.orderBy(v?.map(a => {
         const asset_data = a?.asset_data
-        const decimals = asset_data?.contract_decimals || 18
+        const decimals = asset_data?.decimals || 18
         const price = asset_data?.price || 0
         const liquidity = a?.balance
         const amount = Number(utils.formatUnits(BigInt(liquidity || 0).toString(), decimals))

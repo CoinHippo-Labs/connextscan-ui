@@ -55,7 +55,7 @@ export default () => {
         const asset_data = assets_data.find(a => a?.id === data.asset)
         const contract_data = asset_data?.contracts?.find(c => c?.chain_id === chain_data?.chain_id)
         const contract_address = contract_data?.contract_address 
-        const decimals = contract_data?.contract_decimals || 18
+        const decimals = contract_data?.decimals || 18
         const rpc = rpcs?.[chain_data?.chain_id]
         let balance
         if (rpc && contract_address) {
@@ -95,7 +95,7 @@ export default () => {
       const asset_data = assets_data?.find(a => a?.id === asset)
       const contract_data = asset_data?.contracts?.find(c => c?.chain_id === chain_data?.chain_id)
       const symbol = contract_data?.symbol || asset_data?.symbol
-      const decimals = contract_data?.contract_decimals || 18
+      const decimals = contract_data?.decimals || 18
       const addParams = {
         domain: chain_data?.domain_id,
         amount: utils.parseUnits(amount?.toString() || '0', decimals).toString(),

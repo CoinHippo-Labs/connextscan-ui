@@ -46,7 +46,7 @@ export default ({ data }) => {
         chain_data: chains_data?.find(_c => _c?.chain_id === c?.chain_id),
       }
       delete chain_asset_data.contracts
-      const decimals = chain_asset_data.contract_decimals || 18
+      const decimals = chain_asset_data.decimals || 18
       const price = chain_asset_data.price || 0
       const liquidity = !chain && data?.find(d => d?.chain_id === chain_asset_data.chain_id && equals_ignore_case(d?.contract_address, chain_asset_data.contract_address))
       const amount = data ?
