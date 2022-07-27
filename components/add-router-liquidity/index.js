@@ -52,11 +52,16 @@ export default () => {
     const getData = async () => {
       if (chains_data && assets_data && data?.chain && data.asset && wallet_address) {
         const chain_data = chains_data.find(c => c?.id === data.chain)
+        const {
+          chain_id,
+        } = { ...chain_data }
         const asset_data = assets_data.find(a => a?.id === data.asset)
-        const contract_data = asset_data?.contracts?.find(c => c?.chain_id === chain_data?.chain_id)
-        const contract_address = contract_data?.contract_address 
-        const decimals = contract_data?.decimals || 18
-        const rpc = rpcs?.[chain_data?.chain_id]
+        const contract_data = asset_data?.contracts?.find(c => c?.chain_id === chain_id)
+        const {
+          contract_address,
+          decimals,
+        } = { ...contract_data }
+        const rpc = rpcs?.[chain_id]
         let balance
         if (rpc && contract_address) {
           if (contract_address === constants.AddressZero) {
@@ -67,7 +72,7 @@ export default () => {
             balance = await contract.balanceOf(wallet_address)
           }
         }
-        setBalance(balance ? Number(utils.formatUnits(balance, decimals)) : null)
+        setBalance(balance && Number(utils.formatUnits(balance, decimals || 18)))
       }
       else {
         setBalance(null)
@@ -131,7 +136,10 @@ export default () => {
           setApproving(false)
         }
       } catch (error) {
-        setApproveResponse({ status: 'failed', message: error?.data?.message || error?.message })
+        setApproveResponse({
+          status: 'failed',
+          message: error?.data?.message || error?.message,
+        })
         failed = true
         setApproveProcessing(false)
         setApproving(false)
@@ -160,7 +168,10 @@ export default () => {
             }
           }
         } catch (error) {
-          setAddResponse({ status: 'failed', message: error?.data?.message || error?.message })
+          setAddResponse({
+            status: 'failed',
+            message: error?.data?.message || error?.message,
+          })
           failed = true
         }
       }
@@ -265,8 +276,7 @@ export default () => {
             <span className="text-xs font-semibold">
               Manage Router
             </span>
-          </div>
-          :
+          </div> :
           <FallingLines color={loader_color(theme)} width="24" height="24" />
         }
         buttonClassName={`min-w-max ${disabled ? 'cursor-not-allowed' : ''} flex items-center justify-center`}
