@@ -13,6 +13,7 @@ const getNetwork = chain_id => {
     56: 'binance',
     137: 'matic',
     42161: 'arbitrum',
+    // 42170: 'arbitrum-nova',
     10: 'optimism',
     43114: 'avalanche-fuji-mainnet',
     250: 'fantom',
