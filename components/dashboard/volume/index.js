@@ -11,18 +11,72 @@ import {
   XAxis,
   Bar,
   Cell,
+  Tooltip,
 } from 'recharts'
 import { TailSpin } from 'react-loader-spinner'
 
 import Image from '../../image'
 import { timeframes } from '../../../lib/object/timeframe'
+import { chainName } from '../../../lib/object/chain'
 import { currency_symbol } from '../../../lib/object/currency'
 import { number_format, loader_color } from '../../../lib/utils'
+
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}) => {
+  if (active) {
+    const {
+      values,
+    } = { ...payload?.[0]?.payload }
+    return values?.length > 0 && (
+      <div className="bg-slate-50 dark:bg-slate-900 shadow-lg dark:shadow-slate-600 rounded-lg flex flex-col space-y-1 p-2">
+        {values.map((v, i) => {
+          const {
+            chain_data,
+            volume,
+          } = { ...v }
+          const {
+            image,
+          } = { ...chain_data }
+          return (
+            <div
+              key={i}
+              className="flex items-center justify-between space-x-4"
+            >
+              <div className="flex items-center space-x-1.5">
+                {image && (
+                  <Image
+                    src={image}
+                    alt=""
+                    width={18}
+                    height={18}
+                    className="rounded-full"
+                  />
+                )}
+                <span className="text-xs font-semibold">
+                  {chainName(chain_data)}
+                </span>
+              </div>
+              <span className=" text-xs font-semibold">
+                {currency_symbol}
+                {number_format(volume, volume > 10000 ? '0,0' : '0,0.000000')}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+  return null
+}
 
 export default ({
   title = 'Volume',
   description = 'Transfer volume by',
   timeframe = null,
+  stacked = false,
   volumes,
 }) => {
   const { preferences } = useSelector(state => ({ preferences: state.preferences }), shallowEqual)
@@ -40,6 +94,7 @@ export default ({
         const {
           timestamp,
           volume,
+          volume_by_chains,
         } = { ...d }
         return {
           ...d,
@@ -48,6 +103,17 @@ export default ({
           short_name: moment(timestamp).startOf(_timeframe?.timeframe).format('D MMM'),
           value: volume,
           value_string: number_format(volume, volume > 1000000 ? '0,0.00a' : volume > 10000 ? '0,0' : '0,0.00'),
+          values: volume_by_chains,
+          ...Object.fromEntries(volume_by_chains?.map(v => {
+            const {
+              id,
+              volume,
+            } = { ...v }
+            return [
+              id,
+              volume,
+            ]
+          }) || []),
         }
       }))
     }
@@ -57,6 +123,7 @@ export default ({
   const {
     time_string,
     value,
+    values,
   } = { ...d }
 
   return (
@@ -130,23 +197,51 @@ export default ({
                 axisLine={false}
                 tickLine={false}
               />
-              <Bar
-                dataKey="value"
-                minPointSize={5}
-              >
-                {data.map((d, i) => (
-                  <Cell
-                    key={i}
-                    fillOpacity={1}
-                    fill="url(#gradient-volume)"
+              {stacked && values?.length > 0 ?
+                <>
+                  <Tooltip
+                    content={(
+                      <CustomTooltip />
+                    )}
+                    cursor={{ fill: 'transparent' }}
                   />
-                ))}
-              </Bar>
+                  {_.orderBy(values, ['id'], ['asc']).map((v, i) => {
+                    const {
+                      id,
+                      color,
+                    } = { ...v }
+                    return (
+                      <Bar
+                        key={i}
+                        dataKey={id}
+                        minPointSize={5}
+                        stackId={title}
+                        fill={color}
+                      />
+                    )
+                  })}
+                </> :
+                <Bar
+                  dataKey="value"
+                  minPointSize={5}
+                >
+                  {data.map((d, i) => (
+                    <Cell
+                      key={i}
+                      fillOpacity={1}
+                      fill="url(#gradient-volume)"
+                    />
+                  ))}
+                </Bar>
+              }
             </BarChart>
-          </ResponsiveContainer>
-          :
+          </ResponsiveContainer> :
           <div className="w-full h-4/5 flex items-center justify-center">
-            <TailSpin color={loader_color(theme)} width="32" height="32" />
+            <TailSpin
+              color={loader_color(theme)}
+              width="32"
+              height="32"
+            />
           </div>
         }
       </div>

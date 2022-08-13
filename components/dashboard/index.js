@@ -34,9 +34,22 @@ export default () => {
           }
         }), 0, 3),
         volumes: [...Array(timeframe || 30).keys()].map(i => {
+          const volume_by_chains = _.orderBy(chains_data.map(c => {
+            const {
+              id,
+              color,
+            } = { ...c }
+            return {
+              id,
+              color,
+              chain_data: c,
+              volume: 100000 * Math.ceil(Math.random(0, 1) * 10) / Math.ceil(Math.random(0, 1) * 100),
+            }
+          }), ['volume'], ['desc'])
           return {
             timestamp: moment().subtract((timeframe || 30) - i, _timeframe?.timeframe).startOf(_timeframe?.timeframe).valueOf(),
-            volume: 1000000 * Math.ceil(Math.random(0, 1) * 10) / Math.ceil(Math.random(0, 1) * 100),
+            volume: _.sumBy(volume_by_chains, 'volume'),
+            volume_by_chains,
           }
         }),
         total_transfers: 10000,
@@ -47,9 +60,22 @@ export default () => {
           }
         }), 0, 3),
         transfers: [...Array(timeframe || 30).keys()].map(i => {
+          const transfers_by_chains = _.orderBy(chains_data.map(c => {
+            const {
+              id,
+              color,
+            } = { ...c }
+            return {
+              id,
+              color,
+              chain_data: c,
+              transfers: 1000 * Math.ceil(Math.random(0, 1) * 10) / Math.ceil(Math.random(0, 1) * 100),
+            }
+          }), ['transfers'], ['desc'])
           return {
             timestamp: moment().subtract((timeframe || 30) - i, _timeframe?.timeframe).startOf(_timeframe?.timeframe).valueOf(),
-            transfers: 10000 * Math.ceil(Math.random(0, 1) * 10) / Math.ceil(Math.random(0, 1) * 100),
+            transfers: _.sumBy(transfers_by_chains, 'transfers'),
+            transfers_by_chains,
           }
         }),
         total_fee: 10000,
@@ -60,9 +86,22 @@ export default () => {
           }
         }), 0, 3),
         fees: [...Array(timeframe || 30).keys()].map(i => {
+          const fee_by_chains = _.orderBy(chains_data.map(c => {
+            const {
+              id,
+              color,
+            } = { ...c }
+            return {
+              id,
+              color,
+              chain_data: c,
+              fee: 10 * Math.ceil(Math.random(0, 1) * 10) / Math.ceil(Math.random(0, 1) * 100),
+            }
+          }), ['fee'], ['desc'])
           return {
             timestamp: moment().subtract((timeframe || 30) - i, _timeframe?.timeframe).startOf(_timeframe?.timeframe).valueOf(),
-            fee: 100 * Math.ceil(Math.random(0, 1) * 10) / Math.ceil(Math.random(0, 1) * 100),
+            fee: _.sumBy(fee_by_chains, 'fee'),
+            fee_by_chains,
           }
         }),
       })
@@ -91,6 +130,7 @@ export default () => {
       <div className="lg:col-span-3">
         <Volume
           timeframe={timeframe}
+          stacked={true}
           volumes={volumes}
         />
       </div>
@@ -98,6 +138,7 @@ export default () => {
       <div className="lg:col-span-3">
         <Transfers
           timeframe={timeframe}
+          stacked={true}
           transfers={transfers}
         />
       </div>
@@ -105,6 +146,7 @@ export default () => {
       <div className="lg:col-span-3">
         <Fee
           timeframe={timeframe}
+          stacked={true}
           fees={fees}
         />
       </div>
