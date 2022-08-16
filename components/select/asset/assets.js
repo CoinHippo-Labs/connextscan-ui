@@ -1,6 +1,7 @@
-import { Image } from 'react-image'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
+
+import Image from '../../image'
 
 export default ({
   value,
