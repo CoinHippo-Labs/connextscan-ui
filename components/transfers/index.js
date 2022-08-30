@@ -58,64 +58,136 @@ export default () => {
   useEffect(() => {
     const triggering = is_interval => {
       if (sdk) {
-        setFetchTrigger(is_interval ? moment().valueOf() : typeof fetchTrigger === 'number' ? null : 0)
+        setFetchTrigger(
+          is_interval ?
+            moment().valueOf() :
+            typeof fetchTrigger === 'number' ?
+              null :
+              0
+        )
       }
     }
+
     triggering()
-    const interval = setInterval(() => triggering(true), 0.25 * 60 * 1000)
-    return () => {
-      clearInterval(interval)
-    }
+
+    return () => clearInterval(
+      setInterval(() =>
+        triggering(true),
+        0.25 * 60 * 1000,
+      )
+    )
   }, [sdk, pathname, address, statusSelect])
 
   useEffect(() => {
     const getData = async () => {
       if (sdk) {
         setFetching(true)
+
         if (!fetchTrigger) {
           setData(null)
           setOffet(0)
         }
+
         let response
-        const status = statusSelect || undefined,
-          _data = !fetchTrigger ? [] : (data || []),
+        const status = statusSelect ||
+          undefined,
+          _data = !fetchTrigger ?
+          [] :
+          (data || []),
           limit = LIMIT
-        const offset = fetchTrigger === true || fetchTrigger === 1 ? _data.length : 0
+        const offset = fetchTrigger === true || fetchTrigger === 1 ?
+          _data.length :
+          0
+
         switch (pathname) {
           case '/address/[address]':
-            if (address) {
-              try {
-                response = await sdk.nxtpSdkUtils.getTransfersByUser({ userAddress: address, status, range: { limit, offset } })
-              } catch (error) {}
-            }
+            try {
+              if (address) {
+                response = await sdk.nxtpSdkUtils.getTransfersByUser({
+                  userAddress: address,
+                  status,
+                  range: {
+                    limit,
+                    offset,
+                  },
+                })
+              }
+            } catch (error) {}
             break
           case '/router/[address]':
-            if (address) {
-              try {
-                response = await sdk.nxtpSdkUtils.getTransfersByRouter({ routerAddress: address, status, range: { limit, offset } })
-              } catch (error) {}
-            }
+            try {
+              if (address) {
+                response = await sdk.nxtpSdkUtils.getTransfersByRouter({
+                  routerAddress: address,
+                  status,
+                  range: {
+                    limit,
+                    offset,
+                  },
+                })
+              }
+            } catch (error) {}
             break
           default:
             try {
               if (status) {
-                response = await sdk.nxtpSdkUtils.getTransfersByStatus({ status, range: { limit, offset } })
+                response = await sdk.nxtpSdkUtils.getTransfersByStatus({
+                  status,
+                  range: {
+                    limit,
+                    offset,
+                  },
+                })
               }
               else {
-                response = await sdk.nxtpSdkUtils.getTransfers({ range: { limit, offset } })
+                response = await sdk.nxtpSdkUtils.getTransfers({
+                  range: {
+                    limit,
+                    offset,
+                  },
+                })
               }
             } catch (error) {}
             break
         }
-        response = _.orderBy(_.uniqBy(_.concat(_data, response || []), 'transfer_id'), ['xcall_timestamp'], ['desc'])
+
+        response = _.orderBy(
+          _.uniqBy(
+            _.concat(
+              _data,
+              response || [],
+            ),
+            'transfer_id'
+          ),
+          ['xcall_timestamp'],
+          ['desc'],
+        )
+
         if (response) {
           response = response.map(t => {
             const source_chain_data = chains_data?.find(c => c?.chain_id === Number(t?.origin_chain) || c?.domain_id === t?.origin_domain)
-            const source_asset_data = assets_data?.find(a => a?.contracts?.findIndex(c => c?.chain_id === source_chain_data?.chain_id && [t?.origin_transacting_asset, t?.origin_bridged_asset].findIndex(_a => equals_ignore_case(_a, c?.contract_address)) > -1) > -1)
+            const source_asset_data = assets_data?.find(a =>
+              a?.contracts?.findIndex(c =>
+                c?.chain_id === source_chain_data?.chain_id &&
+                [
+                  t?.origin_transacting_asset,
+                  t?.origin_bridged_asset,
+                ].findIndex(_a => equals_ignore_case(_a, c?.contract_address)) > -1
+              ) > -1
+            )
             const source_contract_data = source_asset_data?.contracts?.find(c => c?.chain_id === source_chain_data?.chain_id)
             const destination_chain_data = chains_data?.find(c => c?.chain_id === Number(t?.destination_chain) || c?.domain_id === t?.destination_domain)
-            const destination_asset_data = assets_data?.find(a => a?.contracts?.findIndex(c => c?.chain_id === destination_chain_data?.chain_id && [t?.destination_transacting_asset, t?.destination_local_asset].findIndex(_a => equals_ignore_case(_a, c?.contract_address)) > -1) > -1)
+            const destination_asset_data = assets_data?.find(a =>
+              a?.contracts?.findIndex(c =>
+                c?.chain_id === destination_chain_data?.chain_id &&
+                [
+                  t?.destination_transacting_asset,
+                  t?.destination_local_asset,
+                ].findIndex(_a => equals_ignore_case(_a, c?.contract_address)) > -1
+              ) > -1
+            )
             const destination_contract_data = destination_asset_data?.contracts?.find(c => c?.chain_id === destination_chain_data?.chain_id)
+
             return {
               ...t,
               source_chain_data,
@@ -128,14 +200,40 @@ export default () => {
                 ...destination_asset_data,
                 ...destination_contract_data,
               },
-              pending: ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(t?.status),
+              pending: ![
+                XTransferStatus.Executed,
+                XTransferStatus.CompletedFast,
+                XTransferStatus.CompletedSlow,
+              ].includes(t?.status),
             }
           }).map(t => {
-            const { source_asset_data, destination_asset_data, origin_transacting_amount, destination_transacting_amount } = { ...t }
+            const {
+              source_asset_data,
+              destination_asset_data,
+              origin_transacting_amount,
+              destination_transacting_amount,
+            } = { ...t }
             const source_decimals = source_asset_data?.decimals || 18
-            const source_amount = ['number', 'string'].includes(typeof origin_transacting_amount) && Number(utils.formatUnits(BigNumber.from(BigInt(origin_transacting_amount).toString()), source_decimals))
+            const source_amount = ['number', 'string'].includes(typeof origin_transacting_amount) &&
+              Number(
+                utils.formatUnits(
+                  BigNumber.from(
+                    BigInt(origin_transacting_amount).toString()
+                  ),
+                  source_decimals,
+                )
+              )
             const destination_decimals = destination_asset_data?.decimals || 18
-            const destination_amount = ['number', 'string'].includes(typeof destination_transacting_amount) && Number(utils.formatUnits(BigNumber.from(BigInt(destination_transacting_amount).toString()), destination_decimals))
+            const destination_amount = ['number', 'string'].includes(typeof destination_transacting_amount) &&
+              Number(
+                utils.formatUnits(
+                  BigNumber.from(
+                    BigInt(destination_transacting_amount).toString()
+                  ),
+                  destination_decimals,
+                )
+              )
+
             return {
               ...t,
               source_asset_data: {
@@ -156,6 +254,7 @@ export default () => {
         setFetching(false)
       }
     }
+
     getData()
   }, [fetchTrigger])
 
@@ -245,10 +344,20 @@ export default () => {
                       <Link href={`/tx/${props.value}`}>
                         <a className="text-blue-500 dark:text-white font-semibold">
                           <span className="sm:hidden">
-                            {ellipse(props.value, address ? 6 : 8)}
+                            {ellipse(
+                              props.value,
+                              address ?
+                                6 :
+                                8,
+                            )}
                           </span>
                           <span className="hidden sm:block">
-                            {ellipse(props.value, address ? 8 : 12)}
+                            {ellipse(
+                              props.value,
+                              address ?
+                                8 :
+                                12,
+                            )}
                           </span>
                         </a>
                       </Link>
@@ -267,10 +376,13 @@ export default () => {
                                   <span className="font-bold">
                                     Transfering
                                   </span>
-                                  <ThreeCircles color={loader_color(theme)} width="16" height="16" />
+                                  <ThreeCircles
+                                    color={loader_color(theme)}
+                                    width="16"
+                                    height="16"
+                                  />
                                 </div>
-                              </Pulse>
-                              :
+                              </Pulse> :
                               <div className="rounded-lg border border-green-500 dark:border-green-300 flex items-center text-green-500 dark:text-green-300 space-x-1 py-1 px-1.5">
                                 <VscPassFilled size={20} />
                                 <span className="uppercase font-bold">
@@ -282,7 +394,11 @@ export default () => {
                         </Link>
                         {!props.row.original.pending && (
                           <div className={`font-mono ${props.row.original.pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}>
-                            {total_time_string(props.row.original.xcall_timestamp, props.row.original.execute_timestamp || moment().unix())}
+                            {total_time_string(
+                              props.row.original.xcall_timestamp,
+                              props.row.original.execute_timestamp ||
+                                moment().unix()
+                            )}
                           </div>
                         )}
                         {props.row.original.force_slow && (
@@ -311,10 +427,13 @@ export default () => {
                               <span className="font-bold">
                                 Transfering
                               </span>
-                              <ThreeCircles color={loader_color(theme)} width="16" height="16" />
+                              <ThreeCircles
+                                color={loader_color(theme)}
+                                width="16"
+                                height="16"
+                              />
                             </div>
-                          </Pulse>
-                          :
+                          </Pulse> :
                           <div className="rounded-lg border border-green-500 dark:border-green-300 flex items-center text-green-500 dark:text-green-300 space-x-1 py-1 px-1.5">
                             <VscPassFilled size={20} />
                             <span className="uppercase font-bold">
@@ -326,7 +445,11 @@ export default () => {
                     </Link>
                     {!props.row.original.pending && (
                       <div className={`font-mono ${props.row.original.pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}>
-                        {total_time_string(props.row.original.xcall_timestamp, props.row.original.execute_timestamp || moment().unix())}
+                        {total_time_string(
+                          props.row.original.xcall_timestamp,
+                          props.row.original.execute_timestamp ||
+                            moment().unix()
+                        )}
                       </div>
                     )}
                     {props.row.original.force_slow && (
@@ -359,10 +482,13 @@ export default () => {
                         <span className="text-sm font-semibold">
                           {props.value.name}
                         </span>
-                      </div>
-                      :
+                      </div> :
                       <div className="flex items-center justify-center sm:justify-start">
-                        <TailSpin color={loader_color(theme)} width="24" height="24" />
+                        <TailSpin
+                          color={loader_color(theme)}
+                          width="24"
+                          height="24"
+                        />
                       </div>
                     }
                     <div className="flex items-center space-x-2">
@@ -377,17 +503,26 @@ export default () => {
                       )}
                       {typeof props.row.original.source_asset_data?.amount === 'number' ?
                         <span className="font-mono font-bold">
-                          {number_format(props.row.original.source_asset_data.amount, '0,0.000000', true)}
-                        </span>
-                        :
-                        <RotatingSquare color={loader_color(theme)} width="24" height="24" />
+                          {number_format(
+                            props.row.original.source_asset_data.amount,
+                            '0,0.000000',
+                            true,
+                          )}
+                        </span> :
+                        <RotatingSquare
+                          color={loader_color(theme)}
+                          width="24"
+                          height="24"
+                        />
                       }
                       <span className="font-semibold">
                         {props.row.original.source_asset_data?.symbol}
                       </span>
                       {props.row.original.source_asset_data && (
                         <AddToken
-                          token_data={{ ...props.row.original.source_asset_data }}
+                          token_data={{
+                            ...props.row.original.source_asset_data,
+                          }}
                         />
                       )}
                     </div>
@@ -400,10 +535,16 @@ export default () => {
                               no_copy={true}
                               fallback={<span className="font-semibold">
                                 <span className="sm:hidden">
-                                  {ellipse(props.row.original.xcall_caller, 6)}
+                                  {ellipse(
+                                    props.row.original.xcall_caller,
+                                    6,
+                                  )}
                                 </span>
                                 <span className="hidden sm:block">
-                                  {ellipse(props.row.original.xcall_caller, 8)}
+                                  {ellipse(
+                                    props.row.original.xcall_caller,
+                                    8,
+                                  )}
                                 </span>
                               </span>}
                             />
@@ -438,10 +579,13 @@ export default () => {
                         <span className="text-sm font-semibold">
                           {props.value.name}
                         </span>
-                      </div>
-                      :
+                      </div> :
                       <div className="flex items-center justify-center sm:justify-start">
-                        <TailSpin color={loader_color(theme)} width="24" height="24" />
+                        <TailSpin
+                          color={loader_color(theme)}
+                          width="24"
+                          height="24"
+                        />
                       </div>
                     }
                     <div className="flex items-center space-x-2">
@@ -456,17 +600,26 @@ export default () => {
                       )}
                       {typeof props.row.original.destination_asset_data?.amount === 'number' ?
                         <span className="font-mono font-bold">
-                          {number_format(props.row.original.destination_asset_data.amount, '0,0.000000', true)}
-                        </span>
-                        :
-                        <RotatingSquare color={loader_color(theme)} width="24" height="24" />
+                          {number_format(
+                            props.row.original.destination_asset_data.amount,
+                            '0,0.000000',
+                            true,
+                          )}
+                        </span> :
+                        <RotatingSquare
+                          color={loader_color(theme)}
+                          width="24"
+                          height="24"
+                        />
                       }
                       <span className="font-semibold">
                         {props.row.original.destination_asset_data?.symbol}
                       </span>
                       {props.row.original.destination_asset_data && (
                         <AddToken
-                          token_data={{ ...props.row.original.destination_asset_data }}
+                          token_data={{
+                            ...props.row.original.destination_asset_data,
+                          }}
                         />
                       )}
                     </div>
@@ -479,10 +632,16 @@ export default () => {
                               no_copy={true}
                               fallback={<span className="font-semibold">
                                 <span className="sm:hidden">
-                                  {ellipse(props.row.original.to, 6)}
+                                  {ellipse(
+                                    props.row.original.to,
+                                    6,
+                                  )}
                                 </span>
                                 <span className="hidden sm:block">
-                                  {ellipse(props.row.original.to, 8)}
+                                  {ellipse(
+                                    props.row.original.to,
+                                    8,
+                                  )}
                                 </span>
                               </span>}
                             />
@@ -508,20 +667,29 @@ export default () => {
               <button
                 onClick={() => {
                   setOffet(data.length)
-                  setFetchTrigger(typeof fetchTrigger === 'number' ? true : 1)
+                  setFetchTrigger(typeof fetchTrigger === 'number' ?
+                    true :
+                    1
+                  )
                 }}
                 className="max-w-min hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg whitespace-nowrap font-medium hover:font-bold mx-auto py-1.5 px-2.5"
               >
                 Load more
-              </button>
-              :
+              </button> :
               <div className="flex justify-center p-1.5">
-                <TailSpin color={loader_color(theme)} width="24" height="24" />
+                <TailSpin
+                  color={loader_color(theme)}
+                  width="24"
+                  height="24"
+                />
               </div>
           )}
-        </div>
-        :
-        <TailSpin color={loader_color(theme)} width="32" height="32" />
+        </div> :
+        <TailSpin
+          color={loader_color(theme)}
+          width="32"
+          height="32"
+        />
       }
     </div>
   )

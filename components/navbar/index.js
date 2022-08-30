@@ -161,6 +161,7 @@ export default () => {
     const init = async () => {
       if (chains_data && assets_data?.findIndex(a => !a.price) < 0) {
         const chains_config = {}
+
         for (const chain_data of chains_data) {
           const {
             chain_id,
@@ -168,31 +169,45 @@ export default () => {
             provider_params,
             disabled,
           } = { ...chain_data }
+
           if (!disabled) {
-            const rpc_urls = provider_params?.[0]?.rpcUrls?.filter(url => url) || []
+            const rpc_urls = _.head(provider_params)?.rpcUrls?.filter(url => url) || []
+
             if (domain_id) {
               chains_config[domain_id] = {
                 providers: rpc_urls,
-                assets: assets_data.filter(a => a?.contracts?.findIndex(c => c?.chain_id === chain_id) > -1).map(a => {
-                  const {
-                    name,
-                    contracts,
-                  } = { ...a }
-                  const contract_data = contracts.find(c => c?.chain_id === chain_id)
-                  const {
-                    contract_address,
-                  } = { ...contract_data }
-                  const symbol = contract_data?.symbol || a?.symbol
-                  return {
-                    name: name || symbol,
-                    address: contract_address,
-                    symbol,
-                  }
-                }),
+                assets: assets_data
+                  .filter(a => a?.contracts?.findIndex(c => c?.chain_id === chain_id) > -1)
+                  .map(a => {
+                    const {
+                      contracts,
+                    } = { ...a }
+                    let {
+                      name,
+                      symbol,
+                    } = { ...a }
+
+                    const contract_data = contracts.find(c => c?.chain_id === chain_id)
+                    const {
+                      contract_address,
+                    } = { ...contract_data }
+
+                    symbol = contract_data?.symbol ||
+                      symbol
+                    name = name ||
+                      symbol
+
+                    return {
+                      name,
+                      symbol,
+                      address: contract_address,
+                    }
+                  }),
               }
             }
           }
         }
+
         dispatch({
           type: SDK,
           value: await create({
@@ -203,6 +218,7 @@ export default () => {
             environment: process.env.NEXT_PUBLIC_ENVIRONMENT,
           }),
         })
+
         console.log('[SDK config]', {
           chains: chains_config,
           // signerAddress: address,
@@ -212,6 +228,7 @@ export default () => {
         })
       }
     }
+
     init()
   }, [chains_data, assets_data])
 

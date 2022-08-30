@@ -34,16 +34,46 @@ export default () => {
 
   useEffect(() => {
     const getData = async is_interval => {
-      if (sdk && tx && (!is_interval || !data || ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(data.status))) {
+      if (
+        sdk &&
+        tx &&
+        (
+          !is_interval ||
+          !data ||
+          ![
+            XTransferStatus.Executed,
+            XTransferStatus.CompletedFast,
+            XTransferStatus.CompletedSlow,
+          ].includes(data.status)
+        )
+      ) {
         const response = await sdk.nxtpSdkUtils.getTransferById(tx)
-        if (response?.[0]) {
-          const _data = response[0]
+
+        const _data = _.head(response)
+        if (_data) {
           const source_chain_data = chains_data?.find(c => c?.chain_id === Number(_data.origin_chain) || c?.domain_id === _data.origin_domain)
-          const source_asset_data = assets_data?.find(a => a?.contracts?.findIndex(c => c?.chain_id === source_chain_data?.chain_id && [_data?.origin_transacting_asset, _data?.origin_bridged_asset].findIndex(_a => equals_ignore_case(_a, c?.contract_address)) > -1) > -1)
+          const source_asset_data = assets_data?.find(a =>
+            a?.contracts?.findIndex(c =>
+              c?.chain_id === source_chain_data?.chain_id &&
+              [
+                _data?.origin_transacting_asset,
+                _data?.origin_bridged_asset,
+              ].findIndex(_a => equals_ignore_case(_a, c?.contract_address)) > -1
+            ) > -1
+          )
           const source_contract_data = source_asset_data?.contracts?.find(c => c?.chain_id === source_chain_data?.chain_id)
           const destination_chain_data = chains_data?.find(c => c?.chain_id === Number(_data.destination_chain) || c?.domain_id === _data.destination_domain)
-          const destination_asset_data = assets_data?.find(a => a?.contracts?.findIndex(c => c?.chain_id === destination_chain_data?.chain_id && [_data?.destination_transacting_asset, _data?.destination_local_asset].findIndex(_a => equals_ignore_case(_a, c?.contract_address)) > -1) > -1)
+          const destination_asset_data = assets_data?.find(a =>
+            a?.contracts?.findIndex(c =>
+              c?.chain_id === destination_chain_data?.chain_id &&
+              [
+                _data?.destination_transacting_asset,
+                _data?.destination_local_asset,
+              ].findIndex(_a => equals_ignore_case(_a, c?.contract_address)) > -1
+            ) > -1
+          )
           const destination_contract_data = destination_asset_data?.contracts?.find(c => c?.chain_id === destination_chain_data?.chain_id)
+
           setData({
             ..._data,
             source_chain_data,
@@ -63,11 +93,15 @@ export default () => {
         }
       }
     }
+
     getData()
-    const interval = setInterval(() => getData(true), 0.25 * 60 * 1000)
-    return () => {
-      clearInterval(interval)
-    }
+
+   return () => clearInterval(
+      setInterval(() =>
+        getData(true),
+        0.25 * 60 * 1000,
+      )
+    )
   }, [sdk, tx])
 
   useEffect(() => {
@@ -76,11 +110,17 @@ export default () => {
         setTimer(moment().unix())
       }
     }
+
     if (!timer) {
       run()
     }
-    const interval = setInterval(() => run(), 1 * 1000)
-    return () => clearInterval(interval)
+
+    return () => clearInterval(
+      setInterval(() =>
+        run(),
+        1 * 1000,
+      )
+    )
   }, [data, timer])
 
   const {
@@ -100,21 +140,40 @@ export default () => {
   const source_symbol = source_asset_data?.symbol
   const source_decimals = source_asset_data?.decimals || 18
   const source_asset_image = source_asset_data?.image
-  const source_amount = ['number', 'string'].includes(typeof origin_transacting_amount) && Number(utils.formatUnits(BigNumber.from(BigInt(origin_transacting_amount).toString()), source_decimals))
+  const source_amount = ['number', 'string'].includes(typeof origin_transacting_amount) &&
+    Number(
+      utils.formatUnits(
+        BigNumber.from(
+          BigInt(origin_transacting_amount).toString()
+        ),
+        source_decimals,
+      )
+    )
   const destination_symbol = destination_asset_data?.symbol
   const destination_decimals = destination_asset_data?.decimals || 18
   const destination_asset_image = destination_asset_data?.image
-  const destination_amount = ['number', 'string'].includes(typeof destination_transacting_amount) && Number(utils.formatUnits(BigNumber.from(BigInt(destination_transacting_amount).toString()), destination_decimals))
+  const destination_amount = ['number', 'string'].includes(typeof destination_transacting_amount) &&
+    Number(
+      utils.formatUnits(
+        BigNumber.from(
+          BigInt(destination_transacting_amount).toString()
+        ),
+        destination_decimals,
+      )
+    )
 
-  const pending = ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(data?.status)
+  const pending = ![
+    XTransferStatus.Executed,
+    XTransferStatus.CompletedFast,
+    XTransferStatus.CompletedSlow,
+  ].includes(data?.status)
 
   return (
     <div className="space-y-8 mt-4 mb-8">
       {!data && typeof data === 'boolean' ?
         <div className="h-32 flex items-center justify-center text-2xl font-bold">
           404: Transfer not found
-        </div>
-        :
+        </div> :
         <>
           <div className="max-w-5xl sm:flex justify-between space-y-8 sm:space-y-0 sm:space-x-8 mx-auto">
             <Bounce left delay={0.5 * 1000}>
@@ -133,10 +192,13 @@ export default () => {
                     <span className="text-lg font-semibold">
                       {source_chain_data.name}
                     </span>
-                  </div>
-                  :
+                  </div> :
                   <div className="flex items-center justify-center sm:justify-start">
-                    <TailSpin color={loader_color(theme)} width="32" height="32" />
+                    <TailSpin
+                      color={loader_color(theme)}
+                      width="32"
+                      height="32"
+                    />
                   </div>
                 }
                 {xcall_caller && (
@@ -179,10 +241,17 @@ export default () => {
                   )}
                   {source_amount ?
                     <span className="font-mono text-lg font-bold">
-                      {number_format(source_amount, '0,0.000000', true)}
-                    </span>
-                    :
-                    <RotatingSquare color={loader_color(theme)} width="32" height="32" />
+                      {number_format(
+                        source_amount,
+                        '0,0.000000',
+                        true,
+                      )}
+                    </span> :
+                    <RotatingSquare
+                      color={loader_color(theme)}
+                      width="32"
+                      height="32"
+                    />
                   }
                   <span className="text-lg font-semibold">
                     {source_symbol}
@@ -205,21 +274,26 @@ export default () => {
                       </span>
                       <ThreeCircles color={loader_color(theme)} width="24" height="24" />
                     </div>
-                  </Pulse>
-                  :
+                  </Pulse> :
                   <div className="rounded-xl border-2 border-green-500 dark:border-green-300 flex items-center text-green-500 dark:text-green-300 space-x-2 py-1 px-2.5">
                     <VscPassFilled size={28} />
                     <span className="uppercase text-lg font-bold">
                       Success
                     </span>
-                  </div>
-                :
+                  </div> :
                 <div className="flex items-center justify-center sm:justify-start">
-                  <TailSpin color={loader_color(theme)} width="32" height="32" />
+                  <TailSpin
+                    color={loader_color(theme)}
+                    width="32"
+                    height="32"
+                  />
                 </div>
               }
               <div className={`font-mono ${pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} text-base font-semibold`}>
-                {total_time_string(xcall_timestamp, execute_timestamp || moment().unix())}
+                {total_time_string(
+                  xcall_timestamp,
+                  execute_timestamp || moment().unix(),
+                )}
               </div>
             </div>
             <Bounce right>
@@ -236,10 +310,17 @@ export default () => {
                   )}
                   {destination_amount ?
                     <span className="font-mono text-lg font-bold">
-                      {number_format(destination_amount, '0,0.000000', true)}
-                    </span>
-                    :
-                    <RotatingSquare color={loader_color(theme)} width="32" height="32" />
+                      {number_format(
+                        destination_amount,
+                        '0,0.000000',
+                        true,
+                      )}
+                    </span> :
+                    <RotatingSquare
+                      color={loader_color(theme)}
+                      width="32"
+                      height="32"
+                    />
                   }
                   <span className="text-lg font-semibold">
                     {destination_symbol}
@@ -268,10 +349,13 @@ export default () => {
                     <span className="text-lg font-semibold">
                       {destination_chain_data.name}
                     </span>
-                  </div>
-                  :
+                  </div> :
                   <div className="flex items-center justify-center sm:justify-end">
-                    <TailSpin color={loader_color(theme)} width="32" height="32" />
+                    <TailSpin
+                      color={loader_color(theme)}
+                      width="32"
+                      height="32"
+                    />
                   </div>
                 }
                 {to && (
@@ -331,12 +415,15 @@ export default () => {
                           {data?.[['recovery'].includes(f) ? `${f}` : `${s}_${f}`] === null ?
                             <span className="text-slate-400 dark:text-slate-200">
                               -
-                            </span>
-                            :
+                            </span> :
                             [data?.[['recovery'].includes(f) ? `${f}` : `${s}_${f}`]].map((v, k) => {
-                              const chain_data = s === 'xcall' ? data?.source_chain_data : data?.destination_chain_data
-                              const native_token = chain_data?.provider_params?.[0]?.nativeCurrency
-                              let _v, value_component
+                              const chain_data = s === 'xcall' ?
+                                data?.source_chain_data :
+                                data?.destination_chain_data
+                              const native_token = _.head(chain_data?.provider_params)?.nativeCurrency
+                              let _v,
+                                value_component
+
                               switch (f) {
                                 case 'transaction_hash':
                                   _v = (
@@ -359,8 +446,7 @@ export default () => {
                                           className="text-blue-500 dark:text-blue-400"
                                         >
                                           {_v}
-                                        </a>
-                                        :
+                                        </a> :
                                         _v
                                       }
                                       <Copy
@@ -380,8 +466,7 @@ export default () => {
                                       className="text-blue-500 dark:text-blue-400"
                                     >
                                       {_v}
-                                    </a>
-                                    :
+                                    </a> :
                                     _v
                                   break
                                 case 'timestamp':
@@ -416,8 +501,7 @@ export default () => {
                                           className="text-blue-500 dark:text-blue-400"
                                         >
                                           {_v}
-                                        </a>
-                                        :
+                                        </a> :
                                         _v
                                       }
                                       <Copy
