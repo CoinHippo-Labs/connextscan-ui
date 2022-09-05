@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
-import { BigNumber, constants, utils } from 'ethers'
+import { constants } from 'ethers'
 import { TailSpin } from 'react-loader-spinner'
 import { TiArrowRight } from 'react-icons/ti'
 
@@ -17,7 +17,9 @@ import { chainName } from '../../lib/object/chain'
 import { currency_symbol } from '../../lib/object/currency'
 import { number_format, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
 
-export default ({ data }) => {
+export default ({
+  data,
+}) => {
   const { preferences, chains, assets } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, assets: state.assets }), shallowEqual)
   const { theme } = { ...preferences }
   const { chains_data } = { ...chains }
@@ -37,37 +39,61 @@ export default ({ data }) => {
   }, [chain])
 
   const chain_data = chains_data?.find(c => c?.id === chainSelect)
-  const assets_data_filtered_mapped = assets_data?.filter(a => !assetSelect || a?.id === assetSelect).flatMap(a =>
-    a?.contracts?.filter(c => !chain_data || c?.chain_id === chain_data.chain_id).map((c, i) => {
-      let chain_asset_data = {
-        i,
-        ...a,
-        ...c,
-        chain_data: chains_data?.find(_c => _c?.chain_id === c?.chain_id),
-      }
-      delete chain_asset_data.contracts
-      const decimals = chain_asset_data.decimals || 18
-      const price = chain_asset_data.price || 0
-      const liquidity = !chain && data?.find(d => d?.chain_id === chain_asset_data.chain_id && equals_ignore_case(d?.contract_address, chain_asset_data.contract_address))
-      const amount = data ?
-        chain ?
-          _.sumBy(data?.filter(d => d?.chain_id === chain_asset_data.chain_id && equals_ignore_case(d?.contract_address, chain_asset_data.contract_address)).map(_a => {
-            return {
-              ..._a,
-              amount: Number(utils.formatUnits(BigNumber.from(_a?.amount || '0'), decimals)),
-            }
-          }) || [], 'amount')
-          :
-          Number(utils.formatUnits(BigNumber.from(liquidity?.amount || '0'), decimals)) : null
-      const value = typeof amount === 'number' ? amount * price : null
-      chain_asset_data = {
-        ...chain_asset_data,
-        amount,
-        value,
-      }
-      return chain_asset_data
-    }) || []
-  )
+  const {
+    chain_id,
+  } = { ...chain_data }
+
+  const _assets_data = assets_data?.filter(a => !assetSelect || a?.id === assetSelect)
+    .flatMap(a =>
+      (a?.contracts || [])
+        .filter(c =>
+          (
+            !chain_data ||
+            c?.chain_id === chain_id
+          ) &&
+          chains_data?.findIndex(_c => _c?.chain_id === c?.chain_id) > -1
+        )
+        .map((c, i) => {
+          let asset_data = {
+            ...a,
+            ...c,
+            i,
+            chain_data: chains_data?.find(_c => _c?.chain_id === c?.chain_id),
+          }
+          if (asset_data?.contracts) {
+            delete asset_data.contracts
+          }
+
+          const {
+            chain_id,
+            contract_address,
+            price,
+          } = { ...asset_data }
+
+          const liquidity = !chain &&
+            data?.find(d => d?.chain_id === chain_id && equals_ignore_case(d?.contract_address, contract_address))
+
+          const amount = data ?
+            chain ?
+              _.sumBy(
+                (data || [])
+                  .filter(d => d?.chain_id === chain_id && equals_ignore_case(d?.contract_address, contract_address)),
+                'amount',
+              ) :
+              liquidity?.amount || 0 :
+            null
+
+          const value = typeof amount === 'number' ?
+            amount * (price || 0) :
+            null
+
+          return {
+            ...asset_data,
+            amount,
+            value,
+          }
+        })
+    )
 
   return (
     <div className="space-y-2">
@@ -89,7 +115,7 @@ export default ({ data }) => {
           />
         </div>
       </div>
-      {assets_data_filtered_mapped ?
+      {_assets_data ?
         <div className="grid">
           <Datatable
             columns={[
@@ -98,10 +124,14 @@ export default ({ data }) => {
                 accessor: 'i',
                 sortType: (a, b) => a.original.i > b.original.i ? 1 : -1,
                 Cell: props => (
-                  <span className="font-mono font-semibold">
-                    {number_format((props.flatRows?.indexOf(props.row) > -1 ?
-                      props.flatRows.indexOf(props.row) : props.value
-                    ) + 1, '0,0')}
+                  <span className="font-semibold">
+                    {number_format(
+                      (props.flatRows?.indexOf(props.row) > -1 ?
+                        props.flatRows.indexOf(props.row) :
+                        props.value
+                      ) + 1,
+                      '0,0',
+                    )}
                   </span>
                 ),
               },
@@ -142,10 +172,16 @@ export default ({ data }) => {
                       title={chain && props.value && (
                         <span className="text-slate-400 dark:text-slate-200 text-sm">
                           <span className="xl:hidden">
-                            {ellipse(props.value, 8)}
+                            {ellipse(
+                              props.value,
+                              8,
+                            )}
                           </span>
                           <span className="hidden xl:block">
-                            {ellipse(props.value, 12)}
+                            {ellipse(
+                              props.value,
+                              12,
+                            )}
                           </span>
                         </span>
                       )}
@@ -165,13 +201,17 @@ export default ({ data }) => {
                             width={20}
                             height={20}
                             className="rounded-full opacity-60 hover:opacity-100"
+                          /> :
+                          <TiArrowRight
+                            size={20}
+                            className="transform -rotate-45"
                           />
-                          :
-                          <TiArrowRight size={20} className="transform -rotate-45" />
                         }
                       </a>
                     )}
-                    <AddToken token_data={props.row.original} />
+                    <AddToken
+                      token_data={props.row.original}
+                    />
                   </div>
                 ),
               },
@@ -206,13 +246,25 @@ export default ({ data }) => {
                   typeof props.value === 'number' ?
                     <div className="flex flex-col items-end space-y-0.5 -mt-0.5">
                       <span className="text-base font-bold">
-                        {number_format(props.value, props.value > 1000 ? '0,0' : '0,0.00')}
+                        {number_format(
+                          props.value,
+                          props.value > 1000 ?
+                            '0,0' :
+                            '0,0.00',
+                        )}
                       </span>
-                      <span className="font-mono uppercase text-slate-400 dark:text-slate-500 text-xs font-semibold">
-                        {currency_symbol}{number_format(props.row.original.value, props.row.original.value > 100000 ? '0,0.00a' : props.row.original.value > 1000 ? '0,0' : '0,0.00')}
+                      <span className="uppercase text-slate-400 dark:text-slate-500 text-xs font-semibold">
+                        {currency_symbol}
+                        {number_format(
+                          props.row.original.value,
+                          props.row.original.value > 100000 ?
+                            '0,0.00a' :
+                            props.row.original.value > 1000 ?
+                              '0,0' :
+                              '0,0.00',
+                        )}
                       </span>
-                    </div>
-                    :
+                    </div> :
                     <div className="flex flex-col items-end space-y-2">
                       <div className="skeleton w-24 h-5" />
                       <div className="skeleton w-24 h-4" />
@@ -221,14 +273,17 @@ export default ({ data }) => {
                 headerClassName: 'whitespace-nowrap justify-end text-right',
               },
             ].filter(c => !chain || !['chain_data.name'].includes(c.accessor))}
-            data={assets_data_filtered_mapped}
-            noPagination={assets_data_filtered_mapped.length <= 10}
+            data={_assets_data}
+            noPagination={_assets_data.length <= 10}
             defaultPageSize={10}
             className="no-border"
           />
-        </div>
-        :
-        <TailSpin color={loader_color(theme)} width="32" height="32" />
+        </div> :
+        <TailSpin
+          color={loader_color(theme)}
+          width="32"
+          height="32"
+        />
       }
     </div>
   )

@@ -24,8 +24,15 @@ export default () => {
   const { pathname, query } = { ...router }
   const { address, tx, chain } = { ...query }
 
-  const { token_data } = { ...chain_data }
-  let title, subtitle
+  const {
+    token_data,
+    explorer,
+    website,
+  } = { ...chain_data }
+
+  let title,
+    subtitle
+
   switch (pathname) {
     case '/':
       title = 'Overview'
@@ -38,15 +45,25 @@ export default () => {
       break
     case '/tx/[tx]':
       title = 'xTransfer'
+
       subtitle = (
         <div className="flex items-center text-sm xl:text-base space-x-2 xl:space-x-1">
           <span className="xl:hidden">
-            {ellipse(tx, 16)}
+            {ellipse(
+              tx,
+              16,
+            )}
           </span>
           <span className="hidden xl:block">
-            {ellipse(tx, 24)}
+            {ellipse(
+              tx,
+              24,
+            )}
           </span>
-          <Copy value={tx} size={18} />
+          <Copy
+            value={tx}
+            size={18}
+          />
         </div>
       )
       break
@@ -59,15 +76,22 @@ export default () => {
           </span>}
         />
       )
+
       subtitle = (
         <Copy
           value={address}
           title={<span className="text-slate-400 dark:text-slate-200 text-sm xl:text-base">
             <span className="xl:hidden">
-              {ellipse(address, 12)}
+              {ellipse(
+                address,
+                12,
+              )}
             </span>
             <span className="hidden xl:block">
-              {ellipse(address, 16)}
+              {ellipse(
+                address,
+                16,
+              )}
             </span>
           </span>}
           size={18}
@@ -83,15 +107,22 @@ export default () => {
           </span>}
         />
       )
+
       subtitle = (
         <Copy
           value={address}
           title={<span className="text-slate-400 dark:text-slate-200 text-sm xl:text-base">
             <span className="xl:hidden">
-              {ellipse(address, 12)}
+              {ellipse(
+                address,
+                12,
+              )}
             </span>
             <span className="hidden xl:block">
-              {ellipse(address, 16)}
+              {ellipse(
+                address,
+                16,
+              )}
             </span>
           </span>}
           size={18}
@@ -100,6 +131,7 @@ export default () => {
       break
     case '/[chain]':
       const _chain_data = chains_data?.find(c => c?.id === chain?.toLowerCase())
+
       title = (
         <div className="flex items-center space-x-3">
           {_chain_data?.image && (
@@ -111,9 +143,12 @@ export default () => {
               className="rounded-full"
             />
           )}
-          <span>{_chain_data?.short_name || chain}</span>
+          <span>
+            {_chain_data?.short_name || chain}
+          </span>
         </div>
       )
+
       subtitle = (
         <span className={`${_chain_data?.image ? 'ml-9' : ''}`}>
           {_chain_data?.name}
@@ -126,7 +161,7 @@ export default () => {
 
   return (
     <div className="w-full overflow-x-auto flex items-center py-2 sm:py-3 px-2 sm:px-4">
-      <div className="flex flex-col space-y-1">
+      <div className="flex flex-col">
         {title && (
           <div className="text-base font-bold">
             {title}
@@ -146,15 +181,24 @@ export default () => {
             </span>
           </div>
           {typeof token_data.market_data?.current_price?.[currency] === 'number' ?
-            <span className="font-mono font-semibold">
-              {currency_symbol}{number_format(token_data.market_data.current_price[currency], '0,0.00000000')}
+            <span className="font-semibold">
+              {currency_symbol}
+              {number_format(
+                token_data.market_data.current_price[currency],
+                '0,0.00000000',
+              )}
+            </span> :
+            <span>
+              -
             </span>
-            :
-            <span>-</span>
           }
           {typeof token_data.market_data?.price_change_percentage_24h_in_currency?.[currency] === 'number' && (
             <span className={`text-${token_data.market_data.price_change_percentage_24h_in_currency[currency] < 0 ? 'red' : 'green'}-500 font-medium`}>
-              {number_format(token_data.market_data.price_change_percentage_24h_in_currency[currency], '+0,0.000')}%
+              {number_format(
+                token_data.market_data.price_change_percentage_24h_in_currency[currency],
+                '+0,0.000',
+              )}
+              %
             </span>
           )}
         </div>
@@ -168,10 +212,15 @@ export default () => {
                 <a className="flex items-center text-blue-600 dark:text-white space-x-1.5 ml-4">
                   <FiBox size={18} />
                   <span className="space-x-1">
-                    <span className="font-mono font-semibold">
-                      {number_format(Object.keys(asset_balances_data).length, '0,0')}
+                    <span className="font-semibold">
+                      {number_format(
+                        Object.keys(asset_balances_data).length,
+                        '0,0',
+                      )}
                     </span>
-                    <span className="uppercase font-semibold">chains</span>
+                    <span className="uppercase font-semibold">
+                      chains
+                    </span>
                   </span>
                 </a>
               </Link>
@@ -179,10 +228,20 @@ export default () => {
                 <a className="flex items-center text-blue-600 dark:text-white space-x-1.5 ml-4">
                   <RiServerLine size={18} />
                   <span className="space-x-1">
-                    <span className="font-mono font-semibold">
-                      {number_format(_.uniq(Object.values(asset_balances_data).flatMap(v => v?.map(_v => _v)).map(a => a?.router_address?.toLowerCase()).filter(a => a)).length, '0,0')}
+                    <span className="font-semibold">
+                      {number_format(
+                        _.uniq(
+                          Object.values(asset_balances_data)
+                            .flatMap(v => v?.map(_v => _v))
+                            .map(a => a?.router_address?.toLowerCase())
+                            .filter(a => a)
+                        ).length,
+                        '0,0',
+                      )}
                     </span>
-                    <span className="uppercase font-semibold">routers</span>
+                    <span className="uppercase font-semibold">
+                      routers
+                    </span>
                   </span>
                 </a>
               </Link>
@@ -190,35 +249,55 @@ export default () => {
                 <a className="flex items-center text-blue-600 dark:text-white space-x-1.5 ml-4">
                   <RiCoinsLine size={18} />
                   <span className="space-x-1">
-                    <span className="font-mono font-semibold">
-                      {number_format(_.uniq(Object.values(asset_balances_data).flatMap(v => v?.map(_v => _v)).map(a => a?.asset_data?.id).filter(a => a)).length, '0,0')}
+                    <span className="font-semibold">
+                      {number_format(
+                        _.uniq(
+                          Object.values(asset_balances_data)
+                            .flatMap(v => v?.map(_v => _v))
+                            .map(a => a?.asset_data?.id)
+                            .filter(a => a)
+                        ).length,
+                        '0,0',
+                      )}
                     </span>
-                    <span className="uppercase font-semibold">assets</span>
+                    <span className="uppercase font-semibold">
+                      assets
+                    </span>
                   </span>
                 </a>
               </Link>
             </>
           )}
-          {chain && chain_data?.explorer?.url && (
+          {chain && explorer?.url && (
             <a
-              href={chain_data.explorer.url}
+              href={explorer.url}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center text-blue-600 dark:text-white font-semibold space-x-1 ml-4"
             >
-              <span>{chain_data.explorer.name || 'Explorer'}</span>
-              <TiArrowRight size={18} className="transform -rotate-45 mt-0.5" />
+              <span>
+                {explorer.name || 'Explorer'}
+              </span>
+              <TiArrowRight
+                size={18}
+                className="transform -rotate-45 mt-0.5"
+              />
             </a>
           )}
-          {chain_data?.website && (
+          {website && (
             <a
-              href={chain_data.website}
+              href={website}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center text-blue-600 dark:text-white font-semibold space-x-1 ml-4"
             >
-              <span>Website</span>
-              <TiArrowRight size={18} className="transform -rotate-45 mt-0.5" />
+              <span>
+                Website
+              </span>
+              <TiArrowRight
+                size={18}
+                className="transform -rotate-45 mt-0.5"
+              />
             </a>
           )}
         </>

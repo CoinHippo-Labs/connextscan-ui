@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import { BigNumber, utils } from 'ethers'
@@ -11,54 +12,214 @@ import Datatable from '../datatable'
 import Copy from '../copy'
 import EnsProfile from '../ens-profile'
 
+import { daily_transfer_metrics, daily_transfer_volume } from '../../lib/api/metrics'
 import { currency_symbol } from '../../lib/object/currency'
 import { number_format, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
 
 export default () => {
-  const { preferences, asset_balances } = useSelector(state => ({ preferences: state.preferences, asset_balances: state.asset_balances }), shallowEqual)
+  const { preferences, chains, assets, asset_balances, dev } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, assets: state.assets, asset_balances: state.asset_balances, dev: state.dev }), shallowEqual)
   const { theme } = { ...preferences }
+  const { chains_data } = { ...chains }
+  const { assets_data } = { ...assets }
+  const { sdk } = { ...dev }
   const { asset_balances_data } = { ...asset_balances }
 
-  const routers = _.orderBy(Object.entries(_.groupBy(Object.values({ ...asset_balances_data }).flatMap(a => a), 'router_address')).map(([k, v]) => {
-    return {
-      router_address: k,
-      assets: _.orderBy(v?.map(a => {
-        const asset_data = a?.asset_data
-        const decimals = asset_data?.decimals || 18
-        const price = asset_data?.price || 0
-        const liquidity = a?.balance
-        const amount = Number(utils.formatUnits(BigInt(liquidity || 0).toString(), decimals))
-        const value = typeof amount === 'number' ? amount * price : null
-        return {
-          ...a,
-          amount,
-          value,
-        }
-      }) || [], ['value'], ['desc']),
+  const [data, setData] = useState(null)
+
+  useEffect(() => {
+    const getData = async () => {
+      if (sdk && chains_data && assets_data) {
+        let volumes = await daily_transfer_volume()
+
+        volumes = (volumes || [])
+          .map(v => {
+            const {
+              transfer_date,
+              origin_chain,
+              destination_chain,
+              asset,
+              volume,
+            } = { ...v }
+
+            const origin_chain_data = chains_data.find(c => c?.domain_id === origin_chain)
+            const destination_chain_data = chains_data.find(c => c?.domain_id === destination_chain)
+            let asset_data = assets_data.find(a => a?.contracts?.findIndex(c => c?.chain_id === origin_chain_data?.chain_id && equals_ignore_case(c?.contract_address, asset)) > -1)
+            asset_data = {
+              ...asset_data,
+              ...asset_data?.contracts?.find(c => c?.chain_id === origin_chain_data?.chain_id && equals_ignore_case(c?.contract_address, asset)),
+            }
+            if (asset_data?.contracts) {
+              delete asset_data.contracts
+            }
+
+            const {
+              decimals,
+              price,
+            } = { ...asset_data }
+
+            const amount = Number(
+              utils.formatUnits(
+                BigNumber.from(
+                  BigInt(volume || 0).toString()
+                ),
+                decimals || 18,
+              )
+            )
+
+            return {
+              ...v,
+              origin_chain_data,
+              destination_chain_data,
+              asset_data,
+              amount,
+              volume: amount * (price || 0),
+            }
+          })
+
+        let transfers = await daily_transfer_metrics()
+
+        transfers = (transfers || [])
+          .map(t => {
+            const {
+              transfer_date,
+              origin_chain,
+              destination_chain,
+            } = { ...t }
+
+            const origin_chain_data = chains_data.find(c => c?.domain_id === origin_chain)
+            const destination_chain_data = chains_data.find(c => c?.domain_id === destination_chain)
+
+            return {
+              ...t,
+              origin_chain_data,
+              destination_chain_data,
+            }
+          })
+
+        setData({
+          volumes: _.orderBy(
+            Object.entries(
+              _.groupBy(
+                volumes,
+                'router',
+              )
+            )
+            .map(([k, v]) => {
+              return {
+                router: k,
+                volume: _.sumBy(
+                  v,
+                  'volume',
+                ),
+              }
+            }),
+            ['volume'],
+            ['desc'],
+          ),
+          transfers: _.orderBy(
+            Object.entries(
+              _.groupBy(
+                transfers,
+                'router',
+              )
+            )
+            .map(([k, v]) => {
+              return {
+                router: k,
+                transfers: _.sumBy(
+                  v,
+                  'transfer_count',
+                ),
+              }
+            }),
+            ['transfers'],
+            ['desc'],
+          ),
+        })
+      }
     }
-  }).map(r => {
-    return {
-      ...r,
-      total_value: _.sumBy(r.assets, 'value'),
-      total_transfers: 1000,
-      total_volume: 10000000,
-      total_fee: 33.33,
-      supported_chains: _.uniqBy(r.assets?.map(a => a?.chain_data), 'id'),
-    }
-  }), ['total_value'], ['desc'])
+
+    getData()
+  }, [sdk, chains_data, assets_data])
+
+  const routers = _.orderBy(
+    Object.entries(
+      _.groupBy(
+        Object.values({ ...asset_balances_data })
+          .flatMap(a => a),
+        'router_address',
+      )
+    )
+    .map(([k, v]) => {
+      return {
+        router_address: k,
+        assets: _.orderBy(
+          v,
+          ['value'],
+          ['desc'],
+        ),
+      }
+    })
+    .map(r => {
+      const {
+        router_address,
+        assets,
+      } = { ...r }
+
+      const {
+        volumes,
+        transfers,
+      } = { ...data }
+
+      return {
+        ...r,
+        total_value: _.sumBy(
+          assets,
+          'value',
+        ),
+        total_volume: _.sumBy(
+          volumes?.filter(d => equals_ignore_case(d?.router, router_address)),
+          'volume',
+        ),
+        total_transfers: _.sumBy(
+          transfers?.filter(d => equals_ignore_case(d?.router, router_address)),
+          'transfers',
+        ),
+        // total_fee: 33.33,
+        supported_chains: _.uniq(
+          assets?.map(a => a?.chain_id)
+        ),
+      }
+    }),
+    ['total_value'],
+    ['desc'],
+  )
 
   const metrics = asset_balances_data && {
-    liquidity: 1000000,
-    volume: 10000000,
-    transfers: 1000,
-    fee: 33.33,
-    supported_chains: _.uniq(routers.flatMap(r => r?.supported_chains)),
+    liquidity: _.sumBy(
+      routers,
+      'total_value',
+    ),
+    volume: _.sumBy(
+      routers,
+      'total_volume',
+    ),
+    transfers: _.sumBy(
+      routers,
+      'total_transfers',
+    ),
+    // fee: 33.33,
+    supported_chains: _.uniq(
+      routers.flatMap(r => r?.supported_chains)
+    ),
   }
 
   return (
     <>
       <div className="mb-6">
-        <Metrics data={metrics} />
+        <Metrics
+          data={metrics}
+        />
       </div>
       {asset_balances_data ?
         <div className="grid my-4 sm:my-6">
@@ -69,10 +230,14 @@ export default () => {
                 accessor: 'i',
                 sortType: (a, b) => a.original.i > b.original.i ? 1 : -1,
                 Cell: props => (
-                  <span className="font-mono font-semibold">
-                    {number_format((props.flatRows?.indexOf(props.row) > -1 ?
-                      props.flatRows.indexOf(props.row) : props.value
-                    ) + 1, '0,0')}
+                  <span className="font-semibold">
+                    {number_format(
+                      (props.flatRows?.indexOf(props.row) > -1 ?
+                        props.flatRows.indexOf(props.row) :
+                        props.value
+                      ) + 1,
+                      '0,0',
+                    )}
                   </span>
                 ),
               },
@@ -90,10 +255,16 @@ export default () => {
                           fallback={props.value && (
                             <span className="text-slate-400 dark:text-slate-200 text-sm font-semibold">
                               <span className="xl:hidden">
-                                {ellipse(props.value, 8)}
+                                {ellipse(
+                                  props.value,
+                                  8,
+                                )}
                               </span>
                               <span className="hidden xl:block">
-                                {ellipse(props.value, 12)}
+                                {ellipse(
+                                  props.value,
+                                  12,
+                                )}
                               </span>
                             </span>
                           )}
@@ -118,9 +289,15 @@ export default () => {
                     {typeof props.value === 'number' ?
                       <span className="uppercase">
                         {currency_symbol}
-                        {number_format(props.value, props.value > 1000000 ? '0,0.00a' : props.value > 10000 ? '0,0' : '0,0.00')}
-                      </span>
-                      :
+                        {number_format(
+                          props.value,
+                          props.value > 1000000 ?
+                            '0,0.00a' :
+                            props.value > 10000 ?
+                              '0,0' :
+                              '0,0.00',
+                        )}
+                      </span> :
                       <span className="text-slate-400 dark:text-slate-500">
                         n/a
                       </span>
@@ -137,9 +314,13 @@ export default () => {
                   <div className="text-base font-bold text-right">
                     {typeof props.value === 'number' ?
                       <span className="uppercase">
-                        {number_format(props.value, props.value > 100000 ? '0,0.00a' : '0,0')}
-                      </span>
-                      :
+                        {number_format(
+                          props.value,
+                          props.value > 100000 ?
+                            '0,0.00a' :
+                            '0,0',
+                          )}
+                      </span> :
                       <span className="text-slate-400 dark:text-slate-500">
                         n/a
                       </span>
@@ -157,9 +338,15 @@ export default () => {
                     {typeof props.value === 'number' ?
                       <span className="uppercase">
                         {currency_symbol}
-                        {number_format(props.value, props.value > 10000000 ? '0,0.00a' : props.value > 100000 ? '0,0' : '0,0.00')}
-                      </span>
-                      :
+                        {number_format(
+                          props.value,
+                          props.value > 10000000 ?
+                            '0,0.00a' :
+                            props.value > 100000 ?
+                              '0,0' :
+                              '0,0.00',
+                        )}
+                      </span> :
                       <span className="text-slate-400 dark:text-slate-500">
                         n/a
                       </span>
@@ -168,18 +355,24 @@ export default () => {
                 ),
                 headerClassName: 'whitespace-nowrap justify-end text-right',
               },
-              {
+              /*{
                 Header: 'Fee',
                 accessor: 'total_fee',
                 sortType: (a, b) => a.original.total_fee > b.original.total_fee ? 1 : -1,
                 Cell: props => (
-                  <div className="text-base font-bold text-right">
+                  <div className="text-base font-semibold text-right">
                     {typeof props.value === 'number' ?
                       <span className="uppercase">
                         {currency_symbol}
-                        {number_format(props.value, props.value > 100000 ? '0,0.00a' : props.value > 1000 ? '0,0' : '0,0.00')}
-                      </span>
-                      :
+                        {number_format(
+                          props.value,
+                          props.value > 100000 ?
+                            '0,0.00a' :
+                            props.value > 1000 ?
+                              '0,0' :
+                              '0,0.00',
+                        )}
+                      </span> :
                       <span className="text-slate-400 dark:text-slate-500">
                         n/a
                       </span>
@@ -187,7 +380,7 @@ export default () => {
                   </div>
                 ),
                 headerClassName: 'whitespace-nowrap justify-end text-right',
-              },
+              },*/
               {
                 Header: 'Supported Chains',
                 accessor: 'supported_chains',
@@ -195,24 +388,27 @@ export default () => {
                 Cell: props => (
                   <div className={`xl:w-${props.value?.length > 5 ? '56' : '32'} flex flex-wrap items-center justify-end ml-auto`}>
                     {props.value?.length > 0 ?
-                      props.value.map((c, i) => (
-                        <div
-                          key={i}
-                          title={c?.name}
-                          className="mb-1.5 ml-1.5"
-                        >
-                          {c?.image && (
+                      props.value.map((id, i) => {
+                        const {
+                          name,
+                          image,
+                        } = { ...chains_data?.find(c => c?.chain_id === id) }
+
+                        return image && (
+                          <div
+                            key={i}
+                            title={name}
+                            className="mr-1"
+                          >
                             <Image
-                              src={c.image}
+                              src={image}
                               alt=""
                               width={24}
                               height={24}
-                              className="rounded-full"
                             />
-                          )}
-                        </div>
-                      ))
-                      :
+                          </div>
+                        )
+                      }).filter(c => c) :
                       <span className="text-slate-400 dark:text-slate-500">
                         No chains supported
                       </span>
@@ -227,10 +423,13 @@ export default () => {
             defaultPageSize={50}
             className="no-border"
           />
-        </div>
-        :
+        </div> :
         <div className="h-32 flex items-center justify-center my-4 sm:my-6">
-          <TailSpin color={loader_color(theme)} width="32" height="32" />
+          <TailSpin
+            color={loader_color(theme)}
+            width="32"
+            height="32"
+          />
         </div>
       }
     </>

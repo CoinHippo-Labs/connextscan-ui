@@ -261,26 +261,62 @@ export default () => {
         (!asset_balances_data || is_interval)
       ) {
         const response = await sdk.nxtpSdkUtils.getRoutersData()
-        if (response || !is_interval) {
-          const data = _.groupBy(response?.map(l => {
-            const chain_data = chains_data?.find(c => c?.domain_id === l?.domain)
-            const asset_data = assets_data?.find(a => a?.contracts?.findIndex(c => c?.chain_id === chain_data?.chain_id && equals_ignore_case(c?.contract_address, l?.adopted)) > -1)
-            return {
-              ...l,
-              chain_id: chain_data?.chain_id,
-              chain_data,
-              contract_address: l?.adopted,
-              asset_data,
-              amount: BigInt(Number(l?.balance) || 0).toString(),
-            }
-          }).map(l => {
-            const { asset_data, amount } = { ...l }
-            const { decimals, price } = { ...asset_data }
-            return {
-              ...l,
-              value: Number(utils.formatUnits(BigNumber.from(amount), decimals)) * price,
-            }
-          }) || [], 'chain_id')
+
+        if (
+          response ||
+          !is_interval
+        ) {
+          const data = _.groupBy(
+            (response || [])
+              .map(l => {
+                const {
+                  domain,
+                  adopted,
+                  balance,
+                } = { ...l }
+
+                const chain_data = chains_data?.find(c => c?.domain_id === domain)
+                const {
+                  chain_id,
+                  domain_id,
+                } = { ...chain_data }
+
+                let asset_data = assets_data.find(a => a?.contracts?.findIndex(c => c?.chain_id === chain_id && equals_ignore_case(c?.contract_address, adopted)) > -1)
+                asset_data = {
+                  ...asset_data,
+                  ...asset_data?.contracts?.find(c => c?.chain_id === chain_id && equals_ignore_case(c?.contract_address, adopted)),
+                }
+                if (asset_data?.contracts) {
+                  delete asset_data.contracts
+                }
+
+                const {
+                  decimals,
+                  price,
+                } = { ...asset_data }
+
+                const amount = Number(
+                  utils.formatUnits(
+                    BigNumber.from(
+                      BigInt(balance || 0).toString()
+                    ),
+                    decimals || 18,
+                  )
+                )
+
+                return {
+                  ...l,
+                  chain_id,
+                  chain_data,
+                  contract_address: adopted,
+                  asset_data,
+                  amount,
+                  value: amount * (price || 0),
+                }
+              }),
+            'chain_id',
+          )
+
           dispatch({
             type: ASSET_BALANCES_DATA,
             value: data,
@@ -288,11 +324,15 @@ export default () => {
         }
       }
     }
+
     getData()
-    const interval = setInterval(() => getData(true), 5 * 60 * 1000)
-    return () => {
-      clearInterval(interval)
-    }
+
+    return () => clearInterval(
+      setInterval(() =>
+        getData(true),
+        5 * 60 * 1000,
+      )
+    )
   }, [sdk, chains_data, assets_data, pathname])
 
   // ens

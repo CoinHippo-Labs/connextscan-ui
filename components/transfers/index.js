@@ -327,7 +327,7 @@ export default () => {
                 accessor: 'i',
                 sortType: (a, b) => a.original.i > b.original.i ? 1 : -1,
                 Cell: props => (
-                  <span className="font-mono font-semibold">
+                  <span className="font-semibold">
                     {number_format((props.flatRows?.indexOf(props.row) > -1 ?
                       props.flatRows.indexOf(props.row) : props.value
                     ) + 1, '0,0')}
@@ -393,7 +393,7 @@ export default () => {
                           </a>
                         </Link>
                         {!props.row.original.pending && (
-                          <div className={`font-mono ${props.row.original.pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}>
+                          <div className={`${props.row.original.pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}>
                             {total_time_string(
                               props.row.original.xcall_timestamp,
                               props.row.original.execute_timestamp ||
@@ -444,7 +444,7 @@ export default () => {
                       </a>
                     </Link>
                     {!props.row.original.pending && (
-                      <div className={`font-mono ${props.row.original.pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}>
+                      <div className={`${props.row.original.pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}>
                         {total_time_string(
                           props.row.original.xcall_timestamp,
                           props.row.original.execute_timestamp ||
@@ -502,7 +502,7 @@ export default () => {
                         />
                       )}
                       {typeof props.row.original.source_asset_data?.amount === 'number' ?
-                        <span className="font-mono font-bold">
+                        <span className="font-bold">
                           {number_format(
                             props.row.original.source_asset_data.amount,
                             '0,0.000000',
@@ -599,7 +599,7 @@ export default () => {
                         />
                       )}
                       {typeof props.row.original.destination_asset_data?.amount === 'number' ?
-                        <span className="font-mono font-bold">
+                        <span className="font-bold">
                           {number_format(
                             props.row.original.destination_asset_data.amount,
                             '0,0.000000',

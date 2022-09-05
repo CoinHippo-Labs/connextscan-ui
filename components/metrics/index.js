@@ -22,7 +22,7 @@ export default ({ data }) => {
   } = { ...data }
 
   return (
-    <div className={`w-full grid grid-flow-row sm:grid-cols-2 lg:grid-cols-${supported_chains ? 5 : 4} gap-5`}>
+    <div className={`w-full grid grid-flow-row sm:grid-cols-2 lg:grid-cols-${(supported_chains ? 4 : 3) + (typeof fee === 'number' ? 1 : 0)} gap-5`}>
       <div className={`${metricClassName}`}>
         <span className={titleClassName}>
           Liquidity
@@ -30,7 +30,11 @@ export default ({ data }) => {
         <div className="text-3xl font-bold">
           {data ?
             `${currency_symbol}${number_format(liquidity, '0,0')}` :
-            <TailSpin color={loader_color(theme)} width="32" height="32" />
+            <TailSpin
+              color={loader_color(theme)}
+              width="32"
+              height="32"
+            />
           }
         </div>
       </div>
@@ -41,7 +45,11 @@ export default ({ data }) => {
         <div className="text-3xl font-bold">
           {data ?
             `${currency_symbol}${number_format(volume, '0,0')}` :
-            <TailSpin color={loader_color(theme)} width="32" height="32" />
+            <TailSpin
+              color={loader_color(theme)}
+              width="32"
+              height="32"
+            />
           }
         </div>
       </div>
@@ -51,22 +59,35 @@ export default ({ data }) => {
         </span>
         <div className="text-3xl font-bold">
           {data ?
-            number_format(transfers, '0,0') :
-            <TailSpin color={loader_color(theme)} width="32" height="32" />
+            number_format(
+              transfers,
+              '0,0',
+            ) :
+            <TailSpin
+              color={loader_color(theme)}
+              width="32"
+              height="32"
+            />
           }
         </div>
       </div>
-      <div className={`${metricClassName}`}>
-        <span className={titleClassName}>
-          Fee
-        </span>
-        <div className="text-3xl font-bold">
-          {data ?
-            `${currency_symbol}${number_format(fee, '0,0')}` :
-            <TailSpin color={loader_color(theme)} width="32" height="32" />
-          }
+      {typeof fee === 'number' && (
+        <div className={`${metricClassName}`}>
+          <span className={titleClassName}>
+            Fee
+          </span>
+          <div className="text-3xl font-bold">
+            {data ?
+              `${currency_symbol}${number_format(fee, '0,0')}` :
+              <TailSpin
+                color={loader_color(theme)}
+                width="32"
+                height="32"
+              />
+            }
+          </div>
         </div>
-      </div>
+      )}
       {supported_chains && (
         <div className={`${metricClassName}`}>
           <span className={titleClassName}>
@@ -77,11 +98,14 @@ export default ({ data }) => {
               <div className="flex items-center mt-1">
                 {supported_chains.map((id, i) => {
                   const {
+                    name,
                     image,
-                  } = { ...chains_data?.find(c => c?.chain_id, id) }
+                  } = { ...chains_data?.find(c => c?.chain_id === id) }
+
                   return image && (
                     <div
                       key={i}
+                      title={name}
                       className="mr-1"
                     >
                       <Image
@@ -94,7 +118,11 @@ export default ({ data }) => {
                   )
                 }).filter(c => c)}
               </div> :
-              <TailSpin color={loader_color(theme)} width="32" height="32" />
+              <TailSpin
+                color={loader_color(theme)}
+                width="32"
+                height="32"
+              />
             }
           </div>
         </div>

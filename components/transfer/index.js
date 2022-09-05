@@ -240,7 +240,7 @@ export default () => {
                     />
                   )}
                   {source_amount ?
-                    <span className="font-mono text-lg font-bold">
+                    <span className="text-lg font-bold">
                       {number_format(
                         source_amount,
                         '0,0.000000',
@@ -289,7 +289,7 @@ export default () => {
                   />
                 </div>
               }
-              <div className={`font-mono ${pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} text-base font-semibold`}>
+              <div className={`${pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} text-base font-semibold`}>
                 {total_time_string(
                   xcall_timestamp,
                   execute_timestamp || moment().unix(),
@@ -309,7 +309,7 @@ export default () => {
                     />
                   )}
                   {destination_amount ?
-                    <span className="font-mono text-lg font-bold">
+                    <span className="text-lg font-bold">
                       {number_format(
                         destination_amount,
                         '0,0.000000',

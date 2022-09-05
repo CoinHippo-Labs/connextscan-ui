@@ -18,24 +18,62 @@ export default () => {
   useEffect(() => {
     if (asset_balances_data) {
       setData({
-        total: _.sumBy(Object.values(asset_balances_data).flatMap(l => l), 'value'),
-        top_chains: _.slice(_.orderBy(Object.values(asset_balances_data).map(ls => {
-          return {
-            ..._.head(ls)?.chain_data,
-            value: _.sumBy(ls, 'value'),
-          }
-        }), ['value'], ['desc']), 0, 3),
-        top_assets: _.slice(_.orderBy(Object.values(_.groupBy(Object.values(asset_balances_data).flatMap(l => l), 'asset_data.id')).map(ls => {
-          return {
-            ..._.head(ls)?.asset_data,
-            value: _.sumBy(ls, 'value'),
-          }
-        }), ['value'], ['desc']), 0, 3),
+        total: _.sumBy(
+          Object.values(asset_balances_data)
+            .flatMap(l => l),
+          'value',
+        ),
+        top_chains: _.slice(
+          _.orderBy(
+            Object.values(asset_balances_data)
+              .map(v => {
+                return {
+                  ..._.head(v)?.chain_data,
+                  value: _.sumBy(
+                    v,
+                    'value',
+                  ),
+                }
+              }),
+            ['value'],
+            ['desc'],
+          ),
+          0,
+          3,
+        ),
+        top_assets: _.slice(
+          _.orderBy(
+            Object.values(
+              _.groupBy(
+                Object.values(asset_balances_data)
+                  .flatMap(l => l),
+                'asset_data.id',
+              )
+            )
+            .map(v => {
+              return {
+                ..._.head(v)?.asset_data,
+                value: _.sumBy(
+                  v,
+                  'value',
+                ),
+              }
+            }),
+            ['value'],
+            ['desc'],
+          ),
+          0,
+          3,
+        ),
       })
     }
   }, [asset_balances_data])
 
-  const { total, top_chains, top_assets } = { ...data }
+  const {
+    total,
+    top_chains,
+    top_assets,
+  } = { ...data }
 
   return (
     <div className="h-80 bg-white dark:bg-black border border-slate-100 dark:border-slate-800 shadow dark:shadow-slate-400 rounded-lg space-y-0.5 p-5">
@@ -45,7 +83,14 @@ export default () => {
             <div className="space-y-2 pt-6 pb-3">
               <div className="uppercase text-4xl font-extrabold">
                 {currency_symbol}
-                {number_format(total, total > 50000000 ? '0,0.00a' : total > 10000000 ? '0,0' : '0,0.00')}
+                {number_format(
+                  total,
+                  total > 50000000 ?
+                    '0,0.00a' :
+                    total > 10000000 ?
+                      '0,0' :
+                      '0,0.00',
+                )}
               </div>
               <div className="flex items-center justify-center space-x-2">
                 <span className="text-slate-400 dark:text-white text-base font-bold">
@@ -128,10 +173,14 @@ export default () => {
               </div>
             </div>
           </div>
-        </div>
-        :
+        </div> :
         <div className="h-full flex items-center justify-center">
-          <TailSpin color={loader_color(theme)} width="40" height="40" strokeWidth="8" />
+          <TailSpin
+            color={loader_color(theme)}
+            width="40"
+            height="40"
+            strokeWidth="8"
+          />
         </div>
       }
     </div>

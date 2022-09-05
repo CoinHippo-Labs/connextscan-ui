@@ -33,23 +33,44 @@ export default ({
 
   useEffect(() => {
     if (asset_balances_data) {
-      setData(Object.values(asset_balances_data).map(ls => {
-        return {
-          ..._.head(ls)?.chain_data,
-          value: _.sumBy(ls, 'value'),
-        }
-      }).map(l => {
-        const { value } = { ...l }
-        return {
-          ...l,
-          value_string: number_format(value, value > 1000000 ? '0,0.00a' : value > 10000 ? '0,0' : '0,0.00'),
-        }
-      }))
+      setData(
+        Object.values(asset_balances_data)
+          .map(v => {
+            return {
+              ..._.head(v)?.chain_data,
+              value: _.sumBy(
+                v,
+                'value',
+              ),
+            }
+          })
+          .map(l => {
+            const {
+              value,
+            } = { ...l }
+
+            return {
+              ...l,
+              value_string: number_format(
+                value,
+                value > 1000000 ?
+                  '0,0.00a' :
+                  value > 10000 ?
+                    '0,0' :
+                    '0,0.00',
+              ),
+            }
+          })
+      )
     }
   }, [asset_balances_data])
 
   const d = data?.find(d => d.id === xFocus)
-  const { name, image, value } = { ...d }
+  const {
+    name,
+    image,
+    value,
+  } = { ...d }
 
   return (
     <div className="h-80 bg-white dark:bg-black border border-slate-100 dark:border-slate-800 shadow dark:shadow-slate-400 rounded-lg space-y-0.5 pt-5 pb-0 sm:pb-1 px-5">
@@ -65,7 +86,11 @@ export default ({
         {d && (
           <div className="flex flex-col items-end">
             <span className="uppercase font-bold">
-              {currency_symbol}{number_format(value, '0,0.00')}
+              {currency_symbol}
+              {number_format(
+                value,
+                '0,0.00',
+              )}
             </span>
             <div className="flex items-center space-x-1.5">
               {image && (
@@ -145,6 +170,7 @@ export default ({
                   dataKey="value_string"
                   position="top"
                   cursor="default"
+                  className="uppercase font-semibold"
                 />
                 {data.map((d, i) => (
                   <Cell
@@ -156,10 +182,13 @@ export default ({
                 ))}
               </Bar>
             </BarChart>
-          </ResponsiveContainer>
-          :
+          </ResponsiveContainer> :
           <div className="w-full h-4/5 flex items-center justify-center">
-            <TailSpin color={loader_color(theme)} width="32" height="32" />
+            <TailSpin
+              color={loader_color(theme)}
+              width="32"
+              height="32"
+            />
           </div>
         }
       </div>
