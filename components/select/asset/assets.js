@@ -87,7 +87,7 @@ export default ({
 
   return (
     <div className="max-h-96 overflow-y-scroll">
-      {(assets_data_sorted || [])
+      {assets_data_sorted
         .map((a, i) => {
           const {
             id,

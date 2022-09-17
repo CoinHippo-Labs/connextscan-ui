@@ -72,14 +72,14 @@ export default ({
 
   return (
     <div className="max-h-96 overflow-y-scroll">
-      {(chains_data_sorted || [])
+      {chains_data_sorted
         .map((c, i) => {
           const {
             id,
             disabled,
             name,
             image,
-          } = { ...a }
+          } = { ...c }
 
           const selected = id === value
 

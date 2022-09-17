@@ -105,7 +105,7 @@ export default () => {
     const getData = async () => {
       const response = await getAssets()
 
-      if (response) {
+      if (Array.isArray(response)) {
         dispatch({
           type: ASSETS_DATA,
           value: response,
@@ -276,7 +276,7 @@ export default () => {
     const init = async () => {
       if (
         chains_data &&
-        assets_data?.findIndex(a => !a.price) < 0
+        assets_data?.findIndex(a => typeof a.price !== 'number') < 0
       ) {
         const chains_config = {}
 
@@ -398,7 +398,7 @@ export default () => {
         sdk &&
         chains_data &&
         assets_data &&
-        assets_data.findIndex(a => !a.price) < 0 &&
+        assets_data.findIndex(a => typeof a.price !== 'number') < 0 &&
         ![
           '/tx/[tx]',
         ].includes(pathname) &&
@@ -425,7 +425,6 @@ export default () => {
                 const chain_data = chains_data?.find(c => c?.domain_id === domain)
                 const {
                   chain_id,
-                  domain_id,
                 } = { ...chain_data }
 
                 let asset_data = assets_data.find(a =>

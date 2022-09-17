@@ -9,7 +9,9 @@ import meta from '../../lib/meta'
 import { equals_ignore_case } from '../../lib/utils'
 import { THEME } from '../../reducers/types'
 
-export default ({ children }) => {
+export default ({
+  children,
+}) => {
   const dispatch = useDispatch()
   const {
     preferences,

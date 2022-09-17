@@ -4,7 +4,7 @@ export default (
   state = {
     [`${ENS_DATA}`]: null,
   },
-  action
+  action,
 ) => {
   switch (action.type) {
     case ENS_DATA:
