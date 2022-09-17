@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import Items from './items'
 
 export default ({
-  value,
+  value = '',
   onSelect,
 }) => {
   const [hidden, setHidden] = useState(true)
@@ -13,17 +13,33 @@ export default ({
 
   useEffect(() => {
     const handleClickOutside = e => {
-      if (hidden || buttonRef.current.contains(e.target) || dropdownRef.current.contains(e.target)) return false
+      if (
+        hidden ||
+        buttonRef.current.contains(e.target) ||
+        dropdownRef.current.contains(e.target)
+      ) {
+        return false
+      }
+
       setHidden(!hidden)
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+
+    document.addEventListener(
+      'mousedown',
+      handleClickOutside,
+    )
+
+    return () => document.removeEventListener(
+      'mousedown',
+      handleClickOutside,
+    )
   }, [hidden, buttonRef, dropdownRef])
 
   const onClick = id => {
     if (onSelect) {
       onSelect(id)
     }
+
     setHidden(!hidden)
   }
 
@@ -35,7 +51,10 @@ export default ({
         className="bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 rounded-xl shadow flex items-center justify-center space-x-1.5 py-2 px-3"
       >
         <span className="whitespace-nowrap text-sm sm:text-base font-semibold">
-          {value || 'All Status'}
+          {
+            value ||
+            'All Status'
+          }
         </span>
       </button>
       <div

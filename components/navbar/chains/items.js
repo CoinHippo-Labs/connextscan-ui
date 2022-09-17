@@ -5,19 +5,48 @@ import _ from 'lodash'
 import Image from '../../image'
 import { chainName, connext } from '../../../lib/object/chain'
 
-export default ({ onClick }) => {
-  const { chains } = useSelector(state => ({ chains: state.chains }), shallowEqual)
-  const { chains_data } = { ...chains }
+export default ({
+  onClick,
+}) => {
+  const {
+    chains,
+  } = useSelector(state =>
+    (
+      {
+        chains: state.chains,
+      }
+    ),
+    shallowEqual,
+  )
+  const {
+    chains_data,
+  } = { ...chains }
 
   return (
     <>
-      <div className="dropdown-title">Select Chain</div>
+      <div className="dropdown-title">
+        Select Chain
+      </div>
       <div className="flex flex-wrap pb-1">
-        {_.concat(connext, chains_data || []).filter(c => !c.menu_hidden).map((c, i) => {
+        {_.concat(
+          connext,
+          chains_data,
+        )
+        .filter(c =>
+          c &&
+          !c.menu_hidden
+        )
+        .map(c => {
+          const {
+            id,
+            disabled,
+            image,
+          } = { ...c }
+
           const item = (
             <>
               <Image
-                src={c.image}
+                src={image}
                 alt=""
                 width={20}
                 height={20}
@@ -28,19 +57,22 @@ export default ({ onClick }) => {
               </span>
             </>
           )
-          return c.disabled ?
+
+          return disabled ?
             <div
-              key={i}
+              key={id}
               title="Disabled"
-              className="dropdown-item w-1/2 cursor-not-allowed flex items-center justify-start font-medium space-x-1 p-2"
+              className="dropdown-item w-1/2 cursor-not-allowed flex items-center justify-start font-medium space-x-1.5 p-2"
             >
               {item}
-            </div>
-            :
-            <Link key={i} href={`/${c.id}`}>
+            </div> :
+            <Link
+              key={id}
+              href={`/${id}`}
+            >
               <a
                 onClick={onClick}
-                className="dropdown-item w-1/2 flex items-center justify-start space-x-1 p-2"
+                className="dropdown-item w-1/2 flex items-center justify-start space-x-1.5 p-2"
               >
                 {item}
               </a>

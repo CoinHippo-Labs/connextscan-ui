@@ -4,7 +4,7 @@ import Image from '../../image'
 
 export default () => {
   return (
-    <div className="logo ml-3 mr-1 sm:mr-3">
+    <div className="logo ml-3 mr-0.5 sm:mr-3">
       <Link href="/">
         <a className="w-full flex items-start">
           <div className="min-w-max sm:mr-3">
@@ -26,10 +26,10 @@ export default () => {
             </div>
           </div>
           <div className="hidden sm:block">
-            <div className="normal-case text-base font-semibold">
+            <div className="uppercase tracking-widest text-base font-semibold">
               {process.env.NEXT_PUBLIC_APP_NAME}
             </div>
-            <div className="max-w-min bg-blue-600 rounded whitespace-nowrap text-white pb-0.5 px-1.5 mt-0.5">
+            <div className="max-w-min bg-blue-500 dark:bg-blue-500 rounded-xl whitespace-nowrap uppercase tracking-wider text-white text-2xs py-0.5 px-2.5 mt-0.5">
               {process.env.NEXT_PUBLIC_NETWORK}
             </div>
           </div>

@@ -13,40 +13,90 @@ import Chains from './chains'
 import Theme from './theme'
 import SubNavbar from './sub-navbar'
 import { chains as getChains, assets as getAssets } from '../../lib/api/config'
-import { tokens as getTokens } from '../../lib/api/tokens'
+import { assets as getAssetsPrice } from '../../lib/api/assets'
 import { ens as getEns } from '../../lib/api/ens'
-import { token as getToken } from '../../lib/api/coingecko'
 import { connext } from '../../lib/object/chain'
 import { equals_ignore_case } from '../../lib/utils'
 import { CHAINS_DATA, ASSETS_DATA, ENS_DATA, CHAIN_DATA, ASSET_BALANCES_DATA, SDK, RPCS } from '../../reducers/types'
 
 export default () => {
   const dispatch = useDispatch()
-  const { chains, assets, ens, asset_balances, rpc_providers, dev, wallet } = useSelector(state => ({ chains: state.chains, assets: state.assets, ens: state.ens, asset_balances: state.asset_balances, rpc_providers: state.rpc_providers, dev: state.dev, wallet: state.wallet }), shallowEqual)
-  const { chains_data } = { ...chains }
-  const { assets_data } = { ...assets }
-  const { ens_data } = { ...ens }
-  const { asset_balances_data } = { ...asset_balances }
-  const { rpcs } = { ...rpc_providers }
-  const { sdk } = { ...dev }
-  const { wallet_data } = { ...wallet }
-  const { chain_id, provider, web3_provider, address, signer } = { ...wallet_data }
+  const {
+    chains,
+    assets,
+    ens,
+    asset_balances,
+    rpc_providers,
+    dev,
+    wallet,
+  } = useSelector(state =>
+    (
+      {
+        chains: state.chains,
+        assets: state.assets,
+        ens: state.ens,
+        asset_balances: state.asset_balances,
+        rpc_providers: state.rpc_providers,
+        dev: state.dev,
+        wallet: state.wallet,
+      }
+    ),
+    shallowEqual,
+  )
+  const {
+    chains_data,
+  } = { ...chains }
+  const {
+    assets_data,
+  } = { ...assets }
+  const {
+    ens_data,
+  } = { ...ens }
+  const {
+    asset_balances_data,
+  } = { ...asset_balances }
+  const {
+    rpcs,
+  } = { ...rpc_providers }
+  const {
+    sdk,
+  } = { ...dev }
+  const {
+    wallet_data,
+  } = { ...wallet }
+  const {
+    chain_id,
+    provider,
+    web3_provider,
+    address,
+    signer,
+  } = { ...wallet_data }
 
   const router = useRouter()
-  const { pathname, query } = { ...router }
-  const { chain } = { ...query }
+  const {
+    pathname,
+    query,
+  } = { ...router }
+  const {
+    chain,
+  } = { ...query }
 
   // chains
   useEffect(() => {
     const getData = async () => {
-      const response = await getChains()
-      if (response) {
+      const {
+        evm,
+        cosmos,
+      } = { ...await getChains() }
+
+      if (evm) {
         dispatch({
           type: CHAINS_DATA,
-          value: response.evm,
+          value: evm,
         })
       }
     }
+
     getData()
   }, [])
 
@@ -54,6 +104,7 @@ export default () => {
   useEffect(() => {
     const getData = async () => {
       const response = await getAssets()
+
       if (response) {
         dispatch({
           type: ASSETS_DATA,
@@ -61,35 +112,95 @@ export default () => {
         })
       }
     }
+
     getData()
   }, [])
 
   // price
   useEffect(() => {
     const getData = async is_interval => {
-      if (chains_data && assets_data) {
-        let updated_ids = is_interval ? [] : assets_data.filter(a => a?.price).map(a => a.id)
+      if (
+        chains_data &&
+        assets_data
+      ) {
+        let updated_ids = is_interval ?
+        [] :
+        assets_data
+          .filter(a => a?.price)
+          .map(a => a.id)
+
         if (updated_ids.length < assets_data.length) {
           let updated = false
-          for (let i = 0; i < chains_data.length; i++) {
-            const { chain_id } = { ...chains_data[i] }
+
+          for (const chain_data of chains_data) {
+            const {
+              chain_id,
+            } = { ...chain_data }
+
             if (chain_id) {
-              const addresses = assets_data.filter(a => !updated_ids.includes(a?.id) && a?.contracts?.findIndex(c => c?.chain_id === chain_id && c.contract_address) > -1).map(a => a.contracts.find(c => c?.chain_id === chain_id).contract_address)
+              const addresses = assets_data
+                .filter(a =>
+                  !updated_ids.includes(a?.id) &&
+                  a?.contracts?.findIndex(c =>
+                    c?.chain_id === chain_id &&
+                    c?.contract_address
+                  ) > -1
+                )
+                .map(a =>
+                  a.contracts.find(c => c?.chain_id === chain_id)
+                    .contract_address
+                )
+
               if (addresses.length > 0) {
-                const response = await getTokens({ chain_id, addresses })
-                response?.forEach(t => {
-                  const asset_index = assets_data.findIndex(a => a?.id && a.contracts?.findIndex(c => c?.chain_id === t?.chain_id && equals_ignore_case(c.contract_address, t?.contract_address)) > -1)
-                  if (asset_index > -1) {
-                    const asset = assets_data[asset_index]
-                    asset.price = t?.price || asset.price
-                    assets_data[asset_index] = asset
-                    updated_ids = _.uniq(_.concat(updated_ids, asset.id))
-                    updated = true
-                  }
-                })
+                const response = await getAssetsPrice(
+                  {
+                    chain_id,
+                    addresses,
+                  },
+                )
+
+                if (Array.isArray(response)) {
+                  response.forEach(a => {
+                    const asset_index = assets_data.findIndex(_a =>
+                      _a?.id &&
+                      _a.contracts?.findIndex(c =>
+                        c?.chain_id === a?.chain_id &&
+                        equals_ignore_case(c.contract_address, a?.contract_address)
+                      ) > -1
+                    )
+
+                    if (asset_index > -1) {
+                      const asset_data = assets_data[asset_index]
+                      const {
+                        id,
+                      } = { ...asset_data }
+                      let {
+                        price,
+                      } = { ...asset_data }
+
+                      price = a?.price ||
+                        price
+
+                      assets_data[asset_index] = {
+                        ...asset_data,
+                        price,
+                      }
+
+                      updated_ids = _.uniq(
+                        _.concat(
+                          updated_ids,
+                          id,
+                        )
+                      )
+
+                      updated = true
+                    }
+                  })
+                }
               }
             }
           }
+
           if (updated) {
             dispatch({
               type: ASSETS_DATA,
@@ -99,52 +210,55 @@ export default () => {
         }
       }
     }
-    getData()
-    const interval = setInterval(() => getData(true), 5 * 60 * 1000)
-    return () => {
-      clearInterval(interval)
-    }
-  }, [chains_data, assets_data])
 
-  // chain
-  useEffect(() => {
-    const getData = async () => {
-      if (chains_data) {
-        const chain_data = chains_data.find(c => c?.id === chain?.toLowerCase()) || connext
-        dispatch({
-          type: CHAIN_DATA,
-          value: chain_data,
-        })
-        if (chain_data.coingecko_id) {
-          const response = await getToken(chain_data.coingecko_id)
-          chain_data.token_data = !response?.error && response
-          dispatch({
-            type: CHAIN_DATA,
-            value: chain_data,
-          })
-        }
-      }
-    }
     getData()
-    const interval = setInterval(() => getData(), 5 * 60 * 1000)
-    return () => {
-      clearInterval(interval)
-    }
-  }, [chains_data, chain])
+
+    const interval = setInterval(() =>
+      getData(true),
+      5 * 60 * 1000,
+    )
+
+    return () => clearInterval(interval)
+  }, [chains_data, assets_data])
 
   // rpcs
   useEffect(() => {
     const init = async => {
       if (chains_data) {
         const _rpcs = {}
-        for (let i = 0; i < chains_data.length; i++) {
-          const chain_data = chains_data[i]
-          if (!chain_data?.disabled) {
-            const chain_id = chain_data?.chain_id
-            const rpc_urls = chain_data?.provider_params?.[0]?.rpcUrls?.filter(url => url) || []
-            _rpcs[chain_id] = new providers.FallbackProvider(rpc_urls.map(url => new providers.JsonRpcProvider(url)))
+
+        for (const chain_data of chains_data) {
+          const {
+            disabled,
+            chain_id,
+            provider_params,
+          } = { ...chain_data }
+
+          if (!disabled) {
+            const {
+              rpcUrls,
+            } = { ..._.head(provider_params) }
+ 
+            const rpc_urls = (rpcUrls || [])
+              .filter(url => url)
+
+            const provider = rpc_urls.length === 1 ?
+              new providers.JsonRpcProvider(rpc_urls[0]) :
+              new providers.FallbackProvider(
+                rpc_urls.map((url, i) => {
+                  return {
+                    provider: new providers.JsonRpcProvider(url),
+                    priority: i + 1,
+                    stallTimeout: 1000,
+                  }
+                }),
+                rpc_urls.length / 3,
+              )
+
+            _rpcs[chain_id] = provider
           }
         }
+
         if (!rpcs) {
           dispatch({
             type: RPCS,
@@ -153,13 +267,17 @@ export default () => {
         }
       }
     }
+
     init()
   }, [chains_data])
 
   // sdk
   useEffect(() => {
     const init = async () => {
-      if (chains_data && assets_data?.findIndex(a => !a.price) < 0) {
+      if (
+        chains_data &&
+        assets_data?.findIndex(a => !a.price) < 0
+      ) {
         const chains_config = {}
 
         for (const chain_data of chains_data) {
@@ -171,7 +289,12 @@ export default () => {
           } = { ...chain_data }
 
           if (!disabled) {
-            const rpc_urls = _.head(provider_params)?.rpcUrls?.filter(url => url) || []
+            const {
+              rpcUrls,
+            } = { ..._.head(provider_params) }
+ 
+            const rpc_urls = (rpcUrls || [])
+              .filter(url => url)
 
             if (domain_id) {
               chains_config[domain_id] = {
@@ -194,6 +317,7 @@ export default () => {
 
                     symbol = contract_data?.symbol ||
                       symbol
+
                     name = name ||
                       symbol
 
@@ -208,23 +332,24 @@ export default () => {
           }
         }
 
-        dispatch({
-          type: SDK,
-          value: await create({
-            chains: chains_config,
-            // signerAddress: address,
-            logLevel: 'info',
-            network: process.env.NEXT_PUBLIC_NETWORK,
-            environment: process.env.NEXT_PUBLIC_ENVIRONMENT,
-          }),
-        })
-
-        console.log('[SDK config]', {
+        const sdkConfig = {
           chains: chains_config,
           // signerAddress: address,
           logLevel: 'info',
           network: process.env.NEXT_PUBLIC_NETWORK,
           environment: process.env.NEXT_PUBLIC_ENVIRONMENT,
+        }
+
+        console.log(
+          '[SDK config]',
+          sdkConfig,
+        )
+
+        dispatch({
+          type: SDK,
+          value: await create(
+            sdkConfig,
+          ),
         })
       }
     }
@@ -235,30 +360,52 @@ export default () => {
   // sdk
   useEffect(() => {
     const update = async () => {
-      if (sdk && address) {
+      if (
+        sdk &&
+        address
+      ) {
         if (sdk.nxtpSdkBase) {
-          await sdk.nxtpSdkBase.changeSignerAddress(address)
+          await sdk.nxtpSdkBase.changeSignerAddress(
+            address,
+          )
         }
+
         if (sdk.nxtpSdkRouter) {
-          await sdk.nxtpSdkRouter.changeSignerAddress(address)
+          await sdk.nxtpSdkRouter.changeSignerAddress(
+            address,
+          )
         }
-        console.log('[Signer address]', address)
+
+        console.log(
+          '[Signer address]',
+          address,
+        )
+
         dispatch({
           type: SDK,
           value: sdk,
         })
       }
     }
+
     update()
   }, [provider, web3_provider, address, signer])
 
   // assets balances
   useEffect(() => {
     const getData = async is_interval => {
-      if (sdk && chains_data &&
-        assets_data && assets_data.findIndex(a => !a.price) < 0 &&
-        !['/tx/[tx]'].includes(pathname) &&
-        (!asset_balances_data || is_interval)
+      if (
+        sdk &&
+        chains_data &&
+        assets_data &&
+        assets_data.findIndex(a => !a.price) < 0 &&
+        ![
+          '/tx/[tx]',
+        ].includes(pathname) &&
+        (
+          !asset_balances_data ||
+          is_interval
+        )
       ) {
         const response = await sdk.nxtpSdkUtils.getRoutersData()
 
@@ -281,10 +428,18 @@ export default () => {
                   domain_id,
                 } = { ...chain_data }
 
-                let asset_data = assets_data.find(a => a?.contracts?.findIndex(c => c?.chain_id === chain_id && equals_ignore_case(c?.contract_address, adopted)) > -1)
+                let asset_data = assets_data.find(a =>
+                  a?.contracts?.findIndex(c =>
+                    c?.chain_id === chain_id &&
+                    equals_ignore_case(c?.contract_address, adopted)
+                  ) > -1
+                )
                 asset_data = {
                   ...asset_data,
-                  ...asset_data?.contracts?.find(c => c?.chain_id === chain_id && equals_ignore_case(c?.contract_address, adopted)),
+                  ...asset_data?.contracts?.find(c =>
+                    c?.chain_id === chain_id &&
+                    equals_ignore_case(c?.contract_address, adopted)
+                  ),
                 }
                 if (asset_data?.contracts) {
                   delete asset_data.contracts
@@ -304,6 +459,9 @@ export default () => {
                   )
                 )
 
+                const value = amount *
+                  (price || 0)
+
                 return {
                   ...l,
                   chain_id,
@@ -311,7 +469,7 @@ export default () => {
                   contract_address: adopted,
                   asset_data,
                   amount,
-                  value: amount * (price || 0),
+                  value,
                 }
               }),
             'chain_id',
@@ -327,20 +485,31 @@ export default () => {
 
     getData()
 
-    return () => clearInterval(
-      setInterval(() =>
-        getData(true),
-        5 * 60 * 1000,
-      )
+    const interval = setInterval(() =>
+      getData(true),
+      5 * 60 * 1000,
     )
+
+    return () => clearInterval(interval)
   }, [sdk, chains_data, assets_data, pathname])
 
   // ens
   useEffect(() => {
     const getData = async () => {
-      if (chains_data && asset_balances_data && chains_data.filter(c => !c?.disabled).length <= Object.keys(asset_balances_data).length) {
-        const addresses = _.uniq(Object.values(asset_balances_data).flatMap(a => a || []).map(a => a?.router_address).filter(a => a && !ens_data?.[a]))
+      if (
+        chains_data &&
+        asset_balances_data &&
+        chains_data.filter(c => !c?.disabled).length <= Object.keys(asset_balances_data).length
+      ) {
+        const addresses = _.uniq(
+          Object.values(asset_balances_data)
+            .flatMap(a => a)
+            .map(a => a?.router_address)
+            .filter(a => a && !ens_data?.[a])
+        )
+
         const ens_data = await getEns(addresses)
+
         if (ens_data) {
           dispatch({
             type: ENS_DATA,
@@ -349,8 +518,9 @@ export default () => {
         }
       }
     }
+
     getData()
-  }, [chains_data, asset_balances_data])
+  }, [address])
 
   return (
     <>

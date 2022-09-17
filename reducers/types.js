@@ -16,12 +16,6 @@ export const CHAIN_DATA = 'chain_data'
 // asset balances
 export const ASSET_BALANCES_DATA = 'asset_balances_data'
 
-// analytics
-export const STATS_DATA = 'stats_data'
-
-// transactions
-export const TRANSACTIONS_DATA = 'transactions_data'
-
 // rpc
 export const RPCS = 'rpcs'
 
