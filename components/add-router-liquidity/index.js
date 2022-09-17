@@ -376,7 +376,7 @@ export default () => {
   const {
     chain,
     amount,
-  } = { ..data }
+  } = { ...data }
 
   const chain_data = chains_data?.find(c => c?.id === chain)
   const {
@@ -467,7 +467,7 @@ export default () => {
     status,
     message,
     tx_hash,
-  }
+  } = { ...notificationResponse }
 
   const max_amount = balance ||
     0
@@ -623,7 +623,7 @@ export default () => {
                           const {
                             title,
                             value,
-                            name.
+                            name,
                           } = { ...o }
 
                           return (
@@ -642,7 +642,7 @@ export default () => {
                       type={type}
                       placeholder={placeholder}
                       value={data?.[name]}
-                      onChange={e =>
+                      onChange={e => {
                         let value
 
                         if (type === 'number') {
@@ -667,7 +667,7 @@ export default () => {
                           ...data,
                           [`${name}`]: value,
                         })
-                      }
+                      }}
                       className="form-input border-0 focus:ring-0 rounded-lg"
                     />
                   }
