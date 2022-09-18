@@ -619,7 +619,7 @@ export default () => {
                       className="form-select bg-slate-50 border-0 focus:ring-0 rounded-lg"
                     >
                       {(options || [])
-                        .map((o, i) => {
+                        .map((o, j) => {
                           const {
                             title,
                             value,
@@ -628,7 +628,7 @@ export default () => {
 
                           return (
                             <option
-                              key={i}
+                              key={j}
                               title={title}
                               value={value}
                             >
