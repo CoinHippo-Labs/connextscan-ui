@@ -73,7 +73,7 @@ export default () => {
       title = 'Routers'
       break
     case '/tx/[tx]':
-      title = 'xTransfer'
+      title = 'Transfer'
       subtitle = (
         <div className="flex items-center text-sm space-x-2">
           <div>

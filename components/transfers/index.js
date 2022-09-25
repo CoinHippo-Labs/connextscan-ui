@@ -477,7 +477,7 @@ export default () => {
                                           height="16"
                                         />
                                         <span className="font-medium">
-                                          Transfering...
+                                          Processing...
                                         </span>
                                       </div> :
                                       <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
@@ -546,7 +546,7 @@ export default () => {
                                   height="16"
                                 />
                                 <span className="font-medium">
-                                  Transfering...
+                                  Processing...
                                 </span>
                               </div> :
                               <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
@@ -661,11 +661,14 @@ export default () => {
                             source_asset_data &&
                             (
                               <>
-                                {symbol && (
-                                  <span className="text-xs font-medium">
-                                    {symbol}
-                                  </span>
-                                )}
+                                {
+                                  symbol &&
+                                  (
+                                    <span className="text-xs font-medium">
+                                      {symbol}
+                                    </span>
+                                  )
+                                }
                                 <AddToken
                                   token_data={{
                                     ...source_asset_data,
@@ -789,11 +792,14 @@ export default () => {
                             destination_asset_data &&
                             (
                               <>
-                                {symbol && (
-                                  <span className="text-xs font-medium">
-                                    {symbol}
-                                  </span>
-                                )}
+                                {
+                                  symbol &&
+                                  (
+                                    <span className="text-xs font-medium">
+                                      {symbol}
+                                    </span>
+                                  )
+                                }
                                 <AddToken
                                   token_data={{
                                     ...destination_asset_data,
