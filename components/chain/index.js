@@ -16,14 +16,37 @@ import { timeframes } from '../../lib/object/timeframe'
 import { equals_ignore_case } from '../../lib/utils'
 
 export default () => {
-  const { chains, assets, dev } = useSelector(state => ({ chains: state.chains, assets: state.assets, dev: state.dev }), shallowEqual)
-  const { chains_data } = { ...chains }
-  const { assets_data } = { ...assets }
-  const { sdk } = { ...dev }
+  const {
+    chains,
+    assets,
+    dev,
+  } = useSelector(state =>
+    (
+      {
+        chains: state.chains,
+        assets: state.assets,
+        dev: state.dev,
+      }
+    ),
+    shallowEqual,
+  )
+  const {
+    chains_data,
+  } = { ...chains }
+  const {
+    assets_data,
+  } = { ...assets }
+  const {
+    sdk,
+  } = { ...dev }
 
   const router = useRouter()
-  const { query } = { ...router }
-  const { chain } = { ...query }
+  const {
+    query,
+  } = { ...router }
+  const {
+    chain,
+  } = { ...query }
 
   const [liquidity, setLiquidity] = useState(null)
   const [timeframe, setTimeframe] = useState(null)
@@ -31,11 +54,16 @@ export default () => {
 
   useEffect(() => {
     const getData = async is_interval => {
-      if (chain && sdk && chains_data && assets_data) {
+      if (
+        chain &&
+        sdk &&
+        chains_data &&
+        assets_data
+      ) {
         const response = await sdk.nxtpSdkUtils.getRoutersData()
 
         if (
-          response ||
+          Array.isArray(response) ||
           !is_interval
         ) {
           const chain_data = chains_data?.find(c => c?.id === chain)
@@ -56,6 +84,7 @@ export default () => {
                 c?.chain_id === chain_id &&
                 equals_ignore_case(c?.contract_address, local)
               ) > -1)
+
               asset_data = {
                 ...asset_data,
                 ...asset_data?.contracts?.find(c =>
@@ -63,6 +92,7 @@ export default () => {
                   equals_ignore_case(c?.contract_address, local)
                 ),
               }
+
               if (asset_data?.contracts) {
                 delete asset_data.contracts
               }
@@ -86,7 +116,8 @@ export default () => {
                 chain_id,
                 contract_address: local,
                 amount,
-                value: amount * (price || 0),
+                value: amount *
+                  (price || 0),
               }
             })
 
@@ -97,17 +128,22 @@ export default () => {
 
     getData()
 
-    return () => clearInterval(
-      setInterval(() =>
-        getData(true),
-        0.5 * 60 * 1000,
-      )
+    const interval = setInterval(() =>
+      getData(true),
+      0.5 * 60 * 1000,
     )
+
+    return () => clearInterval(interval)
   }, [chain, sdk, chains_data, assets_data])
 
   useEffect(() => {
     const getData = async () => {
-      if (chain && sdk && chains_data && assets_data) {
+      if (
+        chain &&
+        sdk &&
+        chains_data &&
+        assets_data
+      ) {
         const _timeframe = timeframes.find(t => t?.day === timeframe)
         const chain_data = chains_data.find(c => c?.id === chain)
 
@@ -115,9 +151,11 @@ export default () => {
           domain_id,
         } = { ...chain_data }
 
-        let volumes = await daily_transfer_volume({
-          destination_chain: `eq.${domain_id}`,
-        })
+        let volumes = await daily_transfer_volume(
+          {
+            destination_chain: `eq.${domain_id}`,
+          },
+        )
 
         volumes = (volumes || [])
           .map(v => {
@@ -131,11 +169,22 @@ export default () => {
 
             const origin_chain_data = chains_data.find(c => c?.domain_id === origin_chain)
             const destination_chain_data = chains_data.find(c => c?.domain_id === destination_chain)
-            let asset_data = assets_data.find(a => a?.contracts?.findIndex(c => c?.chain_id === origin_chain_data?.chain_id && equals_ignore_case(c?.contract_address, asset)) > -1)
+
+            let asset_data = assets_data.find(a =>
+              a?.contracts?.findIndex(c =>
+                c?.chain_id === origin_chain_data?.chain_id &&
+                equals_ignore_case(c?.contract_address, asset)
+              ) > -1
+            )
+
             asset_data = {
               ...asset_data,
-              ...asset_data?.contracts?.find(c => c?.chain_id === origin_chain_data?.chain_id && equals_ignore_case(c?.contract_address, asset)),
+              ...asset_data?.contracts?.find(c =>
+                c?.chain_id === origin_chain_data?.chain_id &&
+                equals_ignore_case(c?.contract_address, asset)
+              ),
             }
+
             if (asset_data?.contracts) {
               delete asset_data.contracts
             }
@@ -161,13 +210,16 @@ export default () => {
               destination_chain_data,
               asset_data,
               amount,
-              volume: amount * (price || 0),
+              volume: amount *
+                (price || 0),
             }
           })
 
-        let transfers = await daily_transfer_metrics({
-          destination_chain: `eq.${domain_id}`,
-        })
+        let transfers = await daily_transfer_metrics(
+          {
+            destination_chain: `eq.${domain_id}`,
+          },
+        )
 
         transfers = (transfers || [])
           .map(t => {
@@ -188,60 +240,62 @@ export default () => {
             }
           })
 
-        setData({
-          total_volume: _.sumBy(
-            volumes,
-            'volume',
-          ),
-          volumes: _.slice(
-            _.orderBy(
-              Object.entries(
-                _.groupBy(
-                  volumes,
-                  'timestamp',
-                )
-              )
-              .map(([k, v]) => {
-                return {
-                  timestamp: Number(k),
-                  volume: _.sumBy(
-                    v,
-                    'volume',
-                  ),
-                }
-              }),
-              ['timestamp'],
-              ['asc'],
+        setData(
+          {
+            total_volume: _.sumBy(
+              volumes,
+              'volume',
             ),
-            -(timeframe || 52),
-          ),
-          total_transfers: _.sumBy(
-            transfers,
-            'transfer_count',
-          ),
-          transfers: _.slice(
-            _.orderBy(
-              Object.entries(
-                _.groupBy(
-                  transfers,
-                  'timestamp',
+            volumes: _.slice(
+              _.orderBy(
+                Object.entries(
+                  _.groupBy(
+                    volumes,
+                    'timestamp',
+                  )
                 )
-              )
-              .map(([k, v]) => {
-                return {
-                  timestamp: Number(k),
-                  transfers: _.sumBy(
-                    v,
-                    'transfer_count',
-                  ),
-                }
-              }),
-              ['timestamp'],
-              ['asc'],
+                .map(([k, v]) => {
+                  return {
+                    timestamp: Number(k),
+                    volume: _.sumBy(
+                      v,
+                      'volume',
+                    ),
+                  }
+                }),
+                ['timestamp'],
+                ['asc'],
+              ),
+              -(timeframe || 52),
             ),
-            -(timeframe || 52),
-          ),
-        })
+            total_transfers: _.sumBy(
+              transfers,
+              'transfer_count',
+            ),
+            transfers: _.slice(
+              _.orderBy(
+                Object.entries(
+                  _.groupBy(
+                    transfers,
+                    'timestamp',
+                  )
+                )
+                .map(([k, v]) => {
+                  return {
+                    timestamp: Number(k),
+                    transfers: _.sumBy(
+                      v,
+                      'transfer_count',
+                    ),
+                  }
+                }),
+                ['timestamp'],
+                ['asc'],
+              ),
+              -(timeframe || 52),
+            ),
+          },
+        )
       }
     }
 

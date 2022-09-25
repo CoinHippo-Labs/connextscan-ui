@@ -22,9 +22,24 @@ export default ({
   title = 'TVL',
   description = 'Total value locked by chain',
 }) => {
-  const { preferences, asset_balances } = useSelector(state => ({ preferences: state.preferences, asset_balances: state.asset_balances }), shallowEqual)
-  const { theme } = { ...preferences }
-  const { asset_balances_data } = { ...asset_balances }
+  const {
+    preferences,
+    asset_balances,
+  } = useSelector(state =>
+    (
+      {
+        preferences: state.preferences,
+        asset_balances: state.asset_balances,
+      }
+    ),
+    shallowEqual,
+  )
+  const {
+    theme,
+  } = { ...preferences }
+  const {
+    asset_balances_data,
+  } = { ...asset_balances }
 
   const router = useRouter()
 
@@ -67,6 +82,7 @@ export default ({
 
   const d = data?.find(d => d.id === xFocus)
   const {
+    id,
     name,
     image,
     value,
@@ -83,31 +99,37 @@ export default ({
             {description}
           </span>
         </div>
-        {d && (
-          <div className="flex flex-col items-end">
-            <span className="uppercase font-bold">
-              {currency_symbol}
-              {number_format(
-                value,
-                '0,0.00',
-              )}
-            </span>
-            <div className="flex items-center space-x-1.5">
-              {image && (
-                <Image
-                  src={image}
-                  alt=""
-                  width={18}
-                  height={18}
-                  className="rounded-full"
-                />
-              )}
-              <span className="text-xs font-medium">
-                {name}
+        {
+          d &&
+          (
+            <div className="flex flex-col items-end">
+              <span className="uppercase font-bold">
+                {currency_symbol}
+                {number_format(
+                  value,
+                  '0,0.00',
+                )}
               </span>
+              <div className="flex items-center space-x-1.5">
+                {
+                  image &&
+                  (
+                    <Image
+                      src={image}
+                      alt=""
+                      width={18}
+                      height={18}
+                      className="rounded-full"
+                    />
+                  )
+                }
+                <span className="text-xs font-medium">
+                  {name}
+                </span>
+              </div>
             </div>
-          </div>
-        )}
+          )
+        }
       </div>
       <div className="w-full h-64">
         {data ?
@@ -116,12 +138,20 @@ export default ({
               data={data}
               onMouseEnter={e => {
                 if (e) {
-                  setXFocus(e?.activePayload?.[0]?.payload?.id)
+                  const {
+                    id,
+                  } = { ..._.head(e.activePayload)?.payload }
+
+                  setXFocus(id)
                 }
               }}
               onMouseMove={e => {
                 if (e) {
-                  setXFocus(e?.activePayload?.[0]?.payload?.id)
+                  const {
+                    id,
+                  } = { ..._.head(e.activePayload)?.payload }
+
+                  setXFocus(id)
                 }
               }}
               onMouseLeave={() => setXFocus(null)}
@@ -134,27 +164,36 @@ export default ({
               className="small-x"
             >
               <defs>
-                {data.map((d, i) => (
-                  <linearGradient
-                    key={i}
-                    id={`gradient-tvl-${d?.id}`}
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="25%"
-                      stopColor={d?.color}
-                      stopOpacity={0.95}
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor={d?.color}
-                      stopOpacity={0.75}
-                    />
-                  </linearGradient>
-                ))}
+                {data
+                  .map((d, i) => {
+                    const {
+                      id,
+                      color,
+                    } = { ...d }
+
+                    return (
+                      <linearGradient
+                        key={i}
+                        id={`gradient-tvl-${id}`}
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="25%"
+                          stopColor={color}
+                          stopOpacity={0.95}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor={color}
+                          stopOpacity={0.75}
+                        />
+                      </linearGradient>
+                    )
+                  })
+                }
               </defs>
               <XAxis
                 dataKey="short_name"
@@ -164,7 +203,7 @@ export default ({
               <Bar
                 dataKey="value"
                 minPointSize={10}
-                onClick={d => router.push(`/${d?.id}`)}
+                onClick={d => router.push(`/${id}`)}
               >
                 <LabelList
                   dataKey="value_string"
@@ -172,14 +211,22 @@ export default ({
                   cursor="default"
                   className="uppercase font-semibold"
                 />
-                {data.map((d, i) => (
-                  <Cell
-                    key={i}
-                    cursor="pointer"
-                    fillOpacity={1}
-                    fill={`url(#gradient-tvl-${d?.id})`}
-                  />
-                ))}
+                {data
+                  .map((d, i) => {
+                    const {
+                      id,
+                    } = { ...d }
+
+                    return (
+                      <Cell
+                        key={i}
+                        cursor="pointer"
+                        fillOpacity={1}
+                        fill={`url(#gradient-tvl-${id})`}
+                      />
+                    )
+                  })
+                }
               </Bar>
             </BarChart>
           </ResponsiveContainer> :

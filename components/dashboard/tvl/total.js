@@ -9,9 +9,24 @@ import { currency_symbol } from '../../../lib/object/currency'
 import { number_format, loader_color } from '../../../lib/utils'
 
 export default () => {
-  const { preferences, asset_balances } = useSelector(state => ({ preferences: state.preferences, asset_balances: state.asset_balances }), shallowEqual)
-  const { theme } = { ...preferences }
-  const { asset_balances_data } = { ...asset_balances }
+  const {
+    preferences,
+    asset_balances,
+  } = useSelector(state =>
+    (
+      {
+        preferences: state.preferences,
+        asset_balances: state.asset_balances,
+      }
+    ),
+    shallowEqual,
+  )
+  const {
+    theme,
+  } = { ...preferences }
+  const {
+    asset_balances_data,
+  } = { ...asset_balances }
 
   const [data, setData] = useState(null)
 
@@ -126,23 +141,34 @@ export default () => {
                 Top 3 chains
               </span>
               <div className="flex items-center space-x-1.5">
-                {top_chains?.filter(c => c?.image).map((c, i) => (
-                  <Link
-                    key={i}
-                    href={`/${c.id}`}
-                  >
-                    <a className="flex items-center">
-                      <Image
-                        src={c.image}
-                        alt=""
-                        title={c.name}
-                        width={20}
-                        height={20}
-                        className="rounded-full"
-                      />
-                    </a>
-                  </Link>
-                ))}
+                {(top_chains || [])
+                  .filter(c => c?.image)
+                  .map((c, i) => {
+                    const {
+                      id,
+                      name,
+                      image,
+                    } = { ...c }
+
+                    return (
+                      <Link
+                        key={i}
+                        href={`/${id}`}
+                      >
+                        <a className="flex items-center">
+                          <Image
+                            src={image}
+                            alt=""
+                            title={name}
+                            width={20}
+                            height={20}
+                            className="rounded-full"
+                          />
+                        </a>
+                      </Link>
+                    )
+                  })
+                }
               </div>
             </div>
             <div className="flex items-center justify-between space-x-2">
@@ -150,26 +176,34 @@ export default () => {
                 Top 3 tokens
               </span>
               <div className="flex items-center space-x-1.5">
-                {top_assets?.filter(a => a?.symbol).map((a, i) => (
-                  <div
-                    key={i}
-                    className="bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center space-x-1 py-0.5 px-1.5"
-                  >
-                    {a.image && (
-                      <Image
-                        src={a.image}
-                        alt=""
-                        title={a.symbol}
-                        width={16}
-                        height={16}
-                        className="rounded-full"
-                      />
-                    )}
-                    <span className="text-sm font-semibold">
-                      {a.symbol}
-                    </span>
-                  </div>
-                ))}
+                {(top_assets || [])
+                  .filter(a => a?.symbol)
+                  .map((a, i) => {
+                    const {
+                      image,
+                      symbol,
+                    } = { ...a }
+
+                    return (
+                      <div
+                        key={i}
+                        className="bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center space-x-1 py-0.5 px-1.5"
+                      >
+                        <Image
+                          src={image}
+                          alt=""
+                          title={symbol}
+                          width={16}
+                          height={16}
+                          className="rounded-full"
+                        />
+                        <span className="text-sm font-semibold">
+                          {symbol}
+                        </span>
+                      </div>
+                    )
+                  })
+                }
               </div>
             </div>
           </div>

@@ -30,45 +30,59 @@ const CustomTooltip = ({
     const {
       values,
     } = { ...payload?.[0]?.payload }
-    return values?.length > 0 && (
-      <div className="bg-slate-50 dark:bg-slate-900 shadow-lg dark:shadow-slate-600 rounded-lg flex flex-col space-y-1 p-2">
-        {values.map((v, i) => {
-          const {
-            chain_data,
-            fee,
-          } = { ...v }
-          const {
-            image,
-          } = { ...chain_data }
-          return (
-            <div
-              key={i}
-              className="flex items-center justify-between space-x-4"
-            >
-              <div className="flex items-center space-x-1.5">
-                {image && (
-                  <Image
-                    src={image}
-                    alt=""
-                    width={18}
-                    height={18}
-                    className="rounded-full"
-                  />
-                )}
-                <span className="text-xs font-semibold">
-                  {chainName(chain_data)}
-                </span>
-              </div>
-              <span className=" text-xs font-semibold">
-                {currency_symbol}
-                {number_format(fee, fee > 10000 ? '0,0' : '0,0.000000')}
-              </span>
-            </div>
-          )
-        })}
-      </div>
-    )
+
+    return values?.length > 0 &&
+      (
+        <div className="bg-slate-50 dark:bg-slate-900 shadow-lg dark:shadow-slate-600 rounded-lg flex flex-col space-y-1 p-2">
+          {values
+            .map((v, i) => {
+              const {
+                chain_data,
+                fee,
+              } = { ...v }
+              const {
+                image,
+              } = { ...chain_data }
+
+              return (
+                <div
+                  key={i}
+                  className="flex items-center justify-between space-x-4"
+                >
+                  <div className="flex items-center space-x-1.5">
+                    {
+                      image &&
+                      (
+                        <Image
+                          src={image}
+                          alt=""
+                          width={18}
+                          height={18}
+                          className="rounded-full"
+                        />
+                      )
+                    }
+                    <span className="text-xs font-semibold">
+                      {chainName(chain_data)}
+                    </span>
+                  </div>
+                  <span className=" text-xs font-semibold">
+                    {currency_symbol}
+                    {number_format(
+                      fee,
+                      fee > 10000 ?
+                        '0,0' :
+                        '0,0.000000',
+                    )}
+                  </span>
+                </div>
+              )
+            })
+          }
+        </div>
+      )
   }
+
   return null
 }
 
@@ -79,8 +93,19 @@ export default ({
   stacked = false,
   fees,
 }) => {
-  const { preferences } = useSelector(state => ({ preferences: state.preferences }), shallowEqual)
-  const { theme } = { ...preferences }
+  const {
+    preferences,
+  } = useSelector(state =>
+    (
+      {
+        preferences: state.preferences,
+      }
+    ),
+    shallowEqual,
+  )
+  const {
+    theme,
+  } = { ...preferences }
 
   const router = useRouter()
 
@@ -90,36 +115,52 @@ export default ({
   useEffect(() => {
     if (fees) {
       const _timeframe = timeframes.find(t => t?.day === timeframe)
-      setData(fees.map(d => {
-        const {
-          timestamp,
-          fee,
-          fee_by_chains,
-        } = { ...d }
-        return {
-          ...d,
-          id: timestamp,
-          time_string: `${moment(timestamp).startOf(_timeframe?.timeframe).format('MMM D, YYYY')}${_timeframe?.timeframe === 'week' ? ` - ${moment(timestamp).endOf(_timeframe?.timeframe).format('MMM D, YYYY')}` : ''}`,
-          short_name: moment(timestamp).startOf(_timeframe?.timeframe).format('D MMM'),
-          value: fee,
-          value_string: number_format(fee, fee > 10000 ? '0,0.00a' : fee > 1000 ? '0,0' : '0,0.00'),
-          values: fee_by_chains,
-          ...Object.fromEntries(fee_by_chains?.map(v => {
-            const {
-              id,
+
+      setData(
+        fees.map(d => {
+          const {
+            timestamp,
+            fee,
+            fee_by_chains,
+          } = { ...d }
+
+          return {
+            ...d,
+            id: timestamp,
+            time_string: `${moment(timestamp).startOf(_timeframe?.timeframe).format('MMM D, YYYY')}${_timeframe?.timeframe === 'week' ? ` - ${moment(timestamp).endOf(_timeframe?.timeframe).format('MMM D, YYYY')}` : ''}`,
+            short_name: moment(timestamp).startOf(_timeframe?.timeframe).format('D MMM'),
+            value: fee,
+            value_string: number_format(
               fee,
-            } = { ...v }
-            return [
-              id,
-              fee,
-            ]
-          }) || []),
-        }
-      }))
+              fee > 10000 ?
+                '0,0.00a' :
+                fee > 1000 ?
+                  '0,0' :
+                  '0,0.00',
+            ),
+            values: fee_by_chains,
+            ...Object.fromEntries(
+              (fee_by_chains || [])
+                .map(v => {
+                  const {
+                    id,
+                    fee,
+                  } = { ...v }
+
+                  return [
+                    id,
+                    fee,
+                  ]
+                })
+            ),
+          }
+        })
+      )
     }
   }, [fees])
 
-  const d = data?.find(d => d.id === xFocus) || _.last(data)
+  const d = data?.find(d => d.id === xFocus) ||
+    _.last(data)
   const {
     time_string,
     value,
@@ -134,19 +175,31 @@ export default ({
             {title}
           </span>
           <span className="text-slate-400 dark:text-slate-200 text-xs font-medium">
-            {description} {timeframes.find(t => t?.day === timeframe)?.timeframe}
+            <span>
+              {description}
+            </span>
+            <span>
+              {timeframes.find(t => t?.day === timeframe)?.timeframe}
+            </span>
           </span>
         </div>
-        {d && (
-          <div className="flex flex-col items-end">
-            <span className="uppercase font-bold">
-              {currency_symbol}{number_format(value, '0,0.00')}
-            </span>
-            <span className="text-slate-400 dark:text-slate-200">
-              {time_string}
-            </span>
-          </div>
-        )}
+        {
+          d &&
+          (
+            <div className="flex flex-col items-end">
+              <span className="uppercase font-bold">
+                {currency_symbol}
+                {number_format(
+                  value,
+                  '0,0',
+                )}
+              </span>
+              <span className="text-slate-400 dark:text-slate-200">
+                {time_string}
+              </span>
+            </div>
+          )
+        }
       </div>
       <div className="w-full h-64">
         {data ?
@@ -155,12 +208,20 @@ export default ({
               data={data}
               onMouseEnter={e => {
                 if (e) {
-                  setXFocus(e?.activePayload?.[0]?.payload?.id)
+                  const {
+                    id,
+                  } = { ..._.head(e.activePayload)?.payload }
+
+                  setXFocus(id)
                 }
               }}
               onMouseMove={e => {
                 if (e) {
-                  setXFocus(e?.activePayload?.[0]?.payload?.id)
+                  const {
+                    id,
+                  } = { ..._.head(e.activePayload)?.payload }
+
+                  setXFocus(id)
                 }
               }}
               onMouseLeave={() => setXFocus(null)}
@@ -197,42 +258,58 @@ export default ({
                 axisLine={false}
                 tickLine={false}
               />
-              {stacked && values?.length > 0 ?
-                <>
-                  <Tooltip
-                    content={(
-                      <CustomTooltip />
-                    )}
-                    cursor={{ fill: 'transparent' }}
-                  />
-                  {_.orderBy(values, ['id'], ['asc']).map((v, i) => {
-                    const {
-                      id,
-                      color,
-                    } = { ...v }
-                    return (
-                      <Bar
-                        key={i}
-                        dataKey={id}
-                        minPointSize={5}
-                        stackId={title}
-                        fill={color}
-                      />
-                    )
-                  })}
-                </> :
-                <Bar
-                  dataKey="value"
-                  minPointSize={5}
-                >
-                  {data.map((d, i) => (
-                    <Cell
-                      key={i}
-                      fillOpacity={1}
-                      fill="url(#gradient-fee)"
+              {
+                stacked &&
+                values?.length > 0 ?
+                  <>
+                    <Tooltip
+                      content={(
+                        <CustomTooltip />
+                      )}
+                      cursor={{
+                        fill: 'transparent',
+                      }}
                     />
-                  ))}
-                </Bar>
+                    {
+                      _.orderBy(
+                        values,
+                        ['id'],
+                        ['asc'],
+                      )
+                      .map((v, i) => {
+                        const {
+                          id,
+                          color,
+                        } = { ...v }
+
+                        return (
+                          <Bar
+                            key={i}
+                            dataKey={id}
+                            minPointSize={5}
+                            stackId={title}
+                            fill={color}
+                          />
+                        )
+                      })
+                    }
+                  </> :
+                  <Bar
+                    dataKey="value"
+                    minPointSize={5}
+                  >
+                    {data
+                      .map((d, i) => {
+                        return (
+                          <Cell
+                            key={i}
+                            fillOpacity={1}
+                            fill="url(#gradient-fee)"
+                          />
+                        )
+                      })
+                    }
+                  </Bar>
               }
             </BarChart>
           </ResponsiveContainer> :

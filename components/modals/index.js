@@ -11,6 +11,7 @@ export default ({
   onClick,
   buttonTitle,
   buttonClassName,
+  buttonStyle = {},
   title,
   icon,
   body,
@@ -111,6 +112,7 @@ export default ({
         disabled={disabled}
         onClick={show}
         className={buttonClassName || 'btn btn-default btn-rounded bg-blue-500 hover:bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-400 text-white'}
+        style={buttonStyle}
       >
         {buttonTitle}
       </button>
@@ -134,7 +136,7 @@ export default ({
                       </div>
                     )}
                     <div className="w-full flex flex-col">
-                      <div className="uppercase tracking-wider text-lg font-medium mb-2">
+                      <div className="uppercase text-base font-bold mb-2">
                         {title}
                       </div>
                       {body}

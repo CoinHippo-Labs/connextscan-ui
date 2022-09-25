@@ -26,6 +26,7 @@
   "homepage": "https://github.com/CoinHippo-Labs/connextscan-ui#readme",
   "dependencies": {
     "@connext/nxtp-sdk": "^0.2.0-alpha.24",
+    "@popperjs/core": "^2.11.6",
     "@redux-devtools/extension": "^3.2.3",
     "env-cmd": "^10.1.0",
     "ethers": "^5.7.1",
@@ -44,6 +45,7 @@
     "react-hook-form": "^7.35.0",
     "react-icons": "^4.4.0",
     "react-loader-spinner": "^5.3.4",
+    "react-popper": "^2.3.0",
     "react-redux": "^8.0.2",
     "react-reveal": "^1.2.2",
     "react-table": "^7.8.0",
