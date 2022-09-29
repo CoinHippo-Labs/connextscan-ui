@@ -122,14 +122,16 @@ export default () => {
               ..._data,
               source_chain_data,
               destination_chain_data,
-              source_asset_data: {
-                ...source_asset_data,
-                ...source_contract_data,
-              },
-              destination_asset_data: {
-                ...destination_asset_data,
-                ...destination_contract_data,
-              },
+              source_asset_data: source_asset_data &&
+                {
+                  ...source_asset_data,
+                  ...source_contract_data,
+                },
+              destination_asset_data: destination_asset_data &&
+                {
+                  ...destination_asset_data,
+                  ...destination_contract_data,
+                },
             }
           )
         }
@@ -232,6 +234,24 @@ export default () => {
     XTransferStatus.CompletedFast,
     XTransferStatus.CompletedSlow,
   ].includes(status)
+
+  const details =
+    _.concat(
+      ['xcall'],
+      force_slow ?
+        [
+          'reconcile',
+          'execute',
+        ] :
+        [
+          'execute',
+          'reconcile',
+        ]
+    )
+    .filter(s =>
+      s !== 'reconcile' ||
+      execute_transaction_hash
+    )
 
   return (
     <div className="space-y-6 mt-2 mb-6">
@@ -511,23 +531,7 @@ export default () => {
                 </div>
               </div>
               <div className="grid grid-flow-row md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-                {
-                  _.concat(
-                    ['xcall'],
-                    force_slow ?
-                      [
-                        'reconcile',
-                        'execute',
-                      ] :
-                      [
-                        'execute',
-                        'reconcile',
-                      ]
-                  )
-                  .filter(s =>
-                    s !== 'reconcile' ||
-                    !execute_transaction_hash
-                  )
+                {details
                   .map((s, i) => (
                     <div
                       key={i}
@@ -549,15 +553,16 @@ export default () => {
                               </div>
                             )
                           }
-                          {
-                            !data[`${s}_transaction_hash`] &&
-                            (
-                              <TailSpin
-                                color={loader_color(theme)}
-                                width="32"
-                                height="32"
-                              />
-                            )
+                          {data[`${s}_transaction_hash`] ?
+                            <HiCheckCircle
+                              size={32}
+                              className="bg-slate-100 dark:bg-slate-200 rounded-full text-green-500 dark:text-green-400"
+                            /> :
+                            <TailSpin
+                              color={loader_color(theme)}
+                              width="32"
+                              height="32"
+                            />
                           }
                         </div>
                       </div>
