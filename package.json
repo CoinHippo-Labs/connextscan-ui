@@ -42,6 +42,7 @@
     "react": "18.2.0",
     "react-copy-to-clipboard": "^5.1.0",
     "react-dom": "18.2.0",
+    "react-gtm-module": "^2.0.11",
     "react-hook-form": "^7.35.0",
     "react-icons": "^4.4.0",
     "react-loader-spinner": "^5.3.4",
