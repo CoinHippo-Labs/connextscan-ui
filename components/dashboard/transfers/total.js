@@ -58,7 +58,11 @@ export default ({
                 Transfers
               </span>
             </div>
-            {(top_chains_by_transfers || [])
+            {
+              (Array.isArray(top_chains_by_transfers) ?
+                top_chains_by_transfers :
+                []
+              )
               .map((c, i) => {
                 const {
                   chain_data,

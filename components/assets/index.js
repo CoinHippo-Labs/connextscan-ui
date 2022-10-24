@@ -100,10 +100,11 @@ export default ({
             } = { ...asset_data }
 
             const liquidity = !chain &&
-              data?.find(d =>
-                d?.chain_id === chain_id &&
-                equals_ignore_case(d?.contract_address, contract_address)
-              )
+              (data || [])
+                .find(d =>
+                  d?.chain_id === chain_id &&
+                  equals_ignore_case(d?.contract_address, contract_address)
+                )
 
             const amount = data ?
               chain ?

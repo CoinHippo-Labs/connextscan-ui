@@ -62,7 +62,11 @@ export default ({
                 Volume
               </span>
             </div>
-            {(top_chains_by_volume || [])
+            {
+              (Array.isArray(top_chains_by_volume) ?
+                top_chains_by_volume :
+                []
+              )
               .map((c, i) => {
                 const {
                   chain_data,

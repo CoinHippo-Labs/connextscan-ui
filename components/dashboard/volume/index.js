@@ -141,18 +141,21 @@ export default ({
               ),
               values: volume_by_chains,
               ...Object.fromEntries(
-                (volume_by_chains || [])
-                  .map(v => {
-                    const {
-                      id,
-                      volume,
-                    } = { ...v }
+                (Array.isArray(volume_by_chains) ?
+                  volume_by_chains :
+                  []
+                )
+                .map(v => {
+                  const {
+                    id,
+                    volume,
+                  } = { ...v }
 
-                    return [
-                      id,
-                      volume,
-                    ]
-                  })
+                  return [
+                    id,
+                    volume,
+                  ]
+                })
               ),
             }
           })

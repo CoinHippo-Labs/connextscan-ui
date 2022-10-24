@@ -56,7 +56,11 @@ export default () => {
 
         let volumes = await daily_transfer_volume()
 
-        volumes = (volumes || [])
+        volumes =
+          (Array.isArray(volumes) ?
+            volumes :
+            []
+          )
           .map(v => {
             const {
               transfer_date,
@@ -116,7 +120,11 @@ export default () => {
 
         let transfers = await daily_transfer_metrics()
 
-        transfers = (transfers || [])
+        transfers =
+          (Array.isArray(transfers) ?
+            transfers :
+            []
+          )
           .map(t => {
             const {
               transfer_date,

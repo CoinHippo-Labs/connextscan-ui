@@ -84,7 +84,11 @@ export default () => {
           Array.isArray(response) ||
           !is_interval
         ) {
-          const data = (response || [])
+          const data =
+            (Array.isArray(response) ?
+              response :
+              []
+            )
             .filter(l =>
               equals_ignore_case(l?.router_address, address) &&
               chains_data.findIndex(c => c?.domain_id === l?.domain) > -1
@@ -174,7 +178,11 @@ export default () => {
           },
         )
 
-        volumes = (volumes || [])
+        volumes =
+          (Array.isArray(volumes) ?
+            volumes :
+            []
+          )
           .map(v => {
             const {
               transfer_date,
@@ -237,7 +245,11 @@ export default () => {
           },
         )
 
-        transfers = (transfers || [])
+        transfers =
+          (Array.isArray(transfers) ?
+            transfers :
+            []
+          )
           .map(t => {
             const {
               transfer_date,

@@ -63,7 +63,11 @@ export default () => {
       ) {
         let volumes = await daily_transfer_volume()
 
-        volumes = (volumes || [])
+        volumes =
+          (Array.isArray(volumes) ?
+            volumes :
+            []
+          )
           .map(v => {
             const {
               transfer_date,
@@ -122,7 +126,11 @@ export default () => {
 
         let transfers = await daily_transfer_metrics()
 
-        transfers = (transfers || [])
+        transfers =
+          (Array.isArray(transfers) ?
+            transfers :
+            []
+          )
           .map(t => {
             const {
               transfer_date,
@@ -222,13 +230,19 @@ export default () => {
           'value',
         ),
         total_volume: _.sumBy(
-          (volumes || [])
-            .filter(d => equals_ignore_case(d?.router, router_address)),
+          (Array.isArray(volumes) ?
+            volumes :
+            []
+          )
+          .filter(d => equals_ignore_case(d?.router, router_address)),
           'volume',
         ),
         total_transfers: _.sumBy(
-          (transfers || [])
-            .filter(d => equals_ignore_case(d?.router, router_address)),
+          (Array.isArray(transfers) ?
+            transfers :
+            []
+          )
+          .filter(d => equals_ignore_case(d?.router, router_address)),
           'transfers',
         ),
         // total_fee: 33.33,

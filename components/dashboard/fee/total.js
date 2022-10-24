@@ -62,7 +62,11 @@ export default ({
                 Fee
               </span>
             </div>
-            {(top_chains_by_fee || [])
+            {
+              (Array.isArray(top_chains_by_fee) ?
+                top_chains_by_fee :
+                []
+              )
               .map((c, i) => {
                 const {
                   chain_data,

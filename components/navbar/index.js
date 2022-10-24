@@ -414,63 +414,66 @@ export default () => {
           !is_interval
         ) {
           const data = _.groupBy(
-            (response || [])
-              .map(l => {
-                const {
-                  domain,
-                  local,
-                  balance,
-                } = { ...l }
+            (Array.isArray(response) ?
+              response :
+              []
+            )
+            .map(l => {
+              const {
+                domain,
+                local,
+                balance,
+              } = { ...l }
 
-                const chain_data = chains_data?.find(c => c?.domain_id === domain)
-                const {
-                  chain_id,
-                } = { ...chain_data }
+              const chain_data = chains_data?.find(c => c?.domain_id === domain)
+              const {
+                chain_id,
+              } = { ...chain_data }
 
-                let asset_data = assets_data.find(a =>
-                  a?.contracts?.findIndex(c =>
-                    c?.chain_id === chain_id &&
-                    equals_ignore_case(c?.contract_address, local)
-                  ) > -1
-                )
-                asset_data = {
-                  ...asset_data,
-                  ...asset_data?.contracts?.find(c =>
-                    c?.chain_id === chain_id &&
-                    equals_ignore_case(c?.contract_address, local)
+              let asset_data = assets_data.find(a =>
+                a?.contracts?.findIndex(c =>
+                  c?.chain_id === chain_id &&
+                  equals_ignore_case(c?.contract_address, local)
+                ) > -1
+              )
+              asset_data = {
+                ...asset_data,
+                ...asset_data?.contracts?.find(c =>
+                  c?.chain_id === chain_id &&
+                  equals_ignore_case(c?.contract_address, local)
+                ),
+              }
+              if (asset_data?.contracts) {
+                delete asset_data.contracts
+              }
+
+              const {
+                decimals,
+                price,
+              } = { ...asset_data }
+
+              const amount = Number(
+                utils.formatUnits(
+                  BigNumber.from(
+                    BigInt(balance || 0).toString()
                   ),
-                }
-                if (asset_data?.contracts) {
-                  delete asset_data.contracts
-                }
-
-                const {
-                  decimals,
-                  price,
-                } = { ...asset_data }
-
-                const amount = Number(
-                  utils.formatUnits(
-                    BigNumber.from(
-                      BigInt(balance || 0).toString()
-                    ),
-                    decimals || 18,
-                  )
+                  decimals || 18,
                 )
+              )
 
-                const value = amount *
-                  (price || 0)
+              const value = amount *
+                (price || 0)
 
-                return {
-                  ...l,
-                  chain_id,
-                  chain_data,
-                  contract_address: local,
-                  asset_data,
-                  amount,
-                  value,
-                }
-              }),
+              return {
+                ...l,
+                chain_id,
+                chain_data,
+                contract_address: local,
+                asset_data,
+                amount,
+                value,
+              }
+            }),
             'chain_id',
           )
 

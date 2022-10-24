@@ -140,18 +140,21 @@ export default ({
             ),
             values: fee_by_chains,
             ...Object.fromEntries(
-              (fee_by_chains || [])
-                .map(v => {
-                  const {
-                    id,
-                    fee,
-                  } = { ...v }
+              (Array.isArray(fee_by_chains) ?
+                fee_by_chains :
+                []
+              )
+              .map(v => {
+                const {
+                  id,
+                  fee,
+                } = { ...v }
 
-                  return [
-                    id,
-                    fee,
-                  ]
-                })
+                return [
+                  id,
+                  fee,
+                ]
+              })
             ),
           }
         })

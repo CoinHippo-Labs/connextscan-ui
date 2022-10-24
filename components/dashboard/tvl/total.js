@@ -141,7 +141,11 @@ export default () => {
                 Top 3 chains
               </span>
               <div className="flex items-center space-x-1.5">
-                {(top_chains || [])
+                {
+                  (Array.isArray(top_chains) ?
+                    top_chains :
+                    []
+                  )
                   .filter(c => c?.image)
                   .map((c, i) => {
                     const {
@@ -176,7 +180,11 @@ export default () => {
                 Top 3 tokens
               </span>
               <div className="flex items-center space-x-1.5">
-                {(top_assets || [])
+                {
+                  (Array.isArray(top_assets) ?
+                    top_assets :
+                    []
+                  )
                   .filter(a => a?.symbol)
                   .map((a, i) => {
                     const {

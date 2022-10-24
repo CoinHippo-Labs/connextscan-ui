@@ -135,18 +135,21 @@ export default ({
               ),
               values: transfers_by_chains,
               ...Object.fromEntries(
-                (transfers_by_chains || [])
-                  .map(v => {
-                    const {
-                      id,
-                      transfers,
-                    } = { ...v }
+                (Array.isArray(transfers_by_chains) ?
+                  transfers_by_chains :
+                  []
+                )
+                .map(v => {
+                  const {
+                    id,
+                    transfers,
+                  } = { ...v }
 
-                    return [
-                      id,
-                      transfers,
-                    ]
-                  })
+                  return [
+                    id,
+                    transfers,
+                  ]
+                })
               ),
             }
           })

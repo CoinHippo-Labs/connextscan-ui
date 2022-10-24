@@ -72,7 +72,11 @@ export default () => {
             domain_id,
           } = { ...chain_data }
 
-          const data = (response || [])
+          const data =
+            (Array.isArray(response) ?
+              response :
+              []
+            )
             .filter(l => l?.domain === domain_id)
             .map(l => {
               const {
@@ -157,7 +161,11 @@ export default () => {
           },
         )
 
-        volumes = (volumes || [])
+        volumes =
+          (Array.isArray(volumes) ?
+            volumes :
+            []
+          )
           .map(v => {
             const {
               transfer_date,
@@ -221,7 +229,11 @@ export default () => {
           },
         )
 
-        transfers = (transfers || [])
+        transfers =
+          (Array.isArray(transfers) ?
+            transfers :
+            []
+          )
           .map(t => {
             const {
               transfer_date,
