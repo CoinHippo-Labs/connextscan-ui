@@ -44,11 +44,15 @@ export default ({
         <span className={titleClassName}>
           Liquidity
         </span>
-        <div className="text-3xl font-bold">
+        <div className="uppercase text-3xl font-bold">
           {data ?
             `${currency_symbol}${number_format(
               liquidity,
-              '0,0',
+              liquidity > 1000000 ?
+                '0,0.00a' :
+                liquidity > 10000 ?
+                  '0,0' :
+                  '0,0.00',
             )}` :
             <TailSpin
               color={loader_color(theme)}
@@ -62,7 +66,7 @@ export default ({
         <span className={titleClassName}>
           Volume
         </span>
-        <div className="text-3xl font-bold">
+        <div className="uppercase text-3xl font-bold">
           {data ?
             `${currency_symbol}${number_format(
               volume,
@@ -80,7 +84,7 @@ export default ({
         <span className={titleClassName}>
           Transfers
         </span>
-        <div className="text-3xl font-bold">
+        <div className="uppercase text-3xl font-bold">
           {data ?
             number_format(
               transfers,
@@ -101,7 +105,7 @@ export default ({
             <span className={titleClassName}>
               Fee
             </span>
-            <div className="text-3xl font-bold">
+            <div className="uppercase text-3xl font-bold">
               {data ?
                 `${currency_symbol}${number_format(
                   fee,
@@ -124,7 +128,7 @@ export default ({
             <span className={titleClassName}>
               Supported Chains
             </span>
-            <div className="text-3xl font-bold">
+            <div className="uppercase text-3xl font-bold">
               {data ?
                 <div className="flex items-center mt-1">
                   {supported_chains

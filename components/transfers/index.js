@@ -430,9 +430,16 @@ export default () => {
                       pending,
                       xcall_timestamp,
                       execute_timestamp,
-                      force_slow,
                       status,
                     } = { ...props.row.original }
+                    let {
+                      force_slow,
+                    } = { ...props.row.original }
+
+                    force_slow = force_slow ||
+                      (status || '')
+                        .toLowerCase()
+                        .includes('slow')
 
                     return value &&
                       (
@@ -531,8 +538,15 @@ export default () => {
                       pending,
                       xcall_timestamp,
                       execute_timestamp,
+                    } = { ...props.row.original }
+                    let {
                       force_slow,
                     } = { ...props.row.original }
+
+                    force_slow = force_slow ||
+                      (value || '')
+                        .toLowerCase()
+                        .includes('slow')
 
                     return (
                       <div className="flex flex-col items-start space-y-1 mt-0.5">

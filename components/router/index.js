@@ -313,7 +313,7 @@ export default () => {
         />
       </div>
       <div className="flex items-start justify-between space-x-2">
-        <div className="w-full grid grid-flow-row lg:grid-cols-2 gap-6 mb-4">
+        <div className="w-full grid grid-flow-row xl:grid-cols-2 gap-6 mb-4">
           <Assets
             data={liquidity}
           />

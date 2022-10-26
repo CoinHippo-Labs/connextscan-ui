@@ -349,12 +349,14 @@ export default ({
                   return (
                     typeof props.value === 'number' ?
                       <div className="flex flex-col items-end space-y-0.5 -mt-0.5">
-                        <span className="text-base font-bold">
+                        <span className="uppercase text-base font-bold">
                           {number_format(
                             props.value,
-                            props.value > 1000 ?
-                              '0,0' :
-                              '0,0.00',
+                            props.value > 1000000 ?
+                              '0,0.00a' :
+                              props.value > 10000 ?
+                                '0,0' :
+                                '0,0.00',
                           )}
                         </span>
                         <span className="uppercase text-slate-400 dark:text-slate-500 text-xs font-semibold">

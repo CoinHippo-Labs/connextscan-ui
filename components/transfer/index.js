@@ -189,9 +189,16 @@ export default () => {
     to,
     xcall_timestamp,
     execute_timestamp,
-    force_slow,
     execute_transaction_hash,
   } = { ...data }
+  let {
+    force_slow,
+  } = { ...data }
+
+  force_slow = force_slow ||
+    (status || '')
+      .toLowerCase()
+      .includes('slow')
 
   const source_symbol = source_asset_data?.symbol
   const source_decimals = source_asset_data?.decimals ||
