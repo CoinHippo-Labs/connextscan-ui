@@ -185,6 +185,7 @@ export default () => {
     destination_chain_data,
     destination_asset_data,
     destination_transacting_amount,
+    destination_local_amount,
     xcall_caller,
     to,
     xcall_timestamp,
@@ -212,7 +213,8 @@ export default () => {
       Number(
         utils.formatUnits(
           BigNumber.from(
-            BigInt(origin_transacting_amount).toString()
+            BigInt(origin_transacting_amount)
+              .toString()
           ),
           source_decimals,
         )
@@ -222,19 +224,29 @@ export default () => {
   const destination_decimals = destination_asset_data?.decimals ||
     18
   const destination_asset_image = destination_asset_data?.image
-  const destination_amount =
+  const destination_amount = _.head(
     [
-      'number',
-      'string',
-    ].includes(typeof destination_transacting_amount) &&
+      destination_transacting_amount,
+      destination_local_amount,
+    ]
+    .map(a =>
+      [
+        'number',
+        'string',
+      ].includes(typeof a) &&
       Number(
         utils.formatUnits(
           BigNumber.from(
-            BigInt(destination_transacting_amount).toString()
+            BigInt(a)
+              .toString()
           ),
           destination_decimals,
         )
       )
+    )
+    .filter(a => a)
+  )
+    
 
   const pending = ![
     XTransferStatus.Executed,

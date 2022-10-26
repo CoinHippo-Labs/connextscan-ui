@@ -267,6 +267,7 @@ export default () => {
                 destination_asset_data,
                 origin_transacting_amount,
                 destination_transacting_amount,
+                destination_local_amount,
               } = { ...t }
 
               const source_amount =
@@ -277,25 +278,37 @@ export default () => {
                   Number(
                     utils.formatUnits(
                       BigNumber.from(
-                        BigInt(origin_transacting_amount).toString()
+                        BigInt(origin_transacting_amount)
+                          .toString()
                       ),
-                      source_asset_data?.decimals || 18,
+                      source_asset_data?.decimals ||
+                      18,
                     )
                   )
 
-              const destination_amount =
+              const destination_amount = _.head(
                 [
-                  'number',
-                  'string',
-                ].includes(typeof destination_transacting_amount) &&
+                  destination_transacting_amount,
+                  destination_local_amount,
+                ]
+                .map(a =>
+                  [
+                    'number',
+                    'string',
+                  ].includes(typeof a) &&
                   Number(
                     utils.formatUnits(
                       BigNumber.from(
-                        BigInt(destination_transacting_amount).toString()
+                        BigInt(a)
+                          .toString()
                       ),
-                      destination_asset_data?.decimals || 18,
+                      destination_asset_data?.decimals ||
+                      18,
                     )
                   )
+                )
+                .filter(a => a)
+              )
 
               return {
                 ...t,
