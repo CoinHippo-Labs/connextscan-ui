@@ -570,8 +570,13 @@ export default () => {
                       className={`form bg-slate-200 dark:bg-slate-900 bg-opacity-40 dark:bg-opacity-75 rounded-lg space-y-5 py-10 px-4 sm:py-8 sm:px-6`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="bg-blue-400 dark:bg-blue-600 rounded-lg uppercase tracking-wider text-white text-xl font-medium py-1 px-3">
-                          {s}
+                        <span className="bg-blue-400 dark:bg-blue-600 rounded-lg capitalize tracking-wider text-white text-xl font-medium py-1 px-3">
+                          {s === 'xcall' ?
+                            'origin' :
+                            s === 'execute' ?
+                              'destination' :
+                              s
+                          }
                         </span>
                         <div className="flex items-center space-x-4">
                           {
@@ -764,23 +769,27 @@ export default () => {
                                           )
 
                                           component = (
-                                            <div className="flex items-center space-x-2">
-                                              {url ?
-                                                <a
-                                                  href={`${url}${address_path?.replace('{address}', v)}`}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                  className="text-blue-500 dark:text-blue-600"
-                                                >
-                                                  {_v}
-                                                </a> :
-                                                _v
-                                              }
-                                              <Copy
-                                                size={20}
-                                                value={v}
-                                              />
-                                            </div>
+                                            v ?
+                                              <div className="flex items-center space-x-2">
+                                                {url ?
+                                                  <a
+                                                    href={`${url}${address_path?.replace('{address}', v)}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-500 dark:text-blue-600"
+                                                  >
+                                                    {_v}
+                                                  </a> :
+                                                  _v
+                                                }
+                                                <Copy
+                                                  size={20}
+                                                  value={v}
+                                                />
+                                              </div> :
+                                              <span>
+                                                -
+                                              </span>
                                           )
                                           break
                                         case 'relayer_fee':
@@ -806,13 +815,9 @@ export default () => {
                                           component = (
                                             <div className="flex items-center space-x-1">
                                               <span>
-                                                {number_format(
-                                                  utils.formatUnits(
-                                                    v,
-                                                    'gwei',
-                                                  ),
-                                                  '0,0.00',
-                                                  true,
+                                                {utils.formatUnits(
+                                                  v,
+                                                  'gwei',
                                                 )}
                                               </span>
                                               <span>
