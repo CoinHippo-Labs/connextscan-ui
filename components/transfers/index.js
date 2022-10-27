@@ -218,7 +218,9 @@ export default () => {
                   [
                     t?.origin_transacting_asset,
                     t?.origin_bridged_asset,
-                  ].findIndex(_a => equals_ignore_case(_a, c?.contract_address)) > -1
+                  ].findIndex(_a =>
+                    equals_ignore_case(_a, c?.contract_address)
+                  ) > -1
                 ) > -1
               )
               const source_contract_data = source_asset_data?.contracts?.find(c =>
@@ -235,7 +237,9 @@ export default () => {
                   [
                     t?.destination_transacting_asset,
                     t?.destination_local_asset,
-                  ].findIndex(_a => equals_ignore_case(_a, c?.contract_address)) > -1
+                  ].findIndex(_a =>
+                    equals_ignore_case(_a, c?.contract_address)
+                  ) > -1
                 ) > -1
               )
               const destination_contract_data = destination_asset_data?.contracts?.find(c =>
@@ -266,25 +270,34 @@ export default () => {
                 source_asset_data,
                 destination_asset_data,
                 origin_transacting_amount,
+                origin_bridged_amount,
                 destination_transacting_amount,
                 destination_local_amount,
               } = { ...t }
 
-              const source_amount =
+              const source_amount = _.head(
                 [
-                  'number',
-                  'string',
-                ].includes(typeof origin_transacting_amount) &&
+                  origin_transacting_amount,
+                  origin_bridged_amount,
+                ]
+                .map(a =>
+                  [
+                    'number',
+                    'string',
+                  ].includes(typeof a) &&
                   Number(
                     utils.formatUnits(
                       BigNumber.from(
-                        BigInt(origin_transacting_amount)
+                        BigInt(a)
                           .toString()
                       ),
                       source_asset_data?.decimals ||
                       18,
                     )
                   )
+                )
+                .filter(a => a)
+              )
 
               const destination_amount = _.head(
                 [
