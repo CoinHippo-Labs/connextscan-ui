@@ -418,11 +418,11 @@ export default () => {
                   {data ?
                     pending ?
                       <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-2">
-                        <TailSpin
+                        {/*<TailSpin
                           color={loader_color(theme)}
                           width="24"
                           height="24"
-                        />
+                        />*/}
                         <span className="text-base font-medium">
                           Processing...
                         </span>
@@ -564,17 +564,23 @@ export default () => {
               </div>
               <div className="grid grid-flow-row md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                 {details
+                  .filter(s =>
+                    data[`${s}_transaction_hash`] ||
+                    ![
+                      'reconcile',
+                    ].includes(s)
+                  )
                   .map((s, i) => (
                     <div
                       key={i}
-                      className={`form bg-slate-200 dark:bg-slate-900 bg-opacity-40 dark:bg-opacity-75 rounded-lg space-y-5 py-10 px-4 sm:py-8 sm:px-6`}
+                      className={`form ${s === 'reconcile' ? 'bg-slate-100 dark:bg-gray-900 bg-opacity-100 dark:bg-opacity-50' : 'bg-slate-200 dark:bg-slate-900 bg-opacity-40 dark:bg-opacity-75'} rounded-lg space-y-5 py-10 px-4 sm:py-8 sm:px-6`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="bg-blue-400 dark:bg-blue-600 rounded-lg capitalize tracking-wider text-white text-xl font-medium py-1 px-3">
+                        <span className={`${s === 'reconcile' ? 'bg-slate-200 dark:bg-slate-800 text-black dark:text-white text-base' : 'bg-blue-400 dark:bg-blue-600 text-white text-xl'} rounded-lg capitalize tracking-wider font-medium py-1 px-3`}>
                           {s === 'xcall' ?
-                            'origin' :
+                            'send' :
                             s === 'execute' ?
-                              'destination' :
+                              'receive' :
                               s
                           }
                         </span>
@@ -593,7 +599,7 @@ export default () => {
                           {data[`${s}_transaction_hash`] ?
                             <HiCheckCircle
                               size={32}
-                              className="bg-slate-100 dark:bg-slate-200 rounded-full text-green-500 dark:text-green-400"
+                              className="bg-slate-100 dark:bg-slate-200 rounded-full text-green-500 dark:text-green-500"
                             /> :
                             <TailSpin
                               color={loader_color(theme)}

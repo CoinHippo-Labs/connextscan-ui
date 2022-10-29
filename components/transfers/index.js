@@ -383,16 +383,11 @@ export default () => {
         <div className="uppercase tracking-wider text-sm font-medium">
           Latest Transfers
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 space-x-0 sm:space-x-4 mt-2 sm:mt-0 mb-4 sm:mb-0">
+        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 space-x-0 sm:space-x-2 mt-2 sm:mt-0 mb-4 sm:mb-0">
           <div className="flex items-center space-x-2">
-            {
-              !address &&
-              (
-                <span className="font-semibold">
-                  From
-                </span>
-              )
-            }
+            <span className="font-semibold">
+              From
+            </span>
             <SelectChain
               value={fromChainSelect}
               onSelect={c => setFromChainSelect(c)}
@@ -405,7 +400,7 @@ export default () => {
               onSelect={c => setToChainSelect(c)}
             />
           </div>
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-2">
             <SelectAsset
               value={assetSelect}
               onSelect={a => setAssetSelect(a)}
