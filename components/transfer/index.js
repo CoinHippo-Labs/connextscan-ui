@@ -16,6 +16,12 @@ import AddToken from '../add-token'
 import Copy from '../copy'
 import { number_format, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
 
+const ROUTER_FEE_PERCENT =
+  Number(
+    process.env.NEXT_PUBLIC_ROUTER_FEE_PERCENT
+  ) ||
+  0.05
+
 export default () => {
   const {
     preferences,
@@ -210,55 +216,62 @@ export default () => {
   const source_decimals = source_asset_data?.decimals ||
     18
   const source_asset_image = source_asset_data?.image
-  const source_amount = _.head(
-    [
-      origin_transacting_amount,
-      origin_bridged_amount,
-    ]
-    .map(a =>
+  const source_amount =
+    _.head(
       [
-        'number',
-        'string',
-      ].includes(typeof a) &&
-      Number(
-        utils.formatUnits(
-          BigNumber.from(
-            BigInt(a)
-              .toString()
-          ),
-          source_decimals,
+        origin_transacting_amount,
+        origin_bridged_amount,
+      ]
+      .map(a =>
+        [
+          'number',
+          'string',
+        ].includes(typeof a) &&
+        Number(
+          utils.formatUnits(
+            BigNumber.from(
+              BigInt(a)
+                .toString()
+            ),
+            source_decimals,
+          )
         )
       )
+      .filter(a => a)
     )
-    .filter(a => a)
-  )
 
   const destination_symbol = destination_asset_data?.symbol
   const destination_decimals = destination_asset_data?.decimals ||
     18
   const destination_asset_image = destination_asset_data?.image
-  const destination_amount = _.head(
-    [
-      destination_transacting_amount,
-      destination_local_amount,
-    ]
-    .map(a =>
+  const destination_amount =
+    _.head(
       [
-        'number',
-        'string',
-      ].includes(typeof a) &&
-      Number(
-        utils.formatUnits(
-          BigNumber.from(
-            BigInt(a)
-              .toString()
-          ),
-          destination_decimals,
+        destination_transacting_amount,
+        // destination_local_amount,
+      ]
+      .map(a =>
+        [
+          'number',
+          'string',
+        ].includes(typeof a) &&
+        Number(
+          utils.formatUnits(
+            BigNumber.from(
+              BigInt(a)
+                .toString()
+            ),
+            destination_decimals,
+          )
         )
       )
+      .filter(a => a)
+    ) ||
+    source_amount *
+    (
+      1 -
+      ROUTER_FEE_PERCENT / 100
     )
-    .filter(a => a)
-  )
     
 
   const pending = ![

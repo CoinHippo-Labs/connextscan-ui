@@ -20,6 +20,12 @@ import AddToken from '../add-token'
 import Copy from '../copy'
 import { number_format, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
 
+const ROUTER_FEE_PERCENT =
+  Number(
+    process.env.NEXT_PUBLIC_ROUTER_FEE_PERCENT
+  ) ||
+  0.05
+
 const LIMIT = 100
 
 export default () => {
@@ -275,53 +281,60 @@ export default () => {
                 destination_local_amount,
               } = { ...t }
 
-              const source_amount = _.head(
-                [
-                  origin_transacting_amount,
-                  origin_bridged_amount,
-                ]
-                .map(a =>
+              const source_amount =
+                _.head(
                   [
-                    'number',
-                    'string',
-                  ].includes(typeof a) &&
-                  Number(
-                    utils.formatUnits(
-                      BigNumber.from(
-                        BigInt(a)
-                          .toString()
-                      ),
-                      source_asset_data?.decimals ||
-                      18,
+                    origin_transacting_amount,
+                    origin_bridged_amount,
+                  ]
+                  .map(a =>
+                    [
+                      'number',
+                      'string',
+                    ].includes(typeof a) &&
+                    Number(
+                      utils.formatUnits(
+                        BigNumber.from(
+                          BigInt(a)
+                            .toString()
+                        ),
+                        source_asset_data?.decimals ||
+                        18,
+                      )
                     )
                   )
+                  .filter(a => a)
                 )
-                .filter(a => a)
-              )
 
-              const destination_amount = _.head(
-                [
-                  destination_transacting_amount,
-                  destination_local_amount,
-                ]
-                .map(a =>
+              const destination_amount =
+                _.head(
                   [
-                    'number',
-                    'string',
-                  ].includes(typeof a) &&
-                  Number(
-                    utils.formatUnits(
-                      BigNumber.from(
-                        BigInt(a)
-                          .toString()
-                      ),
-                      destination_asset_data?.decimals ||
-                      18,
+                    destination_transacting_amount,
+                    // destination_local_amount,
+                  ]
+                  .map(a =>
+                    [
+                      'number',
+                      'string',
+                    ].includes(typeof a) &&
+                    Number(
+                      utils.formatUnits(
+                        BigNumber.from(
+                          BigInt(a)
+                            .toString()
+                        ),
+                        destination_asset_data?.decimals ||
+                        18,
+                      )
                     )
                   )
+                  .filter(a => a)
+                ) ||
+                source_amount *
+                (
+                  1 -
+                  ROUTER_FEE_PERCENT / 100
                 )
-                .filter(a => a)
-              )
 
               return {
                 ...t,
