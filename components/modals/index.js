@@ -127,7 +127,7 @@ export default ({
               ref={modalRef}
               className={`w-full ${modalClassName.includes('max-w-') ? '' : 'max-w-sm lg:max-w-lg'} relative lg:my-4 mx-auto ${modalClassName}`}
             >
-              <div className="w-full bg-white dark:bg-slate-900 dark:bg-opacity-90 relative outline-none rounded-lg shadow-lg border-0 flex flex-col">
+              <div className="w-full bg-white dark:bg-slate-900 relative outline-none rounded-lg shadow-lg border-0 flex flex-col">
                 <div className="relative flex-auto p-4">
                   <div className="flex items-start justify-start space-x-4 p-2">
                     {icon && (

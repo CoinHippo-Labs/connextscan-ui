@@ -56,21 +56,27 @@ export default ({
     chain_id,
   } = { ...chain_data }
 
-  const asset_data = assets_data?.find(c => c?.id === value)
+  const asset_data = assets_data?.find(c =>
+    c?.id === value
+  )
   const {
     contracts,
   } = { ...asset_data }
 
-  const contract_data = contracts?.find(c => c?.chain_id === chain_id)
+  const contract_data = contracts?.find(c =>
+    c?.chain_id === chain_id
+  )
   let {
     symbol,
     image,
   } = { ...contract_data }
 
-  symbol = symbol ||
+  symbol =
+    symbol ||
     asset_data?.symbol ||
     'All Assets'
-  image = image ||
+  image =
+    image ||
     asset_data?.image
 
   return (

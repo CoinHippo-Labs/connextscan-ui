@@ -42,7 +42,9 @@ export default ({
     setHidden(!hidden)
   }
 
-  const chain_data = chains_data?.find(c => c?.id === value)
+  const chain_data = chains_data?.find(c =>
+    c?.id === value
+  )
   const {
     image,
   } = { ...chain_data }

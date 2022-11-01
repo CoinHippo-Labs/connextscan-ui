@@ -91,7 +91,9 @@ export default () => {
             )
             .filter(l =>
               equals_ignore_case(l?.router_address, address) &&
-              chains_data.findIndex(c => c?.domain_id === l?.domain) > -1
+              chains_data.findIndex(c =>
+                c?.domain_id === l?.domain
+              ) > -1
             )
             .map(l => {
               const {
@@ -100,15 +102,19 @@ export default () => {
                 balance,
               } = { ...l }
 
-              const chain_data = chains_data.find(c => c?.domain_id === domain)
+              const chain_data = chains_data.find(c =>
+                c?.domain_id === domain
+              )
               const {
                 chain_id,
               } = { ...chain_data }
 
-              let asset_data = assets_data.find(a => a?.contracts?.findIndex(c =>
-                c?.chain_id === chain_id &&
-                equals_ignore_case(c?.contract_address, local)
-              ) > -1)
+              let asset_data = assets_data.find(a =>
+                a?.contracts?.findIndex(c =>
+                  c?.chain_id === chain_id &&
+                  equals_ignore_case(c?.contract_address, local)
+                ) > -1
+              )
 
               asset_data = {
                 ...asset_data,
@@ -130,7 +136,8 @@ export default () => {
               const amount = Number(
                 utils.formatUnits(
                   BigNumber.from(
-                    BigInt(balance || 0).toString()
+                    BigInt(balance || 0)
+                      .toString()
                   ),
                   decimals || 18,
                 )
@@ -192,8 +199,12 @@ export default () => {
               volume,
             } = { ...v }
 
-            const origin_chain_data = chains_data.find(c => c?.domain_id === origin_chain)
-            const destination_chain_data = chains_data.find(c => c?.domain_id === destination_chain)
+            const origin_chain_data = chains_data.find(c =>
+              c?.domain_id === origin_chain
+            )
+            const destination_chain_data = chains_data.find(c =>
+              c?.domain_id === destination_chain
+            )
 
             let asset_data = assets_data.find(a =>
               a?.contracts?.findIndex(c =>
@@ -222,7 +233,8 @@ export default () => {
             const amount = Number(
               utils.formatUnits(
                 BigNumber.from(
-                  BigInt(volume || 0).toString()
+                  BigInt(volume || 0)
+                    .toString()
                 ),
                 decimals || 18,
               )
@@ -257,8 +269,12 @@ export default () => {
               destination_chain,
             } = { ...t }
 
-            const origin_chain_data = chains_data.find(c => c?.domain_id === origin_chain)
-            const destination_chain_data = chains_data.find(c => c?.domain_id === destination_chain)
+            const origin_chain_data = chains_data.find(c =>
+              c?.domain_id === origin_chain
+            )
+            const destination_chain_data = chains_data.find(c =>
+              c?.domain_id === destination_chain
+            )
 
             return {
               ...t,
@@ -306,11 +322,11 @@ export default () => {
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row items-start justify-between space-y-4 sm:space-y-0 sm:space-x-8 mb-6">
-        <AddRouterLiquidity />
+      <div className="flex flex-col items-start space-y-4 mb-6">
         <Metrics
           data={metrics}
         />
+        <AddRouterLiquidity />
       </div>
       <div className="flex items-start justify-between space-x-2">
         <div className="w-full grid grid-flow-row xl:grid-cols-2 gap-6 mb-4">

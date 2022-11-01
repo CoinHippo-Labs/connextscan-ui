@@ -4,7 +4,7 @@ import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import { Contract, constants, utils } from 'ethers'
 import { RotatingTriangles, TailSpin, Watch } from 'react-loader-spinner'
-import { BiMessageError, BiMessageCheck } from 'react-icons/bi'
+import { BiMessageError, BiMessageCheck, BiX } from 'react-icons/bi'
 
 import Notification from '../notifications'
 import Modal from '../modals'
@@ -68,6 +68,7 @@ export default () => {
     address,
   } = { ...query }
 
+  const [hidden, setHidden] = useState(true)
   const [data, setData] = useState(null)
   const [balance, setBalance] = useState(null)
 
@@ -127,14 +128,20 @@ export default () => {
         data.asset &&
         wallet_address
       ) {
-        const chain_data = chains_data.find(c => c?.id === chain)
+        const chain_data = chains_data.find(c =>
+          c?.id === chain
+        )
         const {
           chain_id,
         } = { ...chain_data }
 
-        const asset_data = assets_data.find(a => a?.id === asset)
+        const asset_data = assets_data.find(a =>
+          a?.id === asset
+        )
 
-        const contract_data = asset_data?.contracts?.find(c => c?.chain_id === chain_id)
+        const contract_data = asset_data?.contracts?.find(c =>
+          c?.chain_id === chain_id
+        )
         const {
           contract_address,
           decimals,
@@ -168,15 +175,18 @@ export default () => {
           }
         }
 
-        setBalance(
-          balance &&
-          Number(
-            utils.formatUnits(
-              balance,
-              decimals || 18,
+        if (balance) {
+          setBalance(
+            balance &&
+            Number(
+              utils.formatUnits(
+                balance,
+                decimals ||
+                18,
+              )
             )
           )
-        )
+        }
       }
       else {
         setBalance(null)
@@ -212,15 +222,21 @@ export default () => {
         amount,
       } = { ...data }
 
-      const chain_data = chains_data?.find(c => c?.id === chain)
+      const chain_data = chains_data?.find(c =>
+        c?.id === chain
+      )
       const {
         chain_id,
         domain_id,
       } = { ...chain_data }
 
-      const asset_data = assets_data?.find(a => a?.id === asset)
+      const asset_data = assets_data?.find(a =>
+        a?.id === asset
+      )
 
-      const contract_data = asset_data?.contracts?.find(c => c?.chain_id === chain_id)
+      const contract_data = asset_data?.contracts?.find(c =>
+        c?.chain_id === chain_id
+      )
       const {
         contract_address,
       } = { ...contract_data }
@@ -238,7 +254,8 @@ export default () => {
       const addParams = {
         domain: domain_id,
         amount: utils.parseUnits(
-          amount?.toString() || '0',
+          amount?.toString() ||
+          '0',
           decimals,
         ).toString(),
         assetId: contract_address,
@@ -378,7 +395,9 @@ export default () => {
     amount,
   } = { ...data }
 
-  const chain_data = chains_data?.find(c => c?.id === chain)
+  const chain_data = chains_data?.find(c =>
+    c?.id === chain
+  )
   const {
     chain_id,
     explorer,
@@ -429,7 +448,9 @@ export default () => {
             contracts,
           } = { ...a }
 
-          const contract_data = contracts?.find(c => c?.chain_id === chain_id)
+          const contract_data = contracts?.find(c =>
+            c?.chain_id === chain_id
+          )
           const {
             contract_address,
           } = { ...contract_data }
@@ -474,7 +495,8 @@ export default () => {
 
   const hasAllFields = fields.length === fields.filter(f => data?.[f.name]).length
 
-  const disabled = adding ||
+  const disabled =
+    adding ||
     approving
 
   return (
@@ -540,10 +562,12 @@ export default () => {
         />
       )}
       <Modal
+        hidden={hidden}
         disabled={disabled}
+        onClick={() => setHidden(false)}
         buttonTitle={address ?
-          <div className="bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 rounded-lg shadow flex items-center justify-center text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white space-x-1.5 py-1.5 px-2">
-            <span className="text-xs font-semibold">
+          <div className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-400 rounded-lg shadow flex items-center justify-center text-white space-x-1.5 py-1.5 px-2">
+            <span className="text-sm font-semibold">
               Manage Router
             </span>
           </div> :
@@ -554,7 +578,19 @@ export default () => {
           />
         }
         buttonClassName={`min-w-max ${disabled ? 'cursor-not-allowed' : ''} flex items-center justify-center`}
-        title="Add Router Liquidity"
+        title={<div className="flex items-center justify-between">
+          <span>
+            Add Router Liquidity
+          </span>
+          <div
+            onClick={() => setHidden(true)}
+            className="hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer rounded-full p-2"
+          >
+            <BiX
+              size={18}
+            />
+          </div>
+        </div>}
         body={<div className="form mt-2">
           {fields
             .map((f, i) => {
@@ -696,7 +732,10 @@ export default () => {
             <Wallet connectChainId={chain_data?.chain_id} />
           </div>
         </div>}
-        noCancelOnClickOutside={notificationResponse}
+        noCancelOnClickOutside={
+          notificationResponse ||
+          true
+        }
         cancelDisabled={disabled}
         onCancel={() => reset()}
         confirmDisabled={disabled ||
