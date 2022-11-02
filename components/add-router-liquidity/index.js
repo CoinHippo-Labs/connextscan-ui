@@ -105,7 +105,10 @@ export default () => {
               .filter(a =>
                 a?.contracts?.findIndex(c =>
                   c?.chain_id === chain_id &&
-                  c?.contract_address
+                  (
+                    c?.next_asset?.contract_address ||
+                    c?.contract_address
+                  )
                 ) > -1
               )
           )?.id,
@@ -138,14 +141,28 @@ export default () => {
         const asset_data = assets_data.find(a =>
           a?.id === asset
         )
+        const {
+          contracts,
+        } = { ...asset_data }
 
-        const contract_data = asset_data?.contracts?.find(c =>
+        const contract_data = contracts?.find(c =>
           c?.chain_id === chain_id
         )
         const {
+          next_asset,
+        } = { ...contract_data }
+        let {
           contract_address,
           decimals,
         } = { ...contract_data }
+
+        contract_address =
+          next_asset?.contract_address ||
+          contract_address
+
+        decimals =
+          next_asset?.decimals ||
+          decimals
 
         const provider = rpcs?.[chain_id]
 
@@ -233,23 +250,35 @@ export default () => {
       const asset_data = assets_data?.find(a =>
         a?.id === asset
       )
+      const {
+        contracts,
+      } = { ...asset_data }
 
-      const contract_data = asset_data?.contracts?.find(c =>
+      const contract_data = contracts?.find(c =>
         c?.chain_id === chain_id
       )
       const {
-        contract_address,
+        next_asset,
       } = { ...contract_data }
       let {
-        symbol,
+        contract_address,
         decimals,
+        symbol,
       } = { ...contract_data }
 
-      symbol = symbol ||
-        asset_data?.symbol
+      contract_address =
+        next_asset?.contract_address ||
+        contract_address
 
-      decimals = decimals ||
+      decimals =
+        next_asset?.decimals ||
+        decimals ||
         18
+
+      symbol =
+        next_asset?.symbol ||
+        symbol ||
+        asset_data?.symbol
 
       const addParams = {
         domain: domain_id,
@@ -283,11 +312,13 @@ export default () => {
             hash,
           } = { ...approve_response }
 
-          setApproveResponse({
-            status: 'pending',
-            message: `Wait for ${symbol} approval`,
-            tx_hash: hash,
-          })
+          setApproveResponse(
+            {
+              status: 'pending',
+              message: `Wait for ${symbol} approval`,
+              tx_hash: hash,
+            }
+          )
           setApproveProcessing(true)
 
           const approve_receipt = await signer.provider.waitForTransaction(
@@ -316,11 +347,14 @@ export default () => {
           setApproving(false)
         }
       } catch (error) {
-        setApproveResponse({
-          status: 'failed',
-          message: error?.data?.message ||
-            error?.message,
-        })
+        setApproveResponse(
+          {
+            status: 'failed',
+            message:
+              error?.data?.message ||
+              error?.message,
+          }
+        )
 
         failed = true
 
@@ -343,11 +377,13 @@ export default () => {
               hash,
             } = { ...add_response }
 
-            setAddResponse({
-              status: 'pending',
-              message: `Wait for adding ${symbol} liquidity`,
-              tx_hash: hash,
-            })
+            setAddResponse(
+              {
+                status: 'pending',
+                message: `Wait for adding ${symbol} liquidity`,
+                tx_hash: hash,
+              }
+            )
             setAddProcessing(true)
 
             const add_receipt = await signer.provider.waitForTransaction(
@@ -360,26 +396,31 @@ export default () => {
 
             failed = !status
 
-            setAddResponse({
-              status: failed ?
-                'failed' :
-                'success',
-              message: failed ?
-                `Failed to add ${symbol} liquidity` :
-                `Add ${symbol} liquidity successful`,
-              tx_hash: hash,
-            })
+            setAddResponse(
+              {
+                status: failed ?
+                  'failed' :
+                  'success',
+                message: failed ?
+                  `Failed to add ${symbol} liquidity` :
+                  `Add ${symbol} liquidity successful`,
+                tx_hash: hash,
+              }
+            )
 
             if (!failed) {
               router.push(`${asPath}?action=refresh`)
             }
           }
         } catch (error) {
-          setAddResponse({
-            status: 'failed',
-            message: error?.data?.message ||
-              error?.message,
-          })
+          setAddResponse(
+            {
+              status: 'failed',
+              message:
+                error?.data?.message ||
+                error?.message,
+            }
+          )
 
           failed = true
         }
@@ -438,7 +479,10 @@ export default () => {
           !chain ||
           a?.contracts?.findIndex(c =>
             c?.chain_id === chain_id &&
-            c?.contract_address
+            (
+              c?.next_asset?.contract_address ||
+              c?.contract_address
+            )
           ) > -1
         )
         .map(a => {
@@ -452,25 +496,34 @@ export default () => {
             c?.chain_id === chain_id
           )
           const {
-            contract_address,
+            next_asset,
           } = { ...contract_data }
           let {
+            contract_address,
             symbol,
           } = { ...contract_data }
 
-          symbol = symbol ||
+          contract_address =
+            next_asset?.contract_address ||
+            contract_address
+
+          symbol =
+            next_asset?.symbol ||
+            symbol ||
             a?.symbol
 
           return {
             value: id,
             title: name,
-            name: `${symbol}${contract_address ?
-              `: ${ellipse(
-                contract_address,
-                16,
-              )}` :
-              ''
-            }`,
+            name:
+              `${symbol}${
+                contract_address ?
+                  `: ${ellipse(
+                    contract_address,
+                    16,
+                  )}` :
+                  ''
+              }`,
           }
         }),
     },
@@ -482,8 +535,10 @@ export default () => {
     },
   ]
 
-  const notificationResponse = addResponse ||
+  const notificationResponse =
+    addResponse ||
     approveResponse
+
   const {
     status,
     message,
@@ -493,7 +548,11 @@ export default () => {
   const max_amount = balance ||
     0
 
-  const hasAllFields = fields.length === fields.filter(f => data?.[f.name]).length
+  const hasAllFields =
+    fields.length === fields
+      .filter(f =>
+        data?.[f.name]
+      ).length
 
   const disabled =
     adding ||
