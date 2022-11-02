@@ -1,6 +1,6 @@
 import { RiBarChartBoxLine, RiServerLine, RiCodeFill, RiCopperCoinLine } from 'react-icons/ri'
 import { BiFileBlank } from 'react-icons/bi'
-import { MdSwapHoriz } from 'react-icons/md'
+import { HiSwitchHorizontal } from 'react-icons/hi'
 
 export default [
   {
@@ -66,7 +66,7 @@ export default [
     path: `${process.env.NEXT_PUBLIC_BRIDGE_URL}/swap`,
     external: true,
     icon: (
-      <MdSwapHoriz
+      <HiSwitchHorizontal
         size={20}
         className="stroke-current"
       />
