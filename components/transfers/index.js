@@ -697,7 +697,7 @@ export default () => {
                             />
                           </div>
                         }
-                        <div className="flex items-center space-x-2">
+                        <div className="h-7 flex items-center space-x-2">
                           {
                             source_asset_data?.image &&
                             (
@@ -834,7 +834,7 @@ export default () => {
                             />
                           </div>
                         }
-                        <div className="flex items-center space-x-2">
+                        <div className="h-7 flex items-center space-x-2">
                           {
                             destination_asset_data?.image &&
                             (
