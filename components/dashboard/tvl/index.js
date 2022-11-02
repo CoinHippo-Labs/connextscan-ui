@@ -89,7 +89,7 @@ export default ({
   } = { ...d }
 
   return (
-    <div className="h-80 bg-white dark:bg-black border border-slate-100 dark:border-slate-800 shadow dark:shadow-slate-400 rounded-lg space-y-0.5 pt-5 pb-0 sm:pb-1 px-5">
+    <div className="h-80 bg-white dark:bg-slate-900 dark:bg-opacity-75 border border-slate-100 dark:border-slate-900 rounded-lg space-y-0.5 pt-5 pb-0 sm:pb-1 px-5">
       <div className="flex items-center justify-between">
         <div className="flex flex-col space-y-0.5">
           <span className="font-bold">

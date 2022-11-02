@@ -156,7 +156,12 @@ export default ({
         <div className="wrapper">
           <div
             className="main w-full bg-slate-50 dark:bg-black"
-            style={{ minHeight: 'calc(100vh - 44px)' }}
+            style={{
+              minHeight: 'calc(100vh - 44px)',
+              backgroundColor: theme === 'light' ?
+                '#f5f5f5' :
+                '#111011',
+            }}
           >
             <Navbar />
             <div className="w-full px-2 sm:px-4">

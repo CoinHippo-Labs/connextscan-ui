@@ -35,7 +35,7 @@ export default ({
     supported_chains,
   } = { ...data }
 
-  const metricClassName = 'bg-white dark:bg-black border dark:border-slate-900 shadow dark:shadow-slate-400 rounded-lg space-y-0.5 py-3 px-4'
+  const metricClassName = 'bg-slate-50 dark:bg-slate-900 dark:bg-opacity-75 border dark:border-slate-900 rounded-lg space-y-0.5 py-3 px-4'
   const titleClassName = 'text-slate-400 dark:text-slate-200 text-base font-medium'
 
   return (

@@ -29,7 +29,7 @@ export default ({
   } = { ...data }
 
   return (
-    <div className="h-80 bg-white dark:bg-black border border-slate-100 dark:border-slate-800 shadow dark:shadow-slate-400 rounded-lg space-y-0.5 p-5">
+    <div className="h-80 bg-white dark:bg-slate-900 dark:bg-opacity-75 border border-slate-100 dark:border-slate-900 rounded-lg space-y-0.5 p-5">
       {data ?
         <div className="space-y-4">
           <div className="text-center py-6">
