@@ -735,6 +735,7 @@ export default () => {
                                   <EnsProfile
                                     address={xcall_caller}
                                     no_copy={true}
+                                    no_image={true}
                                     fallback={<span className="text-slate-400 dark:text-slate-600 text-xs font-semibold">
                                       <span className="sm:hidden">
                                         {ellipse(
@@ -866,6 +867,7 @@ export default () => {
                                   <EnsProfile
                                     address={to}
                                     no_copy={true}
+                                    no_image={true}
                                     fallback={<span className="text-slate-400 dark:text-slate-600 text-xs font-semibold">
                                       <span className="sm:hidden">
                                         {ellipse(
