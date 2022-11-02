@@ -99,7 +99,8 @@ export default () => {
       if (sdk) {
         setFetchTrigger(
           is_interval ?
-            moment().valueOf() :
+            moment()
+              .valueOf() :
             typeof fetchTrigger === 'number' ?
               null :
               0
@@ -109,10 +110,11 @@ export default () => {
 
     triggering()
 
-    const interval = setInterval(() =>
-      triggering(true),
-      0.25 * 60 * 1000,
-    )
+    const interval =
+      setInterval(() =>
+        triggering(true),
+        0.25 * 60 * 1000,
+      )
 
     return () => clearInterval(interval)
   }, [sdk, pathname, address, statusSelect])
@@ -129,15 +131,22 @@ export default () => {
 
         let response
 
-        const status = statusSelect ||
+        const status =
+          statusSelect ||
           undefined
+
         const _data = !fetchTrigger ?
           [] :
-          data || []
+          data ||
+          []
+
         const limit = LIMIT
-        const offset = fetchTrigger === true || fetchTrigger === 1 ?
-          _data.length :
-          0
+
+        const offset =
+          fetchTrigger === true ||
+          fetchTrigger === 1 ?
+            _data.length :
+            0
 
         switch (pathname) {
           case '/address/[address]':
@@ -193,24 +202,25 @@ export default () => {
                       offset,
                     },
                   },
-                  )
+                )
               }
             } catch (error) {}
             break
         }
 
         if (Array.isArray(response)) {
-          response = _.orderBy(
-            _.uniqBy(
-              _.concat(
-                _data,
-                response,
+          response =
+            _.orderBy(
+              _.uniqBy(
+                _.concat(
+                  _data,
+                  response,
+                ),
+                'transfer_id'
               ),
-              'transfer_id'
-            ),
-            ['xcall_timestamp'],
-            ['desc'],
-          )
+              ['xcall_timestamp'],
+              ['desc'],
+            )
 
           response = response
             .map(t => {
@@ -264,11 +274,12 @@ export default () => {
                   ...destination_asset_data,
                   ...destination_contract_data,
                 },
-                pending: ![
-                  XTransferStatus.Executed,
-                  XTransferStatus.CompletedFast,
-                  XTransferStatus.CompletedSlow,
-                ].includes(t?.status),
+                pending:
+                  ![
+                    XTransferStatus.Executed,
+                    XTransferStatus.CompletedFast,
+                    XTransferStatus.CompletedSlow,
+                  ].includes(t?.status),
               }
             })
             .map(t => {
@@ -362,8 +373,12 @@ export default () => {
     getData()
   }, [fetchTrigger])
 
-  const source_chain_data = chains_data?.find(c => c?.id === fromChainSelect)
-  const destination_chain_data = chains_data?.find(c => c?.id === toChainSelect)
+  const source_chain_data = chains_data?.find(c =>
+    c?.id === fromChainSelect
+  )
+  const destination_chain_data = chains_data?.find(c =>
+    c?.id === toChainSelect
+  )
 
   const asset_data = assets_data?.find(a =>
     [
@@ -470,7 +485,8 @@ export default () => {
                       force_slow,
                     } = { ...props.row.original }
 
-                    force_slow = force_slow ||
+                    force_slow =
+                      force_slow ||
                       (status || '')
                         .toLowerCase()
                         .includes('slow')
@@ -577,7 +593,8 @@ export default () => {
                       force_slow,
                     } = { ...props.row.original }
 
-                    force_slow = force_slow ||
+                    force_slow =
+                      force_slow ||
                       (value || '')
                         .toLowerCase()
                         .includes('slow')
@@ -717,11 +734,16 @@ export default () => {
                                     </span>
                                   )
                                 }
-                                <AddToken
-                                  token_data={{
-                                    ...source_asset_data,
-                                  }}
-                                />
+                                {
+                                  source_asset_data.contract_address &&
+                                  (
+                                    <AddToken
+                                      token_data={{
+                                        ...source_asset_data,
+                                      }}
+                                    />
+                                  )
+                                }
                               </>
                             )
                           }
@@ -849,11 +871,16 @@ export default () => {
                                     </span>
                                   )
                                 }
-                                <AddToken
-                                  token_data={{
-                                    ...destination_asset_data,
-                                  }}
-                                />
+                                {
+                                  destination_asset_data.contract_address &&
+                                  (
+                                    <AddToken
+                                      token_data={{
+                                        ...destination_asset_data,
+                                      }}
+                                    />
+                                  )
+                                }
                               </>
                             )
                           }
@@ -914,19 +941,22 @@ export default () => {
             data.length > 0 &&
             (
               !fetching ?
-                <button
-                  onClick={() => {
-                    setOffet(data.length)
-                    setFetchTrigger(
-                      typeof fetchTrigger === 'number' ?
-                        true :
-                        1
-                    )
-                  }}
-                  className="max-w-min whitespace-nowrap text-slate-400 hover:text-blue-500 dark:text-slate-200 dark:hover:text-blue-400 font-normal hover:font-medium mx-auto"
-                >
-                  Load more
-                </button> :
+                data.length >= LIMIT &&
+                (
+                  <button
+                    onClick={() => {
+                      setOffet(data.length)
+                      setFetchTrigger(
+                        typeof fetchTrigger === 'number' ?
+                          true :
+                          1
+                      )
+                    }}
+                    className="max-w-min whitespace-nowrap text-slate-400 hover:text-blue-500 dark:text-slate-200 dark:hover:text-blue-400 font-normal hover:font-medium mx-auto"
+                  >
+                    Load more
+                  </button>
+                ) :
                 <div className="flex justify-center">
                   <TailSpin
                     color={loader_color(theme)}
