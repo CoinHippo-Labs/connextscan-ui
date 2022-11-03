@@ -69,6 +69,7 @@ export default () => {
 
   const [data, setData] = useState(null)
   const [offset, setOffet] = useState(0)
+  const [noMore, setNoMore] = useState(false)
   const [fetchTrigger, setFetchTrigger] = useState(null)
   const [fetching, setFetching] = useState(false)
   const [fromChainSelect, setFromChainSelect] = useState('')
@@ -127,6 +128,7 @@ export default () => {
         if (!fetchTrigger) {
           setData(null)
           setOffet(0)
+          setNoMore(false)
         }
 
         let response
@@ -361,9 +363,14 @@ export default () => {
             })
 
           setData(response)
+          setNoMore(
+            response.length <=
+            _data.length
+          )
         }
         else if (!fetchTrigger) {
           setData([])
+          setNoMore(true)
         }
 
         setFetching(false)
@@ -942,6 +949,7 @@ export default () => {
             (
               !fetching ?
                 data.length >= LIMIT &&
+                !noMore &&
                 (
                   <button
                     onClick={() => {
