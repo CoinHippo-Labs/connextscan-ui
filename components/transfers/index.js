@@ -68,7 +68,7 @@ export default () => {
   } = { ...query }
 
   const [data, setData] = useState(null)
-  const [offset, setOffet] = useState(0)
+  const [offset, setOffset] = useState(0)
   const [noMore, setNoMore] = useState(false)
   const [fetchTrigger, setFetchTrigger] = useState(null)
   const [fetching, setFetching] = useState(false)
@@ -127,7 +127,7 @@ export default () => {
 
         if (!fetchTrigger) {
           setData(null)
-          setOffet(0)
+          setOffset(0)
           setNoMore(false)
         }
 
@@ -145,8 +145,7 @@ export default () => {
         const limit = LIMIT
 
         const offset =
-          fetchTrigger === true ||
-          fetchTrigger === 1 ?
+          fetchTrigger ?
             _data.length :
             0
 
@@ -370,7 +369,7 @@ export default () => {
         }
         else if (!fetchTrigger) {
           setData([])
-          setNoMore(true)
+          setNoMore(false)
         }
 
         setFetching(false)
@@ -938,9 +937,10 @@ export default () => {
             }
             data={data_filtered}
             noPagination={data_filtered.length <= 10}
-            defaultPageSize={address ?
-              10 :
-              25
+            defaultPageSize={
+              address ?
+                10 :
+                25
             }
             className="no-border"
           />
@@ -953,7 +953,7 @@ export default () => {
                 (
                   <button
                     onClick={() => {
-                      setOffet(data.length)
+                      setOffset(data.length)
                       setFetchTrigger(
                         typeof fetchTrigger === 'number' ?
                           true :
