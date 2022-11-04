@@ -153,10 +153,11 @@ export default () => {
 
     getData()
 
-    const interval = setInterval(() =>
-      getData(true),
-      0.25 * 60 * 1000,
-    )
+    const interval =
+      setInterval(() =>
+        getData(true),
+        0.25 * 60 * 1000,
+      )
 
     return () => clearInterval(interval)
   }, [sdk, tx])
@@ -171,7 +172,10 @@ export default () => {
         data &&
         !execute_timestamp
       ) {
-        setTimer(moment().unix())
+        setTimer(
+          moment()
+            .unix()
+        )
       }
     }
 
@@ -179,10 +183,11 @@ export default () => {
       run()
     }
 
-    const interval = setInterval(() =>
-      run(),
-      1 * 1000,
-    )
+    const interval =
+      setInterval(() =>
+        run(),
+        1 * 1000,
+      )
 
     return () => clearInterval(interval)
   }, [data, timer])
@@ -274,11 +279,12 @@ export default () => {
     )
     
 
-  const pending = ![
-    XTransferStatus.Executed,
-    XTransferStatus.CompletedFast,
-    XTransferStatus.CompletedSlow,
-  ].includes(status)
+  const pending =
+    ![
+      XTransferStatus.Executed,
+      XTransferStatus.CompletedFast,
+      XTransferStatus.CompletedSlow,
+    ].includes(status)
 
   const details =
     _.concat(
