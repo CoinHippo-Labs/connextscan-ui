@@ -7,6 +7,7 @@ import moment from 'moment'
 import { BigNumber, utils } from 'ethers'
 import { XTransferStatus } from '@connext/nxtp-utils'
 import { TailSpin } from 'react-loader-spinner'
+import { Tooltip } from '@material-tailwind/react'
 import { HiCheckCircle } from 'react-icons/hi'
 
 import Image from '../image'
@@ -595,14 +596,29 @@ export default () => {
                       className={`form ${s === 'reconcile' ? 'bg-slate-100 dark:bg-gray-900 bg-opacity-100 dark:bg-opacity-50' : 'bg-slate-200 dark:bg-slate-900 bg-opacity-40 dark:bg-opacity-75'} rounded-lg space-y-5 py-10 px-4 sm:py-8 sm:px-6`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className={`${s === 'reconcile' ? 'bg-slate-200 dark:bg-slate-800 text-black dark:text-white text-base' : 'bg-blue-400 dark:bg-blue-600 text-white text-xl'} rounded-lg capitalize tracking-wider font-medium py-1 px-3`}>
-                          {s === 'xcall' ?
-                            'send' :
-                            s === 'execute' ?
-                              'receive' :
-                              s
+                        <Tooltip
+                          placement="top"
+                          content={
+                            s === 'xcall' ?
+                              'assets sent by user on origin chain' :
+                              s === 'execute' ?
+                                'assets delivered to user on destination chain' :
+                                s === 'reconcile' ?
+                                  'assets minted to router' :
+                                  null
                           }
-                        </span>
+                          className="z-50 bg-black text-white text-xs"
+                        >
+                          <span className={`${s === 'reconcile' ? 'bg-slate-200 dark:bg-slate-800 text-black dark:text-white text-xl' : 'bg-blue-400 dark:bg-blue-600 text-white text-xl'} rounded-lg capitalize tracking-wider font-medium py-1 px-3`}>
+                            {
+                              s === 'xcall' ?
+                                'send' :
+                                s === 'execute' ?
+                                  'receive' :
+                                  s
+                            }
+                          </span>
+                        </Tooltip>
                         <div className="flex items-center space-x-4">
                           {
                             s === 'xcall' &&
