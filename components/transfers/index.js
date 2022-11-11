@@ -484,6 +484,8 @@ export default () => {
                     const {
                       pending,
                       xcall_timestamp,
+                      reconcile_transaction_hash,
+                      execute_transaction_hash,
                       execute_timestamp,
                       status,
                     } = { ...props.row.original }
@@ -495,7 +497,11 @@ export default () => {
                       force_slow ||
                       (status || '')
                         .toLowerCase()
-                        .includes('slow')
+                        .includes('slow') ||
+                      !!(
+                        reconcile_transaction_hash &&
+                        !execute_transaction_hash
+                      )
 
                     return value &&
                       (
@@ -593,6 +599,8 @@ export default () => {
                       transfer_id,
                       pending,
                       xcall_timestamp,
+                      reconcile_transaction_hash,
+                      execute_transaction_hash,
                       execute_timestamp,
                     } = { ...props.row.original }
                     let {
@@ -603,7 +611,11 @@ export default () => {
                       force_slow ||
                       (value || '')
                         .toLowerCase()
-                        .includes('slow')
+                        .includes('slow') ||
+                      !!(
+                        reconcile_transaction_hash &&
+                        !execute_transaction_hash
+                      )
 
                     return (
                       <div className="flex flex-col items-start space-y-1 mt-0.5">

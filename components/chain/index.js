@@ -202,32 +202,49 @@ export default () => {
               price,
             } = { ...asset_data }
 
-            const amount = Number(
-              utils.formatUnits(
-                BigNumber.from(
-                  BigInt(volume || 0).toString()
-                ),
-                decimals || 18,
+            const amount =
+              Number(
+                utils.formatUnits(
+                  BigNumber.from(
+                    BigInt(
+                      volume ||
+                      0
+                    )
+                    .toString()
+                  ),
+                  decimals ||
+                  18,
+                )
               )
-            )
 
             return {
               ...v,
-              timestamp: moment(transfer_date, 'YYYY-MM-DD').startOf(_timeframe?.timeframe).valueOf(),
+              timestamp:
+                moment(
+                  transfer_date,
+                  'YYYY-MM-DD',
+                )
+                .startOf(_timeframe?.timeframe)
+                .valueOf(),
               origin_chain_data,
               destination_chain_data,
               asset_data,
               amount,
-              volume: amount *
-                (price || 0),
+              volume:
+                amount *
+                (
+                  price ||
+                  0
+                ),
             }
           })
 
-        let transfers = await daily_transfer_metrics(
-          {
-            destination_chain: `eq.${domain_id}`,
-          },
-        )
+        let transfers =
+          await daily_transfer_metrics(
+            {
+              destination_chain: `eq.${domain_id}`,
+            },
+          )
 
         transfers =
           (Array.isArray(transfers) ?
@@ -241,12 +258,25 @@ export default () => {
               destination_chain,
             } = { ...t }
 
-            const origin_chain_data = chains_data.find(c => c?.domain_id === origin_chain)
-            const destination_chain_data = chains_data.find(c => c?.domain_id === destination_chain)
+            const origin_chain_data = chains_data
+              .find(c =>
+                c?.domain_id === origin_chain
+              )
+
+            const destination_chain_data = chains_data
+              .find(c =>
+                c?.domain_id === destination_chain
+              )
 
             return {
               ...t,
-              timestamp: moment(transfer_date, 'YYYY-MM-DD').startOf(_timeframe?.timeframe).valueOf(),
+              timestamp:
+                moment(
+                  transfer_date,
+                  'YYYY-MM-DD',
+                )
+                .startOf(_timeframe?.timeframe)
+                .valueOf(),
               origin_chain_data,
               destination_chain_data,
             }
@@ -254,58 +284,70 @@ export default () => {
 
         setData(
           {
-            total_volume: _.sumBy(
-              volumes,
-              'volume',
-            ),
-            volumes: _.slice(
-              _.orderBy(
-                Object.entries(
-                  _.groupBy(
-                    volumes,
-                    'timestamp',
-                  )
-                )
-                .map(([k, v]) => {
-                  return {
-                    timestamp: Number(k),
-                    volume: _.sumBy(
-                      v,
-                      'volume',
-                    ),
-                  }
-                }),
-                ['timestamp'],
-                ['asc'],
+            total_volume:
+              _.sumBy(
+                volumes,
+                'volume',
               ),
-              -(timeframe || 52),
-            ),
-            total_transfers: _.sumBy(
-              transfers,
-              'transfer_count',
-            ),
-            transfers: _.slice(
-              _.orderBy(
-                Object.entries(
-                  _.groupBy(
-                    transfers,
-                    'timestamp',
+            volumes:
+              _.slice(
+                _.orderBy(
+                  Object.entries(
+                    _.groupBy(
+                      volumes,
+                      'timestamp',
+                    )
                   )
-                )
-                .map(([k, v]) => {
-                  return {
-                    timestamp: Number(k),
-                    transfers: _.sumBy(
-                      v,
-                      'transfer_count',
-                    ),
-                  }
-                }),
-                ['timestamp'],
-                ['asc'],
+                  .map(([k, v]) => {
+                    return {
+                      timestamp: Number(k),
+                      volume:
+                        _.sumBy(
+                          v,
+                          'volume',
+                        ),
+                    }
+                  }),
+                  ['timestamp'],
+                  ['asc'],
+                ),
+                -(
+                  timeframe ||
+                  52
+                ),
               ),
-              -(timeframe || 52),
-            ),
+            total_transfers:
+              _.sumBy(
+                transfers,
+                'transfer_count',
+              ),
+            transfers:
+              _.slice(
+                _.orderBy(
+                  Object.entries(
+                    _.groupBy(
+                      transfers,
+                      'timestamp',
+                    )
+                  )
+                  .map(([k, v]) => {
+                    return {
+                      timestamp: Number(k),
+                      transfers:
+                        _.sumBy(
+                          v,
+                          'transfer_count',
+                        ),
+                    }
+                  }),
+                  ['timestamp'],
+                  ['asc'],
+                ),
+                -(
+                  timeframe ||
+                  52
+                ),
+              ),
           },
         )
       }

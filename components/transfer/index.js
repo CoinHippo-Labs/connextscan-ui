@@ -83,9 +83,11 @@ export default () => {
           ].includes(status)
         )
       ) {
-        const response = await sdk.nxtpSdkUtils.getTransferById(
-          tx,
-        )
+        const response =
+          await sdk.nxtpSdkUtils
+            .getTransferById(
+              tx,
+            )
 
         const _data = _.head(response)
 
@@ -206,20 +208,27 @@ export default () => {
     xcall_caller,
     to,
     xcall_timestamp,
-    execute_timestamp,
+    reconcile_transaction_hash,
     execute_transaction_hash,
+    execute_timestamp,
   } = { ...data }
   let {
     force_slow,
   } = { ...data }
 
-  force_slow = force_slow ||
+  force_slow =
+    force_slow ||
     (status || '')
       .toLowerCase()
-      .includes('slow')
+      .includes('slow') ||
+    !!(
+      reconcile_transaction_hash &&
+      !execute_transaction_hash
+    )
 
   const source_symbol = source_asset_data?.symbol
-  const source_decimals = source_asset_data?.decimals ||
+  const source_decimals =
+    source_asset_data?.decimals ||
     18
   const source_asset_image = source_asset_data?.image
   const source_amount =
@@ -247,7 +256,8 @@ export default () => {
     )
 
   const destination_symbol = destination_asset_data?.symbol
-  const destination_decimals = destination_asset_data?.decimals ||
+  const destination_decimals =
+    destination_asset_data?.decimals ||
     18
   const destination_asset_image = destination_asset_data?.image
   const destination_amount =
@@ -302,6 +312,7 @@ export default () => {
     )
     .filter(s =>
       s !== 'reconcile' ||
+      reconcile_transaction_hash ||
       execute_transaction_hash
     )
 

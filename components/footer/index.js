@@ -66,16 +66,25 @@ export default () => {
             Connext Protocol
           </span>
         </a>
-        {dependencies?.['@connext/nxtp-sdk'] && (
-          <a
-            href="https://github.com/connext/nxtp"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 dark:text-white text-xs font-medium"
-          >
-            SDK v{dependencies['@connext/nxtp-sdk'].replace('^', '')}
-          </a>
-        )}
+        {
+          dependencies?.['@connext/nxtp-sdk'] &&
+          (
+            <a
+              href="https://github.com/connext/nxtp"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 dark:text-white font-medium"
+            >
+              SDK v{
+                dependencies['@connext/nxtp-sdk']
+                  .replace(
+                    '^',
+                    '',
+                  )
+              }
+            </a>
+          )
+        }
       </div>
       {/*<div className="hidden lg:flex w-full lg:w-2/4 flex-wrap items-center justify-center">
         {(chains_data || [])
@@ -153,36 +162,42 @@ export default () => {
             />
           </a>
         )}
-        {process.env.NEXT_PUBLIC_ENS_NAME && (
-          <a
-            href={`https://app.ens.domains/name/${process.env.NEXT_PUBLIC_ENS_NAME}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <div className="min-w-max">
-              <div className="flex dark:hidden items-center">
-                <Image
-                  src="/logos/externals/ens/logo.png"
-                  alt=""
-                  width={20}
-                  height={20}
-                />
+        {
+          process.env.NEXT_PUBLIC_ENS_NAME &&
+          (
+            <a
+              href={`https://app.ens.domains/name/${process.env.NEXT_PUBLIC_ENS_NAME}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <div className="min-w-max">
+                <div className="flex dark:hidden items-center">
+                  <Image
+                    src="/logos/externals/ens/logo.png"
+                    alt=""
+                    width={20}
+                    height={20}
+                  />
+                </div>
+                <div className="hidden dark:flex items-center">
+                  <Image
+                    src="/logos/externals/ens/logo_white.png"
+                    alt=""
+                    width={20}
+                    height={20}
+                  />
+                </div>
               </div>
-              <div className="hidden dark:flex items-center">
-                <Image
-                  src="/logos/externals/ens/logo_white.png"
-                  alt=""
-                  width={20}
-                  height={20}
-                />
-              </div>
-            </div>
-          </a>
-        )}
+            </a>
+          )
+        }
       </div>
       <div className="w-full md:w-1/2 lg:w-1/3 min-w-max flex items-center justify-center md:justify-end text-slate-400 dark:text-white space-x-1">
         <span>
-          © {moment().format('YYYY')} made with
+          © {
+            moment()
+              .format('YYYY')
+          } made with
         </span>
         <FaHeart
           className="text-red-400 text-xl pr-0.5"

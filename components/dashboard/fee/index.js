@@ -114,56 +114,82 @@ export default ({
 
   useEffect(() => {
     if (fees) {
-      const _timeframe = timeframes.find(t => t?.day === timeframe)
+      const _timeframe = timeframes
+        .find(t =>
+          t?.day === timeframe
+        )
 
       setData(
-        fees.map(d => {
-          const {
-            timestamp,
-            fee,
-            fee_by_chains,
-          } = { ...d }
-
-          return {
-            ...d,
-            id: timestamp,
-            time_string: `${moment(timestamp).startOf(_timeframe?.timeframe).format('MMM D, YYYY')}${_timeframe?.timeframe === 'week' ? ` - ${moment(timestamp).endOf(_timeframe?.timeframe).format('MMM D, YYYY')}` : ''}`,
-            short_name: moment(timestamp).startOf(_timeframe?.timeframe).format('D MMM'),
-            value: fee,
-            value_string: number_format(
+        fees
+          .map(d => {
+            const {
+              timestamp,
               fee,
-              fee > 10000 ?
-                '0,0.00a' :
-                fee > 1000 ?
-                  '0,0' :
-                  '0,0.00',
-            ),
-            values: fee_by_chains,
-            ...Object.fromEntries(
-              (Array.isArray(fee_by_chains) ?
-                fee_by_chains :
-                []
-              )
-              .map(v => {
-                const {
-                  id,
-                  fee,
-                } = { ...v }
+              fee_by_chains,
+            } = { ...d }
 
-                return [
-                  id,
+            return {
+              ...d,
+              id: timestamp,
+              time_string:
+                `${
+                  moment(timestamp)
+                    .startOf(_timeframe?.timeframe)
+                    .format('MMM D, YYYY')
+                }${
+                  _timeframe?.timeframe === 'week' ?
+                    ` - ${
+                      moment(timestamp)
+                        .endOf(_timeframe?.timeframe)
+                        .format('MMM D, YYYY')
+                    }` :
+                    ''
+                }`,
+              short_name:
+                moment(timestamp)
+                  .startOf(_timeframe?.timeframe)
+                  .format('D MMM'),
+              value: fee,
+              value_string:
+                number_format(
                   fee,
-                ]
-              })
-            ),
-          }
-        })
+                  fee > 10000 ?
+                    '0,0.00a' :
+                    fee > 1000 ?
+                      '0,0' :
+                      '0,0.00',
+                ),
+              values: fee_by_chains,
+              ...Object.fromEntries(
+                (Array.isArray(fee_by_chains) ?
+                  fee_by_chains :
+                  []
+                )
+                .map(v => {
+                  const {
+                    id,
+                    fee,
+                  } = { ...v }
+
+                  return [
+                    id,
+                    fee,
+                  ]
+                })
+              ),
+            }
+          })
       )
     }
   }, [fees])
 
-  const d = data?.find(d => d.id === xFocus) ||
+  const d =
+    (data || [])
+      .find(d =>
+        d.id === xFocus
+      ) ||
     _.last(data)
+
   const {
     time_string,
     value,
@@ -182,7 +208,12 @@ export default ({
               {description}
             </span>
             <span>
-              {timeframes.find(t => t?.day === timeframe)?.timeframe}
+              {
+                timeframes
+                  .find(t =>
+                    t?.day === timeframe
+                  )?.timeframe
+              }
             </span>
           </span>
         </div>

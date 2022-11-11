@@ -110,7 +110,10 @@ export default ({
 
   useEffect(() => {
     if (transfers) {
-      const _timeframe = timeframes.find(t => t?.day === timeframe)
+      const _timeframe = timeframes
+        .find(t =>
+          t?.day === timeframe
+        )
 
       setData(
         transfers
@@ -124,15 +127,32 @@ export default ({
             return {
               ...d,
               id: timestamp,
-              time_string: `${moment(timestamp).startOf(_timeframe?.timeframe).format('MMM D, YYYY')}${_timeframe?.timeframe === 'week' ? ` - ${moment(timestamp).endOf(_timeframe?.timeframe).format('MMM D, YYYY')}` : ''}`,
-              short_name: moment(timestamp).startOf(_timeframe?.timeframe).format('D MMM'),
+              time_string:
+                `${
+                  moment(timestamp)
+                    .startOf(_timeframe?.timeframe)
+                    .format('MMM D, YYYY')
+                }${
+                  _timeframe?.timeframe === 'week' ?
+                    ` - ${
+                      moment(timestamp)
+                        .endOf(_timeframe?.timeframe)
+                        .format('MMM D, YYYY')
+                    }` :
+                    ''
+                }`,
+              short_name:
+                moment(timestamp)
+                  .startOf(_timeframe?.timeframe)
+                  .format('D MMM'),
               value: transfers,
-              value_string: number_format(
-                transfers,
-                transfers > 100000 ?
-                  '0,0.00a' :
-                  '0,0',
-              ),
+              value_string:
+                number_format(
+                  transfers,
+                  transfers > 100000 ?
+                    '0,0.00a' :
+                    '0,0',
+                ),
               values: transfers_by_chains,
               ...Object.fromEntries(
                 (Array.isArray(transfers_by_chains) ?
@@ -157,8 +177,13 @@ export default ({
     }
   }, [transfers])
 
-  const d = data?.find(d => d.id === xFocus) ||
+  const d =
+    (data || [])
+      .find(d =>
+        d.id === xFocus
+      ) ||
     _.last(data)
+
   const {
     time_string,
     value,
@@ -177,7 +202,12 @@ export default ({
               {description}
             </span>
             <span>
-              {timeframes.find(t => t?.day === timeframe)?.timeframe}
+              {
+                timeframes
+                  .find(t =>
+                    t?.day === timeframe
+                  )?.timeframe
+              }
             </span>
           </span>
         </div>

@@ -114,7 +114,10 @@ export default ({
 
   useEffect(() => {
     if (volumes) {
-      const _timeframe = timeframes.find(t => t?.day === timeframe)
+      const _timeframe = timeframes
+        .find(t =>
+          t?.day === timeframe
+        )
 
       setData(
         volumes
@@ -128,17 +131,34 @@ export default ({
             return {
               ...d,
               id: timestamp,
-              time_string: `${moment(timestamp).startOf(_timeframe?.timeframe).format('MMM D, YYYY')}${_timeframe?.timeframe === 'week' ? ` - ${moment(timestamp).endOf(_timeframe?.timeframe).format('MMM D, YYYY')}` : ''}`,
-              short_name: moment(timestamp).startOf(_timeframe?.timeframe).format('D MMM'),
+              time_string:
+                `${
+                  moment(timestamp)
+                    .startOf(_timeframe?.timeframe)
+                    .format('MMM D, YYYY')
+                }${
+                  _timeframe?.timeframe === 'week' ?
+                    ` - ${
+                      moment(timestamp)
+                        .endOf(_timeframe?.timeframe)
+                        .format('MMM D, YYYY')
+                    }` :
+                    ''
+                }`,
+              short_name:
+                moment(timestamp)
+                  .startOf(_timeframe?.timeframe)
+                  .format('D MMM'),
               value: volume,
-              value_string: number_format(
-                volume,
-                volume > 1000000 ?
-                  '0,0.00a' :
-                  volume > 10000 ?
-                    '0,0' :
-                    '0,0.00',
-              ),
+              value_string:
+                number_format(
+                  volume,
+                  volume > 1000000 ?
+                    '0,0.00a' :
+                    volume > 10000 ?
+                      '0,0' :
+                      '0,0.00',
+                ),
               values: volume_by_chains,
               ...Object.fromEntries(
                 (Array.isArray(volume_by_chains) ?
@@ -163,8 +183,13 @@ export default ({
     }
   }, [volumes])
 
-  const d = data?.find(d => d.id === xFocus) ||
+  const d =
+    (data || [])
+      .find(d =>
+        d.id === xFocus
+      ) ||
     _.last(data)
+
   const {
     time_string,
     value,
@@ -183,7 +208,12 @@ export default ({
               {description}
             </span>
             <span>
-              {timeframes.find(t => t?.day === timeframe)?.timeframe}
+              {
+                timeframes
+                  .find(t =>
+                    t?.day === timeframe
+                  )?.timeframe
+              }
             </span>
           </span>
         </div>
