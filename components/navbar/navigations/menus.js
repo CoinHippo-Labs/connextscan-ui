@@ -50,6 +50,18 @@ export default [
     ),
   },
   {
+    id: 'swap',
+    title: 'Swap',
+    path: `${process.env.NEXT_PUBLIC_BRIDGE_URL}/swap`,
+    external: true,
+    icon: (
+      <HiSwitchHorizontal
+        size={20}
+        className="stroke-current"
+      />
+    ),
+  },
+  {
     id: 'pool',
     title: 'Pools',
     // path: `${process.env.NEXT_PUBLIC_BRIDGE_URL}/pools`,
@@ -57,18 +69,6 @@ export default [
     external: true,
     icon: (
       <RiCopperCoinLine
-        size={20}
-        className="stroke-current"
-      />
-    ),
-  },
-  {
-    id: 'swap',
-    title: 'Swap',
-    path: `${process.env.NEXT_PUBLIC_BRIDGE_URL}/swap`,
-    external: true,
-    icon: (
-      <HiSwitchHorizontal
         size={20}
         className="stroke-current"
       />
