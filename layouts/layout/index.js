@@ -151,7 +151,7 @@ export default ({
         data-layout="layout"
         data-background={theme}
         data-navbar={theme}
-        className={`antialiased disable-scrollbars font-sans text-sm ${theme}`}
+        className={`antialiased disable-scrollbars text-sm ${theme}`}
       >
         <div className="wrapper">
           <div

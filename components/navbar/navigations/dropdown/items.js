@@ -55,7 +55,7 @@ export default ({
             </HeadShake> :
             undefined
 
-          const className = `dropdown-item w-full bg-transparent hover:bg-blue-50 dark:hover:bg-slate-800 ${disabled ? 'cursor-not-allowed' : ''} flex items-center uppercase ${selected ? 'text-blue-600 dark:text-white text-sm font-bold' : 'text-slate-600 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-200 text-sm font-normal hover:font-semibold'} space-x-1.5 p-3`
+          const className = `dropdown-item w-full bg-transparent hover:bg-blue-50 dark:hover:bg-slate-800 ${disabled ? 'cursor-not-allowed' : ''} flex items-center uppercase ${selected ? 'text-blue-600 dark:text-white text-sm font-extrabold' : 'text-slate-600 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-200 text-sm font-semibold hover:font-bold'} space-x-1.5 p-3`
 
           return external ?
             <a

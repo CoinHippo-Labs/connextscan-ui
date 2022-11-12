@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import { Contract, constants, utils } from 'ethers'
-import { RotatingTriangles, TailSpin, Watch } from 'react-loader-spinner'
+import { TailSpin, Watch } from 'react-loader-spinner'
 import { BiMessageError, BiMessageCheck, BiX } from 'react-icons/bi'
 
 import Notification from '../notifications'
@@ -100,18 +100,20 @@ export default () => {
         {
           ...data,
           chain: id,
-          asset: _.head(
-            assets_data
-              .filter(a =>
-                a?.contracts?.findIndex(c =>
-                  c?.chain_id === chain_id &&
-                  (
-                    c?.next_asset?.contract_address ||
-                    c?.contract_address
-                  )
-                ) > -1
-              )
-          )?.id,
+          asset:
+            _.head(
+              assets_data
+                .filter(a =>
+                  (a?.contracts || [])
+                    .findIndex(c =>
+                      c?.chain_id === chain_id &&
+                      (
+                        c?.next_asset?.contract_address ||
+                        c?.contract_address
+                      )
+                    ) > -1
+                )
+            )?.id,
         }
       )
     }
@@ -131,23 +133,26 @@ export default () => {
         data.asset &&
         wallet_address
       ) {
-        const chain_data = chains_data.find(c =>
-          c?.id === chain
-        )
+        const chain_data = chains_data
+          .find(c =>
+            c?.id === chain
+          )
         const {
           chain_id,
         } = { ...chain_data }
 
-        const asset_data = assets_data.find(a =>
-          a?.id === asset
-        )
+        const asset_data = assets_data
+          .find(a =>
+            a?.id === asset
+          )
         const {
           contracts,
         } = { ...asset_data }
 
-        const contract_data = contracts?.find(c =>
-          c?.chain_id === chain_id
-        )
+        const contract_data = (contracts || [])
+          .find(c =>
+            c?.chain_id === chain_id
+          )
         const {
           next_asset,
         } = { ...contract_data }
@@ -173,28 +178,32 @@ export default () => {
           contract_address
         ) {
           if (contract_address === constants.AddressZero) {
-            balance = await provider.getBalance(
-              wallet_address,
-            )
+            balance =
+              await provider
+                .getBalance(
+                  wallet_address,
+                )
           }
           else {
-            const contract = new Contract(
-              contract_address,
-              [
-                'function balanceOf(address owner) view returns (uint256)',
-              ],
-              provider,
-            )
+            const contract =
+              new Contract(
+                contract_address,
+                [
+                  'function balanceOf(address owner) view returns (uint256)',
+                ],
+                provider,
+              )
 
-            balance = await contract.balanceOf(
-              wallet_address,
-            )
+            balance =
+              await contract
+                .balanceOf(
+                  wallet_address,
+                )
           }
         }
 
         if (balance) {
           setBalance(
-            balance &&
             Number(
               utils.formatUnits(
                 balance,
@@ -239,24 +248,27 @@ export default () => {
         amount,
       } = { ...data }
 
-      const chain_data = chains_data?.find(c =>
-        c?.id === chain
-      )
+      const chain_data = chains_data
+        .find(c =>
+          c?.id === chain
+        )
       const {
         chain_id,
         domain_id,
       } = { ...chain_data }
 
-      const asset_data = assets_data?.find(a =>
-        a?.id === asset
-      )
+      const asset_data = (assets_data || [])
+        .find(a =>
+          a?.id === asset
+        )
       const {
         contracts,
       } = { ...asset_data }
 
-      const contract_data = contracts?.find(c =>
-        c?.chain_id === chain_id
-      )
+      const contract_data = (contracts || [])
+        .find(c =>
+          c?.chain_id === chain_id
+        )
       const {
         next_asset,
       } = { ...contract_data }
@@ -282,11 +294,16 @@ export default () => {
 
       const addParams = {
         domain: domain_id,
-        amount: utils.parseUnits(
-          amount?.toString() ||
-          '0',
-          decimals,
-        ).toString(),
+        amount:
+          utils.parseUnits(
+            (
+              amount ||
+              0
+            )
+            .toString(),
+            decimals,
+          )
+          .toString(),
         assetId: contract_address,
         router: address,
       }
@@ -294,19 +311,23 @@ export default () => {
       let failed = false
 
       try {
-        const approve_request = await sdk.nxtpSdkBase.approveIfNeeded(
-          addParams.domain,
-          addParams.assetId,
-          addParams.amount,
-          false,
-        )
+        const approve_request =
+          await sdk.nxtpSdkBase
+            .approveIfNeeded(
+              addParams.domain,
+              addParams.assetId,
+              addParams.amount,
+              false,
+            )
 
         if (approve_request) {
           setApproving(true)
 
-          const approve_response = await signer.sendTransaction(
-            approve_request,
-          )
+          const approve_response =
+            await signer
+              .sendTransaction(
+                approve_request,
+              )
 
           const {
             hash,
@@ -321,21 +342,24 @@ export default () => {
           )
           setApproveProcessing(true)
 
-          const approve_receipt = await signer.provider.waitForTransaction(
-            hash,
-          )
+          const approve_receipt =
+            await signer.provider
+              .waitForTransaction(
+                hash,
+              )
 
           const {
             status,
           } = { ...approve_receipt }
 
-          setApproveResponse(status ?
-            null :
-            {
-              status: 'failed',
-              message: `Failed to approve ${symbol}`,
-              tx_hash: hash,
-            }
+          setApproveResponse(
+            status ?
+              null :
+              {
+                status: 'failed',
+                message: `Failed to approve ${symbol}`,
+                tx_hash: hash,
+              }
           )
 
           failed = !status
@@ -364,14 +388,18 @@ export default () => {
 
       if (!failed) {
         try {
-          const add_request = await sdk.nxtpSdkRouter.addLiquidityForRouter(
-            addParams,
-          )
+          const add_request =
+            await sdk.nxtpSdkRouter
+              .addLiquidityForRouter(
+                addParams,
+              )
 
           if (add_request) {
-            const add_response = await signer.sendTransaction(
-              add_request,
-            )
+            const add_response =
+              await signer
+                .sendTransaction(
+                  add_request,
+                )
 
             const {
               hash,
@@ -386,9 +414,11 @@ export default () => {
             )
             setAddProcessing(true)
 
-            const add_receipt = await signer.provider.waitForTransaction(
-              hash,
-            )
+            const add_receipt =
+              await signer.provider
+                .waitForTransaction(
+                  hash,
+                )
 
             const {
               status,
@@ -436,9 +466,10 @@ export default () => {
     amount,
   } = { ...data }
 
-  const chain_data = chains_data?.find(c =>
-    c?.id === chain
-  )
+  const chain_data = (chains_data || [])
+    .find(c =>
+      c?.id === chain
+    )
   const {
     chain_id,
     explorer,
@@ -448,92 +479,99 @@ export default () => {
     transaction_path,
   } = { ...explorer }
 
-  const fields = [
-    {
-      label: 'Chain',
-      name: 'chain',
-      type: 'select',
-      placeholder: 'Select chain',
-      options: (chains_data || [])
-        .filter(c => !c?.view_only)
-        .map(c => {
-          const {
-            id,
-            name,
-          } = { ...c }
+  const fields =
+    [
+      {
+        label: 'Chain',
+        name: 'chain',
+        type: 'select',
+        placeholder: 'Select chain',
+        options:
+          (chains_data || [])
+            .filter(c => !c?.view_only)
+            .map(c => {
+              const {
+                id,
+                name,
+              } = { ...c }
 
-          return {
-            value: id,
-            title: name,
-            name,
-          }
-        }),
-    },
-    {
-      label: 'Asset',
-      name: 'asset',
-      type: 'select',
-      placeholder: 'Select asset',
-      options: (assets_data || [])
-        .filter(a =>
-          !chain ||
-          a?.contracts?.findIndex(c =>
-            c?.chain_id === chain_id &&
-            (
-              c?.next_asset?.contract_address ||
-              c?.contract_address
+              return {
+                value: id,
+                title: name,
+                name,
+              }
+            }),
+      },
+      {
+        label: 'Asset',
+        name: 'asset',
+        type: 'select',
+        placeholder: 'Select asset',
+        options:
+          (assets_data || [])
+            .filter(a =>
+              !chain ||
+              (a?.contracts || [])
+                .findIndex(c =>
+                  c?.chain_id === chain_id &&
+                  (
+                    c?.next_asset?.contract_address ||
+                    c?.contract_address
+                  )
+                ) > -1
             )
-          ) > -1
-        )
-        .map(a => {
-          const {
-            id,
-            name,
-            contracts,
-          } = { ...a }
+            .map(a => {
+              const {
+                id,
+                name,
+                contracts,
+              } = { ...a }
 
-          const contract_data = contracts?.find(c =>
-            c?.chain_id === chain_id
-          )
-          const {
-            next_asset,
-          } = { ...contract_data }
-          let {
-            contract_address,
-            symbol,
-          } = { ...contract_data }
+              const contract_data = (contracts || [])
+                .find(c =>
+                  c?.chain_id === chain_id
+                )
+              const {
+                next_asset,
+              } = { ...contract_data }
+              let {
+                contract_address,
+                symbol,
+              } = { ...contract_data }
 
-          contract_address =
-            next_asset?.contract_address ||
-            contract_address
+              contract_address =
+                next_asset?.contract_address ||
+                contract_address
 
-          symbol =
-            next_asset?.symbol ||
-            symbol ||
-            a?.symbol
+              symbol =
+                next_asset?.symbol ||
+                symbol ||
+                a?.symbol
 
-          return {
-            value: id,
-            title: name,
-            name:
-              `${symbol}${
-                contract_address ?
-                  `: ${ellipse(
-                    contract_address,
-                    16,
-                  )}` :
-                  ''
-              }`,
-          }
-        }),
-    },
-    {
-      label: 'Amount',
-      name: 'amount',
-      type: 'number',
-      placeholder: 'Amount',
-    },
-  ]
+              return {
+                value: id,
+                title: name,
+                name:
+                  `${symbol}${
+                    contract_address ?
+                      `: ${
+                        ellipse(
+                          contract_address,
+                          16,
+                        )
+                      }` :
+                      ''
+                  }`,
+              }
+            }),
+      },
+      {
+        label: 'Amount',
+        name: 'amount',
+        type: 'number',
+        placeholder: 'Amount',
+      },
+    ]
 
   const notificationResponse =
     addResponse ||
@@ -545,7 +583,8 @@ export default () => {
     tx_hash,
   } = { ...notificationResponse }
 
-  const max_amount = balance ||
+  const max_amount =
+    balance ||
     0
 
   const hasAllFields =
@@ -560,81 +599,85 @@ export default () => {
 
   return (
     <>
-      {notificationResponse && (
-        <Notification
-          hideButton={true}
-          outerClassNames="w-full h-auto z-50 transform fixed top-0 left-0 p-0"
-          innerClassNames={`${status === 'failed' ? 'bg-red-500 dark:bg-red-600' : status === 'success' ? 'bg-green-500 dark:bg-green-600' : 'bg-blue-600 dark:bg-blue-700'} text-white`}
-          animation="animate__animated animate__fadeInDown"
-          icon={status === 'failed' ?
-            <BiMessageError
-              className="w-6 h-6 stroke-current mr-2"
-            /> :
-            status === 'success' ?
-              <BiMessageCheck
+      {
+        notificationResponse &&
+        (
+          <Notification
+            hideButton={true}
+            outerClassNames="w-full h-auto z-50 transform fixed top-0 left-0 p-0"
+            innerClassNames={`${status === 'failed' ? 'bg-red-500 dark:bg-red-600' : status === 'success' ? 'bg-green-500 dark:bg-green-600' : 'bg-blue-600 dark:bg-blue-700'} text-white`}
+            animation="animate__animated animate__fadeInDown"
+            icon={status === 'failed' ?
+              <BiMessageError
                 className="w-6 h-6 stroke-current mr-2"
               /> :
-              <div className="mr-2">
-                <Watch
-                  color="white"
-                  width="20"
-                  height="20"
-                />
-              </div>
-          }
-          content={<div className="flex items-center">
-            <span className="break-all mr-2">
-              {message}
-            </span>
-            {
-              url &&
-              tx_hash &&
-              (
-                <a
-                  href={`${url}${transaction_path?.replace('{tx}', tx_hash)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mr-2"
-                >
-                  <span className="font-semibold">
-                    View on {explorer.name}
-                  </span>
-                </a>
-              )
+              status === 'success' ?
+                <BiMessageCheck
+                  className="w-6 h-6 stroke-current mr-2"
+                /> :
+                <div className="mr-2">
+                  <Watch
+                    color="white"
+                    width="20"
+                    height="20"
+                  />
+                </div>
             }
-            {
-              status === 'failed' &&
-              message &&
-              (
-                <Copy
-                  size={24}
-                  value={message}
-                  className="cursor-pointer text-slate-200 hover:text-white"
-                />
-              )
-            }
-          </div>}
-          onClose={() => {
-            setApproveResponse(null)
-            setAddResponse(null)
-          }}
-        />
-      )}
+            content={<div className="flex items-center">
+              <span className="break-all mr-2">
+                {message}
+              </span>
+              {
+                url &&
+                tx_hash &&
+                (
+                  <a
+                    href={`${url}${transaction_path?.replace('{tx}', tx_hash)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mr-2"
+                  >
+                    <span className="font-semibold">
+                      View on {explorer.name}
+                    </span>
+                  </a>
+                )
+              }
+              {
+                status === 'failed' &&
+                message &&
+                (
+                  <Copy
+                    size={24}
+                    value={message}
+                    className="cursor-pointer text-slate-200 hover:text-white"
+                  />
+                )
+              }
+            </div>}
+            onClose={() => {
+              setApproveResponse(null)
+              setAddResponse(null)
+            }}
+          />
+        )
+      }
       <Modal
         hidden={hidden}
         disabled={disabled}
         onClick={() => setHidden(false)}
-        buttonTitle={address ?
-          <div className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-400 rounded-lg shadow flex items-center justify-center text-white space-x-1.5 py-1.5 px-2">
-            <span className="text-sm font-semibold">
-              Manage Router
-            </span>
-          </div> :
-          <RotatingTriangles
-            color={loader_color(theme)}
-            width="24"
-            height="24"
-          />
+        buttonTitle={
+          address ?
+            <div className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-400 rounded-lg shadow flex items-center justify-center text-white space-x-1.5 py-1.5 px-2">
+              <span className="text-sm font-semibold">
+                Manage Router
+              </span>
+            </div> :
+            <TailSpin
+              color={loader_color(theme)}
+              width="24"
+              height="24"
+            />
         }
         buttonClassName={`min-w-max ${disabled ? 'cursor-not-allowed' : ''} flex items-center justify-center`}
         title={<div className="flex items-center justify-between">
@@ -679,10 +722,12 @@ export default () => {
                         (
                           <div
                             onClick={() =>
-                              setData({
-                                ...data,
-                                [`${name}`]: max_amount,
-                              })
+                              setData(
+                                {
+                                  ...data,
+                                  [`${name}`]: max_amount,
+                                }
+                              )
                             }
                             className="cursor-pointer flex items-center text-black dark:text-white space-x-1.5 mb-2"
                           >
@@ -706,10 +751,12 @@ export default () => {
                       placeholder={placeholder}
                       value={data?.[name]}
                       onChange={e =>
-                        setData({
-                          ...data,
-                          [`${name}`]: e.target.value,
-                        })
+                        setData(
+                          {
+                            ...data,
+                            [`${name}`]: e.target.value,
+                          }
+                        )
                       }
                       className="form-select bg-slate-50 border-0 focus:ring-0 rounded-lg"
                     >
@@ -750,18 +797,21 @@ export default () => {
                             value = e.target.value
                           }
 
-                          value = value < 0 ?
-                            0 :
-                            value
+                          value =
+                            value < 0 ?
+                              0 :
+                              value
                         }
                         else {
                           value = e.target.value
                         }
 
-                        setData({
-                          ...data,
-                          [`${name}`]: value,
-                        })
+                        setData(
+                          {
+                            ...data,
+                            [`${name}`]: value,
+                          }
+                        )
                       }}
                       className="form-input border-0 focus:ring-0 rounded-lg"
                     />
@@ -773,22 +823,32 @@ export default () => {
           <div className="w-full flex items-center justify-end space-x-3 pt-2">
             <EnsProfile
               address={wallet_address}
-              fallback={wallet_address && (
-                <Copy
-                  value={wallet_address}
-                  title={<span className="text-slate-400 dark:text-slate-200 text-sm">
-                    <span className="xl:hidden">
-                      {ellipse(wallet_address, 8)}
-                    </span>
-                    <span className="hidden xl:block">
-                      {ellipse(wallet_address, 12)}
-                    </span>
-                  </span>}
-                  size={18}
-                />
-              )}
+              fallback={
+                wallet_address &&
+                (
+                  <Copy
+                    value={wallet_address}
+                    title={<span className="text-slate-400 dark:text-slate-200 text-sm">
+                      <span className="xl:hidden">
+                        {ellipse(
+                          wallet_address,
+                          8,
+                        )}
+                      </span>
+                      <span className="hidden xl:block">
+                        {ellipse(
+                          wallet_address,
+                          12,
+                        )}
+                      </span>
+                    </span>}
+                  />
+                )
+              }
             />
-            <Wallet connectChainId={chain_data?.chain_id} />
+            <Wallet
+              connectChainId={chain_data?.chain_id}
+            />
           </div>
         </div>}
         noCancelOnClickOutside={
@@ -806,13 +866,16 @@ export default () => {
         onConfirm={() => addLiquidty()}
         onConfirmHide={false}
         confirmButtonTitle={<span className="flex items-center justify-center space-x-1.5">
-          {disabled && (
-            <TailSpin
-              color="white"
-              width="20"
-              height="20"
-            />
-          )}
+          {
+            disabled &&
+            (
+              <TailSpin
+                color="white"
+                width="20"
+                height="20"
+              />
+            )
+          }
           <span>
             {adding ?
               approving ?

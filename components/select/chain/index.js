@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
-import { RotatingTriangles } from 'react-loader-spinner'
+import { TailSpin } from 'react-loader-spinner'
 
 import Image from '../../image'
 import Search from './search'
@@ -74,7 +74,7 @@ export default ({
             }
           </span>
         </div> :
-        <RotatingTriangles
+        <TailSpin
           color={loader_color(theme)}
           width="24"
           height="24"

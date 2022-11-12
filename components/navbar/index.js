@@ -90,10 +90,12 @@ export default () => {
       } = { ...await getChains() }
 
       if (evm) {
-        dispatch({
-          type: CHAINS_DATA,
-          value: evm,
-        })
+        dispatch(
+          {
+            type: CHAINS_DATA,
+            value: evm,
+          }
+        )
       }
     }
 
@@ -106,10 +108,12 @@ export default () => {
       const response = await getAssets()
 
       if (Array.isArray(response)) {
-        dispatch({
-          type: ASSETS_DATA,
-          value: response,
-        })
+        dispatch(
+          {
+            type: ASSETS_DATA,
+            value: response,
+          }
+        )
       }
     }
 
@@ -123,11 +127,12 @@ export default () => {
         chains_data &&
         assets_data
       ) {
-        let updated_ids = is_interval ?
-        [] :
-        assets_data
-          .filter(a => a?.price)
-          .map(a => a.id)
+        let updated_ids =
+          is_interval ?
+            [] :
+            assets_data
+              .filter(a => a?.price)
+              .map(a => a.id)
 
         if (updated_ids.length < assets_data.length) {
           let updated = false
@@ -141,71 +146,86 @@ export default () => {
               const addresses = assets_data
                 .filter(a =>
                   !updated_ids.includes(a?.id) &&
-                  a?.contracts?.findIndex(c =>
-                    c?.chain_id === chain_id &&
-                    c?.contract_address
-                  ) > -1
+                  (a?.contracts || [])
+                    .findIndex(c =>
+                      c?.chain_id === chain_id &&
+                      c?.contract_address
+                    ) > -1
                 )
                 .map(a =>
-                  a.contracts.find(c => c?.chain_id === chain_id)
+                  a.contracts
+                    .find(c =>
+                      c?.chain_id === chain_id
+                    )
                     .contract_address
                 )
 
               if (addresses.length > 0) {
-                const response = await getAssetsPrice(
-                  {
-                    chain_id,
-                    addresses,
-                  },
-                )
+                const response =
+                  await getAssetsPrice(
+                    {
+                      chain_id,
+                      addresses,
+                    },
+                  )
 
                 if (Array.isArray(response)) {
-                  response.forEach(a => {
-                    const asset_index = assets_data.findIndex(_a =>
-                      _a?.id &&
-                      _a.contracts?.findIndex(c =>
-                        c?.chain_id === a?.chain_id &&
-                        equals_ignore_case(c.contract_address, a?.contract_address)
-                      ) > -1
-                    )
-
-                    if (asset_index > -1) {
-                      const asset_data = assets_data[asset_index]
-                      const {
-                        id,
-                      } = { ...asset_data }
-                      let {
-                        price,
-                      } = { ...asset_data }
-
-                      price = a?.price ||
-                        price
-
-                      assets_data[asset_index] = {
-                        ...asset_data,
-                        price,
-                      }
-
-                      updated_ids = _.uniq(
-                        _.concat(
-                          updated_ids,
-                          id,
+                  response
+                    .forEach(a => {
+                      const asset_index = assets_data
+                        .findIndex(_a =>
+                          _a?.id &&
+                          (_a.contracts || [])
+                            .findIndex(c =>
+                              c?.chain_id === a?.chain_id &&
+                              equals_ignore_case(
+                                c.contract_address,
+                                a?.contract_address,
+                              )
+                            ) > -1
                         )
-                      )
 
-                      updated = true
-                    }
-                  })
+                      if (asset_index > -1) {
+                        const asset_data = assets_data[asset_index]
+                        const {
+                          id,
+                        } = { ...asset_data }
+                        let {
+                          price,
+                        } = { ...asset_data }
+
+                        price =
+                          a?.price ||
+                          price
+
+                        assets_data[asset_index] = {
+                          ...asset_data,
+                          price,
+                        }
+
+                        updated_ids =
+                          _.uniq(
+                            _.concat(
+                              updated_ids,
+                              id,
+                            )
+                          )
+
+                        updated = true
+                      }
+                    })
                 }
               }
             }
           }
 
           if (updated) {
-            dispatch({
-              type: ASSETS_DATA,
-              value: _.cloneDeep(assets_data),
-            })
+            dispatch(
+              {
+                type: ASSETS_DATA,
+                value: _.cloneDeep(assets_data),
+              }
+            )
           }
         }
       }
@@ -213,9 +233,10 @@ export default () => {
 
     getData()
 
-    const interval = setInterval(() =>
-      getData(true),
-      5 * 60 * 1000,
+    const interval =
+      setInterval(() =>
+        getData(true),
+        5 * 60 * 1000,
     )
 
     return () => clearInterval(interval)
@@ -239,8 +260,9 @@ export default () => {
               rpcUrls,
             } = { ..._.head(provider_params) }
  
-            const rpc_urls = (rpcUrls || [])
-              .filter(url => url)
+            const rpc_urls =
+              (rpcUrls || [])
+                .filter(url => url)
 
             const provider = rpc_urls.length === 1 ?
               new providers.JsonRpcProvider(rpc_urls[0]) :
@@ -260,10 +282,12 @@ export default () => {
         }
 
         if (!rpcs) {
-          dispatch({
-            type: RPCS,
-            value: _rpcs,
-          })
+          dispatch(
+            {
+              type: RPCS,
+              value: _rpcs,
+            }
+          )
         }
       }
     }
@@ -276,7 +300,11 @@ export default () => {
     const init = async () => {
       if (
         chains_data &&
-        assets_data?.findIndex(a => typeof a.price !== 'number') < 0
+        assets_data &&
+        assets_data
+          .findIndex(a =>
+            typeof a.price !== 'number'
+          ) < 0
       ) {
         const chains_config = {}
 
@@ -293,40 +321,52 @@ export default () => {
               rpcUrls,
             } = { ..._.head(provider_params) }
  
-            const rpc_urls = (rpcUrls || [])
-              .filter(url => url)
+            const rpc_urls =
+              (rpcUrls || [])
+                .filter(url => url)
 
             if (domain_id) {
               chains_config[domain_id] = {
                 providers: rpc_urls,
-                assets: assets_data
-                  .filter(a => a?.contracts?.findIndex(c => c?.chain_id === chain_id) > -1)
-                  .map(a => {
-                    const {
-                      contracts,
-                    } = { ...a }
-                    let {
-                      name,
-                      symbol,
-                    } = { ...a }
+                assets:
+                  assets_data
+                    .filter(a =>
+                      (a?.contracts || [])
+                        .findIndex(c =>
+                          c?.chain_id === chain_id
+                        ) > -1
+                    )
+                    .map(a => {
+                      const {
+                        contracts,
+                      } = { ...a }
+                      let {
+                        name,
+                        symbol,
+                      } = { ...a }
 
-                    const contract_data = contracts.find(c => c?.chain_id === chain_id)
-                    const {
-                      contract_address,
-                    } = { ...contract_data }
+                      const contract_data = contracts
+                        .find(c =>
+                          c?.chain_id === chain_id
+                        )
+                      const {
+                        contract_address,
+                      } = { ...contract_data }
 
-                    symbol = contract_data?.symbol ||
-                      symbol
+                      symbol =
+                        contract_data?.symbol ||
+                        symbol
 
-                    name = name ||
-                      symbol
+                      name =
+                        name ||
+                        symbol
 
-                    return {
-                      name,
-                      symbol,
-                      address: contract_address,
-                    }
-                  }),
+                      return {
+                        name,
+                        symbol,
+                        address: contract_address,
+                      }
+                    }),
               }
             }
           }
@@ -345,12 +385,15 @@ export default () => {
           sdkConfig,
         )
 
-        dispatch({
-          type: SDK,
-          value: await create(
-            sdkConfig,
-          ),
-        })
+        dispatch(
+          {
+            type: SDK,
+            value:
+              await create(
+                sdkConfig,
+              ),
+          }
+        )
       }
     }
 
@@ -365,15 +408,17 @@ export default () => {
         address
       ) {
         if (sdk.nxtpSdkBase) {
-          await sdk.nxtpSdkBase.changeSignerAddress(
-            address,
-          )
+          await sdk.nxtpSdkBase
+            .changeSignerAddress(
+              address,
+            )
         }
 
         if (sdk.nxtpSdkRouter) {
-          await sdk.nxtpSdkRouter.changeSignerAddress(
-            address,
-          )
+          await sdk.nxtpSdkRouter
+            .changeSignerAddress(
+              address,
+            )
         }
 
         console.log(
@@ -381,10 +426,12 @@ export default () => {
           address,
         )
 
-        dispatch({
-          type: SDK,
-          value: sdk,
-        })
+        dispatch(
+          {
+            type: SDK,
+            value: sdk,
+          }
+        )
       }
     }
 
@@ -398,7 +445,10 @@ export default () => {
         sdk &&
         chains_data &&
         assets_data &&
-        assets_data.findIndex(a => typeof a.price !== 'number') < 0 &&
+        assets_data
+          .findIndex(a =>
+            typeof a.price !== 'number'
+          ) < 0 &&
         ![
           '/tx/[tx]',
         ].includes(pathname) &&
@@ -407,90 +457,152 @@ export default () => {
           is_interval
         )
       ) {
-        const response = await sdk.nxtpSdkUtils.getRoutersData()
+        const response =
+          await sdk.nxtpSdkUtils
+            .getRoutersData()
 
         if (
           response ||
           !is_interval
         ) {
-          const data = _.groupBy(
-            (Array.isArray(response) ?
-              response :
-              []
-            )
-            .map(l => {
-              const {
-                domain,
-                local,
-                balance,
-              } = { ...l }
-
-              const chain_data = chains_data?.find(c => c?.domain_id === domain)
-              const {
-                chain_id,
-              } = { ...chain_data }
-
-              let asset_data = assets_data.find(a =>
-                a?.contracts?.findIndex(c =>
-                  c?.chain_id === chain_id &&
-                  equals_ignore_case(c?.contract_address, local)
-                ) > -1
+          const data =
+            _.groupBy(
+              (Array.isArray(response) ?
+                response
+                  .filter(r =>
+                    r?.router_address
+                  ) :
+                []
               )
-              asset_data = {
-                ...asset_data,
-                ...asset_data?.contracts?.find(c =>
-                  c?.chain_id === chain_id &&
-                  equals_ignore_case(c?.contract_address, local)
-                ),
-              }
-              if (asset_data?.contracts) {
-                delete asset_data.contracts
-              }
+              .map(l => {
+                const {
+                  domain,
+                  local,
+                  balance,
+                } = { ...l }
 
-              const {
-                decimals,
-                price,
-              } = { ...asset_data }
+                const chain_data = chains_data
+                  .find(c =>
+                    c?.domain_id === domain
+                  )
+                const {
+                  chain_id,
+                } = { ...chain_data }
 
-              const amount = Number(
-                utils.formatUnits(
-                  BigNumber.from(
-                    BigInt(balance || 0).toString()
+                let asset_data = assets_data
+                  .find(a =>
+                    (a?.contracts || [])
+                      .findIndex(c =>
+                        c?.chain_id === chain_id &&
+                        [
+                          c?.next_asset?.contract_address,
+                          c?.contract_address,
+                        ]
+                        .filter(_a => _a)
+                        .findIndex(_a =>
+                          equals_ignore_case(
+                            _a,
+                            local,
+                          )
+                        ) > -1
+                      ) > -1
+                  )
+                asset_data = {
+                  ...asset_data,
+                  ...(
+                    (asset_data?.contracts || [])
+                      .find(c =>
+                        c?.chain_id === chain_id &&
+                        [
+                          c?.next_asset?.contract_address,
+                          c?.contract_address,
+                        ]
+                        .filter(_a => _a)
+                        .findIndex(_a =>
+                          equals_ignore_case(
+                            _a,
+                            local,
+                          )
+                        ) > -1
+                      )
                   ),
-                  decimals || 18,
-                )
-              )
+                }
 
-              const value = amount *
-                (price || 0)
+                if (asset_data.contracts) {
+                  delete asset_data.contracts
+                }
 
-              return {
-                ...l,
-                chain_id,
-                chain_data,
-                contract_address: local,
-                asset_data,
-                amount,
-                value,
-              }
-            }),
-            'chain_id',
+                if (
+                  asset_data.next_asset &&
+                  equals_ignore_case(
+                    asset_data.next_asset.contract_address,
+                    local,
+                  )
+                ) {
+                  asset_data = {
+                    ...asset_data,
+                    ...asset_data.next_asset,
+                  }
+
+                  delete asset_data.next_asset
+                }
+
+                const {
+                  decimals,
+                  price,
+                } = { ...asset_data }
+
+                const amount =
+                  Number(
+                    utils.formatUnits(
+                      BigNumber.from(
+                        BigInt(
+                          balance ||
+                          0
+                        ).toString()
+                      ),
+                      decimals ||
+                      18,
+                    )
+                  )
+
+                const value =
+                  amount *
+                  (
+                    price ||
+                    0
+                  )
+
+                return {
+                  ...l,
+                  chain_id,
+                  chain_data,
+                  contract_address: local,
+                  asset_data,
+                  amount,
+                  value,
+                }
+              }),
+              'chain_id',
+            )
+
+          dispatch(
+            {
+              type: ASSET_BALANCES_DATA,
+              value: data,
+            }
           )
-
-          dispatch({
-            type: ASSET_BALANCES_DATA,
-            value: data,
-          })
         }
       }
     }
 
     getData()
 
-    const interval = setInterval(() =>
-      getData(true),
-      5 * 60 * 1000,
-    )
+    const interval =
+      setInterval(() =>
+        getData(true),
+        5 * 60 * 1000,
+      )
 
     return () => clearInterval(interval)
   }, [sdk, chains_data, assets_data, pathname])

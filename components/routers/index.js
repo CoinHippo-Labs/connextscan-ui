@@ -77,26 +77,72 @@ export default () => {
               volume,
             } = { ...v }
 
-            const origin_chain_data = chains_data.find(c => c?.domain_id === origin_chain)
-            const destination_chain_data = chains_data.find(c => c?.domain_id === destination_chain)
+            const origin_chain_data = chains_data
+              .find(c =>
+                c?.domain_id === origin_chain
+              )
+            const destination_chain_data = chains_data
+              .find(c =>
+                c?.domain_id === destination_chain
+              )
 
-            let asset_data = assets_data.find(a =>
-              a?.contracts?.findIndex(c =>
-                c?.chain_id === origin_chain_data?.chain_id &&
-                equals_ignore_case(c?.contract_address, asset)
-              ) > -1
-            )
+            let asset_data = assets_data
+              .find(a =>
+                (a?.contracts || [])
+                  .findIndex(c =>
+                    c?.chain_id === origin_chain_data?.chain_id &&
+                    [
+                      c?.next_asset?.contract_address,
+                      c?.contract_address,
+                    ]
+                    .filter(_a => _a)
+                    .findIndex(_a =>
+                      equals_ignore_case(
+                        _a,
+                        asset,
+                      )
+                    ) > -1
+                  ) > -1
+              )
 
             asset_data = {
               ...asset_data,
-              ...asset_data?.contracts?.find(c =>
-                c?.chain_id === origin_chain_data?.chain_id &&
-                equals_ignore_case(c?.contract_address, asset)
+              ...(
+                (asset_data?.contracts || [])
+                  .find(c =>
+                    c?.chain_id === origin_chain_data?.chain_id &&
+                    [
+                      c?.next_asset?.contract_address,
+                      c?.contract_address,
+                    ]
+                    .filter(_a => _a)
+                    .findIndex(_a =>
+                      equals_ignore_case(
+                        _a,
+                        asset,
+                      )
+                    ) > -1
+                  )
               ),
             }
 
-            if (asset_data?.contracts) {
+            if (asset_data.contracts) {
               delete asset_data.contracts
+            }
+
+            if (
+              asset_data.next_asset &&
+              equals_ignore_case(
+                asset_data.next_asset.contract_address,
+                asset,
+              )
+            ) {
+              asset_data = {
+                ...asset_data,
+                ...asset_data.next_asset,
+              }
+
+              delete asset_data.next_asset
             }
 
             const {
@@ -104,14 +150,20 @@ export default () => {
               price,
             } = { ...asset_data }
 
-            const amount = Number(
-              utils.formatUnits(
-                BigNumber.from(
-                  BigInt(volume || 0).toString()
-                ),
-                decimals || 18,
+            const amount =
+              Number(
+                utils.formatUnits(
+                  BigNumber.from(
+                    BigInt(
+                      volume ||
+                      0
+                    )
+                    .toString()
+                  ),
+                  decimals ||
+                  18,
+                )
               )
-            )
 
             return {
               ...v,
@@ -119,8 +171,12 @@ export default () => {
               destination_chain_data,
               asset_data,
               amount,
-              volume: amount *
-                (price || 0),
+              volume:
+                amount *
+                (
+                  price ||
+                  0
+                ),
             }
           })
 
@@ -138,8 +194,14 @@ export default () => {
               destination_chain,
             } = { ...t }
 
-            const origin_chain_data = chains_data.find(c => c?.domain_id === origin_chain)
-            const destination_chain_data = chains_data.find(c => c?.domain_id === destination_chain)
+            const origin_chain_data = chains_data
+              .find(c =>
+                c?.domain_id === origin_chain
+              )
+            const destination_chain_data = chains_data
+              .find(c =>
+                c?.domain_id === destination_chain
+              )
 
             return {
               ...t,
@@ -148,131 +210,164 @@ export default () => {
             }
           })
 
-        setData({
-          volumes: _.orderBy(
-            Object.entries(
-              _.groupBy(
-                volumes,
-                'router',
-              )
-            )
-            .map(([k, v]) => {
-              return {
-                router: k,
-                volume: _.sumBy(
-                  v,
-                  'volume',
-                ),
-              }
-            }),
-            ['volume'],
-            ['desc'],
-          ),
-          transfers: _.orderBy(
-            Object.entries(
-              _.groupBy(
-                transfers,
-                'router',
-              )
-            )
-            .map(([k, v]) => {
-              return {
-                router: k,
-                transfers: _.sumBy(
-                  v,
-                  'transfer_count',
-                ),
-              }
-            }),
-            ['transfers'],
-            ['desc'],
-          ),
-        })
+        setData(
+          {
+            volumes:
+              _.orderBy(
+                Object.entries(
+                  _.groupBy(
+                    volumes,
+                    'router',
+                  )
+                )
+                .map(([k, v]) => {
+                  return {
+                    router: k,
+                    volume:
+                      _.sumBy(
+                        v,
+                        'volume',
+                      ),
+                  }
+                }),
+                ['volume'],
+                ['desc'],
+              ),
+            transfers:
+              _.orderBy(
+                Object.entries(
+                  _.groupBy(
+                    transfers,
+                    'router',
+                  )
+                )
+                .map(([k, v]) => {
+                  return {
+                    router: k,
+                    transfers:
+                      _.sumBy(
+                        v,
+                        'transfer_count',
+                      ),
+                  }
+                }),
+                ['transfers'],
+                ['desc'],
+              ),
+          }
+        )
       }
     }
 
     getData()
   }, [sdk, chains_data, assets_data])
 
-  const routers = _.orderBy(
-    Object.entries(
-      _.groupBy(
-        Object.values({ ...asset_balances_data })
-          .flatMap(a => a),
-        'router_address',
+  const routers =
+    _.orderBy(
+      Object.entries(
+        _.groupBy(
+          Object.values({ ...asset_balances_data })
+            .flatMap(a => a),
+          'router_address',
+        )
       )
-    )
-    .map(([k, v]) => {
-      return {
-        router_address: k,
-        assets: _.orderBy(
-          v,
-          ['value'],
-          ['desc'],
-        ),
-      }
-    })
-    .map(r => {
-      const {
-        router_address,
-        assets,
-      } = { ...r }
-
-      const {
-        volumes,
-        transfers,
-      } = { ...data }
-
-      return {
-        ...r,
-        total_value: _.sumBy(
+      .map(([k, v]) => {
+        return {
+          router_address: k,
+          assets:
+            _.orderBy(
+              v,
+              ['value'],
+              ['desc'],
+            ),
+        }
+      })
+      .map(r => {
+        const {
+          router_address,
           assets,
-          'value',
-        ),
-        total_volume: _.sumBy(
-          (Array.isArray(volumes) ?
-            volumes :
-            []
-          )
-          .filter(d => equals_ignore_case(d?.router, router_address)),
-          'volume',
-        ),
-        total_transfers: _.sumBy(
-          (Array.isArray(transfers) ?
-            transfers :
-            []
-          )
-          .filter(d => equals_ignore_case(d?.router, router_address)),
-          'transfers',
-        ),
-        // total_fee: 33.33,
-        supported_chains: _.uniq(
-          assets?.map(a => a?.chain_id)
-        ),
-      }
-    }),
-    ['total_value'],
-    ['desc'],
-  )
+        } = { ...r }
 
-  const metrics = asset_balances_data &&
+        const {
+          volumes,
+          transfers,
+        } = { ...data }
+
+        return {
+          ...r,
+          total_value:
+            _.sumBy(
+              assets,
+              'value',
+            ),
+          total_volume:
+            _.sumBy(
+              (Array.isArray(volumes) ?
+                volumes :
+                []
+              )
+              .filter(d =>
+                equals_ignore_case(
+                  d?.router,
+                  router_address,
+                )
+              ),
+              'volume',
+            ),
+          total_transfers:
+            _.sumBy(
+              (Array.isArray(transfers) ?
+                transfers :
+                []
+              )
+              .filter(d =>
+                equals_ignore_case(
+                  d?.router,
+                  router_address,
+                )
+              ),
+              'transfers',
+            ),
+          // total_fee: 33.33,
+          supported_chains:
+            _.uniq(
+              (assets || [])
+                .map(a =>
+                  a?.chain_id
+                )
+            ),
+        }
+      }),
+      ['total_value'],
+      ['desc'],
+    )
+
+  const metrics =
+    asset_balances_data &&
     {
-      liquidity: _.sumBy(
-        routers,
-        'total_value',
-      ),
-      volume: _.sumBy(
-        routers,
-        'total_volume',
-      ),
-      transfers: _.sumBy(
-        routers,
-        'total_transfers',
-      ),
+      liquidity:
+        _.sumBy(
+          routers,
+          'total_value',
+        ),
+      volume:
+        _.sumBy(
+          routers,
+          'total_volume',
+        ),
+      transfers:
+        _.sumBy(
+          routers,
+          'total_transfers',
+        ),
       // fee: 33.33,
-      supported_chains: _.uniq(
-        routers.flatMap(r => r?.supported_chains)
-      ),
+      supported_chains:
+        _.uniq(
+          routers
+            .flatMap(r =>
+              r?.supported_chains
+            )
+        ),
     }
 
   return (
@@ -290,9 +385,10 @@ export default () => {
                 {
                   Header: '#',
                   accessor: 'i',
-                  sortType: (a, b) => a.original.i > b.original.i ?
-                    1 :
-                    -1,
+                  sortType: (a, b) =>
+                    a.original.i > b.original.i ?
+                      1 :
+                      -1,
                   Cell: props => (
                     <span className="font-semibold">
                       {number_format(
@@ -354,9 +450,10 @@ export default () => {
                 {
                   Header: 'Liquidity',
                   accessor: 'total_value',
-                  sortType: (a, b) => a.original.total_value > b.original.total_value ?
-                    1 :
-                    -1,
+                  sortType: (a, b) =>
+                    a.original.total_value > b.original.total_value ?
+                      1 :
+                      -1,
                   Cell: props => {
                     const {
                       value,
@@ -388,9 +485,10 @@ export default () => {
                 {
                   Header: 'Transfers',
                   accessor: 'total_transfers',
-                  sortType: (a, b) => a.original.total_transfers > b.original.total_transfers ?
-                    1 :
-                    -1,
+                  sortType: (a, b) =>
+                    a.original.total_transfers > b.original.total_transfers ?
+                      1 :
+                      -1,
                   Cell: props => {
                     const {
                       value,
@@ -419,9 +517,10 @@ export default () => {
                 {
                   Header: 'Volume',
                   accessor: 'total_volume',
-                  sortType: (a, b) => a.original.total_volume > b.original.total_volume ?
-                    1 :
-                    -1,
+                  sortType: (a, b) =>
+                    a.original.total_volume > b.original.total_volume ?
+                      1 :
+                      -1,
                   Cell: props => {
                     const {
                       value,
@@ -453,9 +552,10 @@ export default () => {
                 {
                   Header: 'Fee',
                   accessor: 'total_fee',
-                  sortType: (a, b) => a.original.total_fee > b.original.total_fee ?
-                    1 :
-                    -1,
+                  sortType: (a, b) =>
+                    a.original.total_fee > b.original.total_fee ?
+                      1 :
+                      -1,
                   Cell: props => {
                     const {
                       value,
@@ -487,9 +587,10 @@ export default () => {
                 {
                   Header: 'Supported Chains',
                   accessor: 'supported_chains',
-                  sortType: (a, b) => a.original.supported_chains?.length > b.original.supported_chains?.length ?
-                    1 :
-                    -1,
+                  sortType: (a, b) =>
+                    a.original.supported_chains?.length > b.original.supported_chains?.length ?
+                      1 :
+                      -1,
                   Cell: props => {
                     const {
                       value,
@@ -503,7 +604,14 @@ export default () => {
                               const {
                                 name,
                                 image,
-                              } = { ...chains_data?.find(c => c?.chain_id === id) }
+                              } = {
+                                ...(
+                                  (chains_data || [])
+                                    .find(c =>
+                                      c?.chain_id === id
+                                    )
+                                ),
+                              }
 
                               return image &&
                                 (
@@ -542,7 +650,7 @@ export default () => {
             defaultPageSize={50}
             className="no-border"
           /> :
-          <div className="h-32 flex items-center justify-center">
+          <div className="flex items-center m-3">
             <TailSpin
               color={loader_color(theme)}
               width="32"

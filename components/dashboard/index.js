@@ -52,7 +52,10 @@ export default () => {
         chains_data &&
         assets_data
       ) {
-        const _timeframe = timeframes.find(t => t?.day === timeframe)
+        const _timeframe = timeframes
+          .find(t =>
+            t?.day === timeframe
+          )
 
         let volumes = await daily_transfer_volume()
 
@@ -70,26 +73,72 @@ export default () => {
               volume,
             } = { ...v }
 
-            const origin_chain_data = chains_data.find(c => c?.domain_id === origin_chain)
-            const destination_chain_data = chains_data.find(c => c?.domain_id === destination_chain)
+            const origin_chain_data = chains_data
+              .find(c =>
+                c?.domain_id === origin_chain
+              )
+            const destination_chain_data = chains_data
+              .find(c =>
+                c?.domain_id === destination_chain
+              )
 
-            let asset_data = assets_data.find(a =>
-              a?.contracts?.findIndex(c => c?.chain_id ===
-                origin_chain_data?.chain_id &&
-                equals_ignore_case(c?.contract_address, asset)
-              ) > -1
-            )
+            let asset_data = assets_data
+              .find(a =>
+                (a?.contracts || [])
+                  .findIndex(c =>
+                    c?.chain_id === origin_chain_data?.chain_id &&
+                    [
+                      c?.next_asset?.contract_address,
+                      c?.contract_address,
+                    ]
+                    .filter(_a => _a)
+                    .findIndex(_a =>
+                      equals_ignore_case(
+                        _a,
+                        asset,
+                      )
+                    ) > -1
+                  ) > -1
+              )
 
             asset_data = {
               ...asset_data,
-              ...asset_data?.contracts?.find(c =>
-                c?.chain_id === origin_chain_data?.chain_id &&
-                equals_ignore_case(c?.contract_address, asset)
+              ...(
+                (asset_data?.contracts || [])
+                  .find(c =>
+                    c?.chain_id === origin_chain_data?.chain_id &&
+                    [
+                      c?.next_asset?.contract_address,
+                      c?.contract_address,
+                    ]
+                    .filter(_a => _a)
+                    .findIndex(_a =>
+                      equals_ignore_case(
+                        _a,
+                        asset,
+                      )
+                    ) > -1
+                  )
               ),
             }
 
-            if (asset_data?.contracts) {
+            if (asset_data.contracts) {
               delete asset_data.contracts
+            }
+
+            if (
+              asset_data.next_asset &&
+              equals_ignore_case(
+                asset_data.next_asset.contract_address,
+                asset,
+              )
+            ) {
+              asset_data = {
+                ...asset_data,
+                ...asset_data.next_asset,
+              }
+
+              delete asset_data.next_asset
             }
 
             const {

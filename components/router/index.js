@@ -60,12 +60,23 @@ export default () => {
     if (
       type(_address) === 'ens' &&
       Object.values({ ...ens_data })
-        .findIndex(d => equals_ignore_case(d?.name, _address)) > -1
+        .findIndex(d =>
+          equals_ignore_case(
+            d?.name,
+            _address,
+          )
+        ) > -1
     ) {
-      _address = _.head(
-        Object.entries(ens_data)
-          .find(([k, v]) => equals_ignore_case(v?.name, _address))
-      )
+      _address =
+        _.head(
+          Object.entries(ens_data)
+            .find(([k, v]) =>
+              equals_ignore_case(
+                v?.name,
+                _address,
+              )
+            )
+        )
 
       router.push(`/router/${_address}`)
     }
@@ -78,7 +89,9 @@ export default () => {
         chains_data &&
         assets_data
       ) {
-        const response = await sdk.nxtpSdkUtils.getRoutersData()
+        const response =
+          await sdk.nxtpSdkUtils
+            .getRoutersData()
 
         if (
           Array.isArray(response) ||
@@ -90,10 +103,14 @@ export default () => {
               []
             )
             .filter(l =>
-              equals_ignore_case(l?.router_address, address) &&
-              chains_data.findIndex(c =>
-                c?.domain_id === l?.domain
-              ) > -1
+              equals_ignore_case(
+                l?.router_address,
+                address,
+              ) &&
+              chains_data
+                .findIndex(c =>
+                  c?.domain_id === l?.domain
+                ) > -1
             )
             .map(l => {
               const {
@@ -102,30 +119,71 @@ export default () => {
                 balance,
               } = { ...l }
 
-              const chain_data = chains_data.find(c =>
-                c?.domain_id === domain
-              )
+              const chain_data = chains_data
+                .find(c =>
+                  c?.domain_id === domain
+                )
               const {
                 chain_id,
               } = { ...chain_data }
 
-              let asset_data = assets_data.find(a =>
-                a?.contracts?.findIndex(c =>
-                  c?.chain_id === chain_id &&
-                  equals_ignore_case(c?.contract_address, local)
-                ) > -1
-              )
+              let asset_data = assets_data
+                .find(a =>
+                  (a?.contracts || [])
+                    .findIndex(c =>
+                      c?.chain_id === chain_id &&
+                      [
+                        c?.next_asset?.contract_address,
+                        c?.contract_address,
+                      ]
+                      .filter(_a => _a)
+                      .findIndex(_a =>
+                        equals_ignore_case(
+                          _a,
+                          local,
+                        )
+                      ) > -1
+                    ) > -1
+                )
 
               asset_data = {
                 ...asset_data,
-                ...asset_data?.contracts?.find(c =>
-                  c?.chain_id === chain_id &&
-                  equals_ignore_case(c?.contract_address, local)
+                ...(
+                  (asset_data?.contracts || [])
+                  .find(c =>
+                    c?.chain_id === chain_id &&
+                    [
+                      c?.next_asset?.contract_address,
+                      c?.contract_address,
+                    ]
+                    .filter(_a => _a)
+                    .findIndex(_a =>
+                      equals_ignore_case(
+                        _a,
+                        local,
+                      )
+                    ) > -1
+                  )
                 ),
               }
 
-              if (asset_data?.contracts) {
+              if (asset_data.contracts) {
                 delete asset_data.contracts
+              }
+
+              if (
+                asset_data.next_asset &&
+                equals_ignore_case(
+                  asset_data.next_asset.contract_address,
+                  local,
+                )
+              ) {
+                asset_data = {
+                  ...asset_data,
+                  ...asset_data.next_asset,
+                }
+
+                delete asset_data.next_asset
               }
 
               const {
@@ -133,23 +191,32 @@ export default () => {
                 price,
               } = { ...asset_data }
 
-              const amount = Number(
-                utils.formatUnits(
-                  BigNumber.from(
-                    BigInt(balance || 0)
+              const amount =
+                Number(
+                  utils.formatUnits(
+                    BigNumber.from(
+                      BigInt(
+                        balance ||
+                        0
+                      )
                       .toString()
-                  ),
-                  decimals || 18,
+                    ),
+                    decimals ||
+                    18,
+                  )
                 )
-              )
 
               return {
                 ...l,
                 chain_id,
                 contract_address: local,
                 amount,
-                value: amount *
-                  (price || 0),
+                value:
+                  amount *
+                  (
+                    price ||
+                    0
+                  ),
               }
             })
 
@@ -164,10 +231,11 @@ export default () => {
 
     getData()
 
-    const interval = setInterval(() =>
-      getData(true),
-      0.5 * 60 * 1000,
-    )
+    const interval =
+      setInterval(() =>
+        getData(true),
+        0.5 * 60 * 1000,
+      )
 
     return () => clearInterval(interval)
   }, [address, sdk, chains_data, assets_data, action])
@@ -179,11 +247,12 @@ export default () => {
         chains_data &&
         assets_data
       ) {
-        let volumes = await daily_transfer_volume(
-          {
-            router: `eq.${address}`,
-          },
-        )
+        let volumes =
+          await daily_transfer_volume(
+            {
+              router: `eq.${address}`,
+            },
+          )
 
         volumes =
           (Array.isArray(volumes) ?
@@ -199,30 +268,72 @@ export default () => {
               volume,
             } = { ...v }
 
-            const origin_chain_data = chains_data.find(c =>
-              c?.domain_id === origin_chain
-            )
-            const destination_chain_data = chains_data.find(c =>
-              c?.domain_id === destination_chain
-            )
+            const origin_chain_data = chains_data
+              .find(c =>
+                c?.domain_id === origin_chain
+              )
+            const destination_chain_data = chains_data
+              .find(c =>
+                c?.domain_id === destination_chain
+              )
 
-            let asset_data = assets_data.find(a =>
-              a?.contracts?.findIndex(c =>
-                c?.chain_id === origin_chain_data?.chain_id &&
-                equals_ignore_case(c?.contract_address, asset)
-              ) > -1
-            )
+            let asset_data = assets_data
+              .find(a =>
+                (a?.contracts || [])
+                  .findIndex(c =>
+                    c?.chain_id === origin_chain_data?.chain_id &&
+                    [
+                      c?.next_asset?.contract_address,
+                      c?.contract_address,
+                    ]
+                    .filter(_a => _a)
+                    .findIndex(_a =>
+                      equals_ignore_case(
+                        _a,
+                        asset,
+                      )
+                    ) > -1
+                  ) > -1
+              )
 
             asset_data = {
               ...asset_data,
-              ...asset_data?.contracts?.find(c =>
-                c?.chain_id === origin_chain_data?.chain_id &&
-                equals_ignore_case(c?.contract_address, asset)
+              ...(
+                (asset_data?.contracts || [])
+                .find(c =>
+                  c?.chain_id === origin_chain_data?.chain_id &&
+                  [
+                    c?.next_asset?.contract_address,
+                    c?.contract_address,
+                  ]
+                  .filter(_a => _a)
+                  .findIndex(_a =>
+                    equals_ignore_case(
+                      _a,
+                      asset,
+                    )
+                  ) > -1
+                )
               ),
             }
 
-            if (asset_data?.contracts) {
+            if (asset_data.contracts) {
               delete asset_data.contracts
+            }
+
+            if (
+              asset_data.next_asset &&
+              equals_ignore_case(
+                asset_data.next_asset.contract_address,
+                asset,
+              )
+            ) {
+              asset_data = {
+                ...asset_data,
+                ...asset_data.next_asset,
+              }
+
+              delete asset_data.next_asset
             }
 
             const {
@@ -230,15 +341,20 @@ export default () => {
               price,
             } = { ...asset_data }
 
-            const amount = Number(
-              utils.formatUnits(
-                BigNumber.from(
-                  BigInt(volume || 0)
+            const amount =
+              Number(
+                utils.formatUnits(
+                  BigNumber.from(
+                    BigInt(
+                      volume ||
+                      0
+                    )
                     .toString()
-                ),
-                decimals || 18,
+                  ),
+                  decimals ||
+                  18,
+                )
               )
-            )
 
             return {
               ...v,
@@ -246,16 +362,21 @@ export default () => {
               destination_chain_data,
               asset_data,
               amount,
-              volume: amount *
-                (price || 0),
+              volume:
+                amount *
+                (
+                  price ||
+                  0
+                ),
             }
           })
 
-        let transfers = await daily_transfer_metrics(
-          {
-            router: `eq.${address}`,
-          },
-        )
+        let transfers =
+          await daily_transfer_metrics(
+            {
+              router: `eq.${address}`,
+            },
+          )
 
         transfers =
           (Array.isArray(transfers) ?
@@ -269,12 +390,14 @@ export default () => {
               destination_chain,
             } = { ...t }
 
-            const origin_chain_data = chains_data.find(c =>
-              c?.domain_id === origin_chain
-            )
-            const destination_chain_data = chains_data.find(c =>
-              c?.domain_id === destination_chain
-            )
+            const origin_chain_data = chains_data
+              .find(c =>
+                c?.domain_id === origin_chain
+              )
+            const destination_chain_data = chains_data
+              .find(c =>
+                c?.domain_id === destination_chain
+              )
 
             return {
               ...t,
@@ -285,14 +408,16 @@ export default () => {
 
         setData(
           {
-            total_volume: _.sumBy(
-              volumes,
-              'volume',
-            ),
-            total_transfers: _.sumBy(
-              transfers,
-              'transfer_count',
-            ),
+            total_volume:
+              _.sumBy(
+                volumes,
+                'volume',
+              ),
+            total_transfers:
+              _.sumBy(
+                transfers,
+                'transfer_count',
+              ),
           },
         )
       }
@@ -306,18 +431,24 @@ export default () => {
     total_transfers,
   } = { ...data }
 
-  const metrics = liquidity &&
+  const metrics =
+    liquidity &&
     {
-      liquidity: _.sumBy(
-        liquidity,
-        'value',
-      ),
+      liquidity:
+        _.sumBy(
+          liquidity,
+          'value',
+        ),
       volume: total_volume,
       transfers: total_transfers,
       // fee: 33.33,
-      supported_chains: _.uniq(
-        liquidity.map(d => d?.chain_id)
-      ),
+      supported_chains:
+        _.uniq(
+          liquidity
+            .map(d =>
+              d?.chain_id
+            )
+        ),
     }
 
   return (

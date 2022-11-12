@@ -137,10 +137,11 @@ export default () => {
           statusSelect ||
           undefined
 
-        const _data = !fetchTrigger ?
-          [] :
-          data ||
-          []
+        const _data =
+          !fetchTrigger ?
+            [] :
+            data ||
+            []
 
         const limit = LIMIT
 
@@ -153,57 +154,65 @@ export default () => {
           case '/address/[address]':
             try {
               if (address) {
-                response = await sdk.nxtpSdkUtils.getTransfersByUser(
-                  {
-                    userAddress: address,
-                    status,
-                    range: {
-                      limit,
-                      offset,
-                    },
-                  },
-                )
+                response =
+                  await sdk.nxtpSdkUtils
+                    .getTransfersByUser(
+                      {
+                        userAddress: address,
+                        status,
+                        range: {
+                          limit,
+                          offset,
+                        },
+                      },
+                    )
               }
             } catch (error) {}
             break
           case '/router/[address]':
             try {
               if (address) {
-                response = await sdk.nxtpSdkUtils.getTransfersByRouter(
-                  {
-                    routerAddress: address,
-                    status,
-                    range: {
-                      limit,
-                      offset,
-                    },
-                  },
-                )
+                response =
+                  await sdk.nxtpSdkUtils
+                    .getTransfersByRouter(
+                      {
+                        routerAddress: address,
+                        status,
+                        range: {
+                          limit,
+                          offset,
+                        },
+                      },
+                    )
               }
             } catch (error) {}
             break
           default:
             try {
               if (status) {
-                response = await sdk.nxtpSdkUtils.getTransfersByStatus(
-                  {
-                    status,
-                    range: {
-                      limit,
-                      offset,
-                    },
-                  },
-                )
+                response =
+                  await sdk.nxtpSdkUtils
+                    .getTransfersByStatus(
+                      {
+                        status,
+                        range: {
+                          limit,
+                          offset,
+                        },
+                      },
+                    )
               }
               else {
-                response = await sdk.nxtpSdkUtils.getTransfers(
-                  {
-                    range: {
-                      limit,
-                      offset,
-                    },
-                  },
-                )
+                response =
+                  await sdk.nxtpSdkUtils
+                    .getTransfers(
+                      {
+                        range: {
+                          limit,
+                          offset,
+                        },
+                      },
+                    )
               }
             } catch (error) {}
             break
@@ -223,149 +232,209 @@ export default () => {
               ['desc'],
             )
 
-          response = response
-            .map(t => {
-              const source_chain_data = chains_data?.find(c =>
-                c?.chain_id === Number(t?.origin_chain) ||
-                c?.domain_id === t?.origin_domain
-              )
-              const source_asset_data = assets_data?.find(a =>
-                a?.contracts?.findIndex(c =>
-                  c?.chain_id === source_chain_data?.chain_id &&
-                  [
+          response =
+            response
+              .map(t => {
+                const source_chain_data = (chains_data || [])
+                  .find(c =>
+                    c?.chain_id === Number(t?.origin_chain) ||
+                    c?.domain_id === t?.origin_domain
+                  )
+
+                const source_asset_data = (assets_data || [])
+                  .find(a =>
+                    (a?.contracts || [])
+                      .findIndex(c =>
+                        c?.chain_id === source_chain_data?.chain_id &&
+                        [
+                          t?.origin_transacting_asset,
+                          t?.origin_bridged_asset,
+                        ].findIndex(_a =>
+                          [
+                            c?.next_asset?.contract_address,
+                            c?.contract_address,
+                          ]
+                          .filter(__a => __a)
+                          .findIndex(__a =>
+                            equals_ignore_case(
+                              __a,
+                              _a,
+                            )
+                          ) > -1
+                        ) > -1
+                      ) > -1
+                    )
+
+                let source_contract_data = (source_asset_data?.contracts || [])
+                  .find(c =>
+                    c?.chain_id === source_chain_data?.chain_id,
+                  )
+
+                if (
+                  source_contract_data?.next_asset &&
+                  equals_ignore_case(
+                    source_contract_data.next_asset.contract_address,
                     t?.origin_transacting_asset,
-                    t?.origin_bridged_asset,
-                  ].findIndex(_a =>
-                    equals_ignore_case(_a, c?.contract_address)
-                  ) > -1
-                ) > -1
-              )
-              const source_contract_data = source_asset_data?.contracts?.find(c =>
-                c?.chain_id === source_chain_data?.chain_id,
-              )
+                  )
+                ) {
+                  source_contract_data = {
+                    ...source_contract_data,
+                    ...source_contract_data.next_asset,
+                  }
 
-              const destination_chain_data = chains_data?.find(c =>
-                c?.chain_id === Number(t?.destination_chain) ||
-                c?.domain_id === t?.destination_domain
-              )
-              const destination_asset_data = assets_data?.find(a =>
-                a?.contracts?.findIndex(c =>
-                  c?.chain_id === destination_chain_data?.chain_id &&
-                  [
-                    t?.destination_transacting_asset,
+                  delete source_contract_data.next_asset
+                }
+
+                const destination_chain_data = (chains_data || [])
+                  .find(c =>
+                    c?.chain_id === Number(t?.destination_chain) ||
+                    c?.domain_id === t?.destination_domain
+                  )
+
+                const destination_asset_data = (assets_data || [])
+                  .find(a =>
+                    (a?.contracts || [])
+                      .findIndex(c =>
+                        c?.chain_id === destination_chain_data?.chain_id &&
+                        [
+                          t?.destination_transacting_asset,
+                          t?.destination_local_asset,
+                        ].findIndex(_a =>
+                          [
+                            c?.next_asset?.contract_address,
+                            c?.contract_address,
+                          ]
+                          .filter(__a => __a)
+                          .findIndex(__a =>
+                            equals_ignore_case(
+                              __a,
+                              _a,
+                            )
+                          ) > -1
+                        ) > -1
+                      ) > -1
+                  )
+
+                let destination_contract_data = (destination_asset_data?.contracts || [])
+                  .find(c =>
+                    c?.chain_id === destination_chain_data?.chain_id,
+                  )
+
+                if (
+                  destination_contract_data?.next_asset &&
+                  equals_ignore_case(
+                    destination_contract_data.next_asset.contract_address,
                     t?.destination_local_asset,
-                  ].findIndex(_a =>
-                    equals_ignore_case(_a, c?.contract_address)
-                  ) > -1
-                ) > -1
-              )
-              const destination_contract_data = destination_asset_data?.contracts?.find(c =>
-                c?.chain_id === destination_chain_data?.chain_id,
-              )
+                  )
+                ) {
+                  destination_contract_data = {
+                    ...destination_contract_data,
+                    ...destination_contract_data.next_asset,
+                  }
 
-              return {
-                ...t,
-                source_chain_data,
-                destination_chain_data,
-                source_asset_data: {
-                  ...source_asset_data,
-                  ...source_contract_data,
-                },
-                destination_asset_data: {
-                  ...destination_asset_data,
-                  ...destination_contract_data,
-                },
-                pending:
-                  ![
-                    XTransferStatus.Executed,
-                    XTransferStatus.CompletedFast,
-                    XTransferStatus.CompletedSlow,
-                  ].includes(t?.status),
-              }
-            })
-            .map(t => {
-              const {
-                source_asset_data,
-                destination_asset_data,
-                origin_transacting_amount,
-                origin_bridged_amount,
-                destination_transacting_amount,
-                destination_local_amount,
-              } = { ...t }
+                  delete destination_contract_data.next_asset
+                }
 
-              const source_amount =
-                _.head(
-                  [
-                    origin_transacting_amount,
-                    origin_bridged_amount,
-                  ]
-                  .map(a =>
+                return {
+                  ...t,
+                  source_chain_data,
+                  destination_chain_data,
+                  source_asset_data: {
+                    ...source_asset_data,
+                    ...source_contract_data,
+                  },
+                  destination_asset_data: {
+                    ...destination_asset_data,
+                    ...destination_contract_data,
+                  },
+                  pending:
+                    ![
+                      XTransferStatus.Executed,
+                      XTransferStatus.CompletedFast,
+                      XTransferStatus.CompletedSlow,
+                    ].includes(t?.status),
+                }
+              })
+              .map(t => {
+                const {
+                  source_asset_data,
+                  destination_asset_data,
+                  origin_transacting_amount,
+                  origin_bridged_amount,
+                  destination_transacting_amount,
+                  destination_local_amount,
+                } = { ...t }
+
+                const source_amount =
+                  _.head(
                     [
-                      'number',
-                      'string',
-                    ].includes(typeof a) &&
-                    Number(
-                      utils.formatUnits(
-                        BigNumber.from(
-                          BigInt(a)
-                            .toString()
-                        ),
-                        source_asset_data?.decimals ||
-                        18,
+                      origin_bridged_amount,
+                      origin_transacting_amount,
+                    ]
+                    .map(a =>
+                      [
+                        'number',
+                        'string',
+                      ].includes(typeof a) &&
+                      Number(
+                        utils.formatUnits(
+                          BigNumber.from(
+                            BigInt(a)
+                              .toString()
+                          ),
+                          source_asset_data?.decimals ||
+                          18,
+                        )
                       )
                     )
+                    .filter(a => a)
                   )
-                  .filter(a => a)
-                )
 
-              const destination_amount =
-                _.head(
-                  [
-                    destination_transacting_amount,
-                    // destination_local_amount,
-                  ]
-                  .map(a =>
+                const destination_amount =
+                  _.head(
                     [
-                      'number',
-                      'string',
-                    ].includes(typeof a) &&
-                    Number(
-                      utils.formatUnits(
-                        BigNumber.from(
-                          BigInt(a)
-                            .toString()
-                        ),
-                        destination_asset_data?.decimals ||
-                        18,
+                      destination_transacting_amount,
+                      // destination_local_amount,
+                    ]
+                    .map(a =>
+                      [
+                        'number',
+                        'string',
+                      ].includes(typeof a) &&
+                      Number(
+                        utils.formatUnits(
+                          BigNumber.from(
+                            BigInt(a)
+                              .toString()
+                          ),
+                          destination_asset_data?.decimals ||
+                          18,
+                        )
                       )
                     )
+                    .filter(a => a)
+                  ) ||
+                  source_amount *
+                  (
+                    1 -
+                    ROUTER_FEE_PERCENT / 100
                   )
-                  .filter(a => a)
-                ) ||
-                source_amount *
-                (
-                  1 -
-                  ROUTER_FEE_PERCENT / 100
-                )
 
-              return {
-                ...t,
-                source_asset_data: {
-                  ...source_asset_data,
-                  amount: source_amount,
-                },
-                destination_asset_data: {
-                  ...destination_asset_data,
-                  amount: destination_amount,
-                },
-              }
-            })
+                return {
+                  ...t,
+                  source_asset_data: {
+                    ...source_asset_data,
+                    amount: source_amount,
+                  },
+                  destination_asset_data: {
+                    ...destination_asset_data,
+                    amount: destination_amount,
+                  },
+                }
+              })
 
           setData(response)
-          setNoMore(
-            response.length <=
-            _data.length
-          )
+          setNoMore(response.length <= _data.length)
         }
         else if (!fetchTrigger) {
           setData([])
@@ -379,42 +448,48 @@ export default () => {
     getData()
   }, [fetchTrigger])
 
-  const source_chain_data = chains_data?.find(c =>
-    c?.id === fromChainSelect
-  )
-  const destination_chain_data = chains_data?.find(c =>
-    c?.id === toChainSelect
-  )
-
-  const asset_data = assets_data?.find(a =>
-    [
-      a?.source_asset_data?.id,
-      a?.destination_asset_data?.id,
-    ].includes(a?.id)
-  )
-
-  const data_filtered = data?.filter(t =>
-    (
-      !source_chain_data ||
-      source_chain_data?.id === t?.source_chain_data?.id
-    ) &&
-    (
-      !destination_chain_data ||
-      destination_chain_data?.id === t?.destination_chain_data?.id
-    ) &&
-    (
-      !asset_data ||
-      [
-        t?.source_asset_data?.id,
-        t?.destination_asset_data?.id,
-      ].includes(asset_data?.id)
+  const source_chain_data = (chains_data || [])
+    .find(c =>
+      c?.id === fromChainSelect
     )
-  )
+  const destination_chain_data = (chains_data || [])
+    .find(c =>
+      c?.id === toChainSelect
+    )
+
+  const asset_data = (assets_data || [])
+    .find(a =>
+      [
+        a?.source_asset_data?.id,
+        a?.destination_asset_data?.id,
+      ].includes(a?.id)
+    )
+
+  const data_filtered =
+    data &&
+    data
+      .filter(t =>
+        (
+          !source_chain_data ||
+          source_chain_data?.id === t?.source_chain_data?.id
+        ) &&
+        (
+          !destination_chain_data ||
+          destination_chain_data?.id === t?.destination_chain_data?.id
+        ) &&
+        (
+          !asset_data ||
+          [
+            t?.source_asset_data?.id,
+            t?.destination_asset_data?.id,
+          ].includes(asset_data?.id)
+        )
+      )
 
   return (
     <div className="space-y-2 mb-6">
       <div className="sm:flex sm:items-center sm:justify-between">
-        <div className="uppercase tracking-wider text-sm font-medium">
+        <div className="uppercase tracking-wider text-sm font-semibold">
           Latest Transfers
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 space-x-0 sm:space-x-2 mt-2 sm:mt-0 mb-4 sm:mb-0">
@@ -458,9 +533,10 @@ export default () => {
                 {
                   Header: '#',
                   accessor: 'i',
-                  sortType: (a, b) => a.original.i > b.original.i ?
-                    1 :
-                    -1,
+                  sortType: (a, b) =>
+                    a.original.i > b.original.i ?
+                      1 :
+                      -1,
                   Cell: props => (
                     <span className="font-semibold">
                       {number_format(

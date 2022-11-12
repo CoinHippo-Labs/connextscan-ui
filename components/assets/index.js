@@ -61,77 +61,130 @@ export default ({
     }
   }, [chain])
 
-  const chain_data = chains_data?.find(c => c?.id === chainSelect)
+  const chain_data = (chains_data || [])
+    .find(c =>
+      c?.id === chainSelect
+    )
   const {
     chain_id,
   } = { ...chain_data }
 
-  const _assets_data = assets_data ?
-    assets_data
-      .filter(a =>
-        !assetSelect ||
-        a?.id === assetSelect
-      )
-      .flatMap(a =>
-        (a?.contracts || [])
-          .filter(c =>
-            (
-              !chain_data ||
-              c?.chain_id === chain_id
-            ) &&
-            chains_data?.findIndex(_c => _c?.chain_id === c?.chain_id) > -1
-          )
-          .map((c, i) => {
-            const asset_data = {
-              ...a,
-              ...c,
-              i,
-              chain_data: chains_data?.find(_c => _c?.chain_id === c?.chain_id),
-            }
-
-            if (asset_data?.contracts) {
-              delete asset_data.contracts
-            }
-
-            const {
-              chain_id,
-              contract_address,
-              price,
-            } = { ...asset_data }
-
-            const liquidity = !chain &&
-              (data || [])
-                .find(d =>
-                  d?.chain_id === chain_id &&
-                  equals_ignore_case(d?.contract_address, contract_address)
-                )
-
-            const amount = data ?
-              chain ?
-                _.sumBy(
-                  (data || [])
-                    .filter(d =>
-                      d?.chain_id === chain_id &&
-                      equals_ignore_case(d?.contract_address, contract_address)
+  const _assets_data =
+    assets_data ?
+      assets_data
+        .filter(a =>
+          !assetSelect ||
+          a?.id === assetSelect
+        )
+        .flatMap(a =>
+          (a?.contracts || [])
+            .filter(c =>
+              (
+                !chain_data ||
+                c?.chain_id === chain_id
+              ) &&
+              (chains_data || [])
+                .findIndex(_c =>
+                  _c?.chain_id === c?.chain_id
+                ) > -1
+            )
+            .map((c, i) => {
+              const asset_data = {
+                ...a,
+                ...c,
+                i,
+                chain_data:
+                  (chains_data || [])
+                    .find(_c =>
+                      _c?.chain_id === c?.chain_id
                     ),
-                  'amount',
-                ) :
-                liquidity?.amount ||
-                  0 :
-              null
+              }
 
-            const value = typeof amount === 'number' ?
-              amount * (price || 0) :
-              null
+              if (asset_data.contracts) {
+                delete asset_data.contracts
+              }
 
-            return {
-              ...asset_data,
-              amount,
-              value,
-            }
-          })
-      ) :
-    null
+              const {
+                chain_id,
+                contract_address,
+                next_asset,
+                price,
+              } = { ...asset_data }
+
+              const contract_addresses =
+                [
+                  next_asset?.contract_address,
+                  contract_address,
+                ]
+                .filter(a => a)
+
+              let liquidity =
+                !chain &&
+                (data || [])
+                  .find(d =>
+                    d?.chain_id === chain_id &&
+                    contract_addresses
+                      .findIndex(a =>
+                        equals_ignore_case(
+                          d?.contract_address,
+                          a,
+                        )
+                      ) > -1
+                  )
+
+              if (
+                liquidity?.next_asset &&
+                equals_ignore_case(
+                  liquidity.next_asset.contract_address,
+                  liquidity.contract_address,
+                )
+              ) {
+                liquidity = {
+                  ...liquidity,
+                  ...liquidity.next_asset,
+                }
+
+                delete liquidity.next_asset
+              }
+
+              const amount =
+                data ?
+                  chain ?
+                    _.sumBy(
+                      (data || [])
+                        .filter(d =>
+                          d?.chain_id === chain_id &&
+                          contract_addresses
+                            .findIndex(a =>
+                              equals_ignore_case(
+                                d?.contract_address,
+                                a,
+                              )
+                            ) > -1
+                        ),
+                      'amount',
+                    ) :
+                    liquidity?.amount ||
+                    0 :
+                  null
+
+              const value =
+                typeof amount === 'number' ?
+                  amount *
+                  (
+                    price ||
+                    0
+                  ) :
+                  null
+
+              return {
+                ...asset_data,
+                amount,
+                value,
+              }
+            })
+        ) :
+      null
 
   return (
     <div className="space-y-2 mb-6">
@@ -163,9 +216,10 @@ export default ({
               {
                 Header: '#',
                 accessor: 'i',
-                sortType: (a, b) => a.original.i > b.original.i ?
-                  1 :
-                  -1,
+                sortType: (a, b) =>
+                  a.original.i > b.original.i ?
+                    1 :
+                    -1,
                 Cell: props => (
                   <span className="font-semibold">
                     {number_format(
@@ -181,9 +235,10 @@ export default ({
               {
                 Header: 'Asset',
                 accessor: 'symbol',
-                sortType: (a, b) => a.original.symbol > b.original.symbol ?
-                  1 :
-                  -1,
+                sortType: (a, b) =>
+                  a.original.symbol > b.original.symbol ?
+                    1 :
+                    -1,
                 Cell: props => {
                   const {
                     value,
@@ -195,15 +250,18 @@ export default ({
 
                   return (
                     <div className="min-w-max flex items-start space-x-2 -mt-0.5">
-                      {image && (
-                        <Image
-                          src={image}
-                          alt=""
-                          width={24}
-                          height={24}
-                          className="rounded-full"
-                        />
-                      )}
+                      {
+                        image &&
+                        (
+                          <Image
+                            src={image}
+                            alt=""
+                            width={24}
+                            height={24}
+                            className="rounded-full"
+                          />
+                        )
+                      }
                       <div className="space-y-0.5">
                         <div className="text-base font-semibold">
                           {value}
@@ -296,9 +354,10 @@ export default ({
               {
                 Header: 'Chain',
                 accessor: 'chain_data.name',
-                sortType: (a, b) => chainName(a.original.chain) > chainName(b.original.chain_data) ?
-                  1 :
-                  -1,
+                sortType: (a, b) =>
+                  chainName(a.original.chain) > chainName(b.original.chain_data) ?
+                    1 :
+                    -1,
                 Cell: props => {
                   const {
                     value,
@@ -314,15 +373,18 @@ export default ({
                   return (
                     <Link href={`/${id || ''}`}>
                       <a className="min-w-max flex items-center space-x-2">
-                        {image && (
-                          <Image
-                            src={image}
-                            alt=""
-                            width={20}
-                            height={20}
-                            className="rounded-full"
-                          />
-                        )}
+                        {
+                          image &&
+                          (
+                            <Image
+                              src={image}
+                              alt=""
+                              width={20}
+                              height={20}
+                              className="rounded-full"
+                            />
+                          )
+                        }
                         <div className="text-sm font-semibold">
                           {value}
                         </div>
@@ -334,13 +396,14 @@ export default ({
               {
                 Header: 'Liquidity',
                 accessor: 'amount',
-                sortType: (a, b) => a.original.value > b.original.value ?
-                  1 :
-                  a.original.value < b.original.value ?
-                    -1 :
-                    a.original.amount > b.original.amount ?
-                      1 :
-                      -1,
+                sortType: (a, b) =>
+                  a.original.value > b.original.value ?
+                    1 :
+                    a.original.value < b.original.value ?
+                      -1 :
+                      a.original.amount > b.original.amount ?
+                        1 :
+                        -1,
                 Cell: props => {
                   const {
                     value,

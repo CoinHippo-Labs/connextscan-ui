@@ -1,7 +1,7 @@
 import { RiBarChartBoxLine, RiServerLine, RiCopperCoinLine } from 'react-icons/ri'
 import { BiFileBlank } from 'react-icons/bi'
 import { CgArrowRightR } from 'react-icons/cg'
-import { HiSwitchHorizontal } from 'react-icons/hi'
+import { HiSwitchVertical } from 'react-icons/hi'
 
 export default [
   {
@@ -55,7 +55,7 @@ export default [
     path: `${process.env.NEXT_PUBLIC_BRIDGE_URL}/swap`,
     external: true,
     icon: (
-      <HiSwitchHorizontal
+      <HiSwitchVertical
         size={20}
         className="stroke-current"
       />

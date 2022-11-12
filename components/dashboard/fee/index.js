@@ -203,7 +203,7 @@ export default ({
           <span className="font-bold">
             {title}
           </span>
-          <span className="text-slate-400 dark:text-slate-200 text-xs font-medium">
+          <span className="text-slate-400 dark:text-slate-200 text-xs font-medium space-x-1">
             <span>
               {description}
             </span>

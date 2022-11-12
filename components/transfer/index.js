@@ -92,43 +92,105 @@ export default () => {
         const _data = _.head(response)
 
         if (_data) {
-          const source_chain_data = chains_data?.find(c =>
-            c?.chain_id === Number(_data.origin_chain) ||
-            c?.domain_id === _data.origin_domain
-          )
-          const source_asset_data = assets_data?.find(a =>
-            a?.contracts?.findIndex(c =>
-              c?.chain_id === source_chain_data?.chain_id &&
-              [
-                _data?.origin_transacting_asset,
-                _data?.origin_bridged_asset,
-              ].findIndex(_a =>
-                equals_ignore_case(_a, c?.contract_address)
-              ) > -1
-            ) > -1
-          )
-          const source_contract_data = source_asset_data?.contracts?.find(c =>
-            c?.chain_id === source_chain_data?.chain_id
-          )
+          const source_chain_data = (chains_data || [])
+            .find(c =>
+              c?.chain_id === Number(_data.origin_chain) ||
+              c?.domain_id === _data.origin_domain
+            )
 
-          const destination_chain_data = chains_data?.find(c =>
-            c?.chain_id === Number(_data.destination_chain) ||
-            c?.domain_id === _data.destination_domain
-          )
-          const destination_asset_data = assets_data?.find(a =>
-            a?.contracts?.findIndex(c =>
-              c?.chain_id === destination_chain_data?.chain_id &&
-              [
-                _data?.destination_transacting_asset,
-                _data?.destination_local_asset,
-              ].findIndex(_a =>
-                equals_ignore_case(_a, c?.contract_address)
-              ) > -1
-            ) > -1
-          )
-          const destination_contract_data = destination_asset_data?.contracts?.find(c =>
-            c?.chain_id === destination_chain_data?.chain_id
-          )
+          const source_asset_data = (assets_data || [])
+            .find(a =>
+              (a?.contracts || [])
+                .findIndex(c =>
+                  c?.chain_id === source_chain_data?.chain_id &&
+                  [
+                    _data?.origin_transacting_asset,
+                    _data?.origin_bridged_asset,
+                  ].findIndex(_a =>
+                    [
+                      c?.next_asset?.contract_address,
+                      c?.contract_address,
+                    ]
+                    .filter(__a => __a)
+                    .findIndex(__a =>
+                      equals_ignore_case(
+                        __a,
+                        _a,
+                      )
+                    ) > -1
+                  ) > -1
+                ) > -1
+            )
+
+          let source_contract_data = (source_asset_data?.contracts || [])
+            .find(c =>
+              c?.chain_id === source_chain_data?.chain_id
+            )
+
+          if (
+            source_contract_data?.next_asset &&
+            equals_ignore_case(
+              source_contract_data.next_asset.contract_address,
+              t?.origin_transacting_asset,
+            )
+          ) {
+            source_contract_data = {
+              ...source_contract_data,
+              ...source_contract_data.next_asset,
+            }
+
+            delete source_contract_data.next_asset
+          }
+
+          const destination_chain_data = (chains_data || [])
+            .find(c =>
+              c?.chain_id === Number(_data.destination_chain) ||
+              c?.domain_id === _data.destination_domain
+            )
+
+          const destination_asset_data = (assets_data || [])
+            .find(a =>
+              (a?.contracts || [])
+                .findIndex(c =>
+                  c?.chain_id === destination_chain_data?.chain_id &&
+                  [
+                    _data?.destination_transacting_asset,
+                    _data?.destination_local_asset,
+                  ].findIndex(_a =>
+                    [
+                      c?.next_asset?.contract_address,
+                      c?.contract_address,
+                    ]
+                    .filter(__a => __a)
+                    .findIndex(__a =>
+                      equals_ignore_case(
+                        __a,
+                        _a,
+                      )
+                    ) > -1
+                  ) > -1
+                ) > -1
+            )
+
+          let destination_contract_data = (destination_asset_data?.contracts || [])
+            .find(c =>
+              c?.chain_id === destination_chain_data?.chain_id
+            )
+
+          if (
+            destination_contract_data?.next_asset &&
+            equals_ignore_case(
+              destination_contract_data.next_asset.contract_address,
+              t?.destination_local_asset,
+            )
+          ) {
+            destination_contract_data = {
+              ...destination_contract_data,
+              ...destination_contract_data.next_asset,
+            }
+
+            delete destination_contract_data.next_asset
+          }
 
           setData(
             {
@@ -234,8 +296,8 @@ export default () => {
   const source_amount =
     _.head(
       [
-        origin_transacting_amount,
         origin_bridged_amount,
+        origin_transacting_amount,
       ]
       .map(a =>
         [
