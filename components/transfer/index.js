@@ -131,7 +131,7 @@ export default () => {
             source_contract_data?.next_asset &&
             equals_ignore_case(
               source_contract_data.next_asset.contract_address,
-              t?.origin_transacting_asset,
+              _data?.origin_transacting_asset,
             )
           ) {
             source_contract_data = {
@@ -181,7 +181,7 @@ export default () => {
             destination_contract_data?.next_asset &&
             equals_ignore_case(
               destination_contract_data.next_asset.contract_address,
-              t?.destination_local_asset,
+              _data?.destination_local_asset,
             )
           ) {
             destination_contract_data = {
