@@ -50,25 +50,26 @@ export default [
     ),
   },
   {
-    id: 'swap',
-    title: 'Swap',
-    path: `${process.env.NEXT_PUBLIC_BRIDGE_URL}/swap`,
+    id: 'pool',
+    // title: 'Pools',
+    // path: `${process.env.NEXT_PUBLIC_BRIDGE_URL}/pools`,
+    title: 'Pool',
+    path: `${process.env.NEXT_PUBLIC_BRIDGE_URL}/pool`,
     external: true,
     icon: (
-      <HiSwitchVertical
+      <RiCopperCoinLine
         size={20}
         className="stroke-current"
       />
     ),
   },
   {
-    id: 'pool',
-    title: 'Pools',
-    // path: `${process.env.NEXT_PUBLIC_BRIDGE_URL}/pools`,
-    path: `${process.env.NEXT_PUBLIC_BRIDGE_URL}/pool`,
+    id: 'swap',
+    title: 'Swap',
+    path: `${process.env.NEXT_PUBLIC_BRIDGE_URL}/swap`,
     external: true,
     icon: (
-      <RiCopperCoinLine
+      <HiSwitchVertical
         size={20}
         className="stroke-current"
       />
