@@ -51,10 +51,10 @@ export default [
   },
   {
     id: 'pool',
-    // title: 'Pools',
-    // path: `${process.env.NEXT_PUBLIC_BRIDGE_URL}/pools`,
-    title: 'Pool',
-    path: `${process.env.NEXT_PUBLIC_BRIDGE_URL}/pool`,
+    title: 'Pools',
+    path: `${process.env.NEXT_PUBLIC_BRIDGE_URL}/pools`,
+    // title: 'Pool',
+    // path: `${process.env.NEXT_PUBLIC_BRIDGE_URL}/pool`,
     external: true,
     icon: (
       <RiCopperCoinLine
