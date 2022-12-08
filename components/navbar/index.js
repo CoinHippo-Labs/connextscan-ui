@@ -264,18 +264,27 @@ export default () => {
               (rpcUrls || [])
                 .filter(url => url)
 
-            const provider = rpc_urls.length === 1 ?
-              new providers.JsonRpcProvider(rpc_urls[0]) :
-              new providers.FallbackProvider(
-                rpc_urls.map((url, i) => {
-                  return {
-                    provider: new providers.JsonRpcProvider(url),
-                    priority: i + 1,
-                    stallTimeout: 1000,
-                  }
-                }),
-                rpc_urls.length / 3,
-              )
+            const provider =
+              rpc_urls.length === 1 ?
+                new providers.StaticJsonRpcProvider(
+                  _.head(rpc_urls),
+                  chain_id,
+                ) :
+                new providers.FallbackProvider(
+                  rpc_urls
+                    .map((url, i) => {
+                      return {
+                        provider:
+                          new providers.StaticJsonRpcProvider(
+                            url,
+                            chain_id,
+                          ),
+                        priority: i + 1,
+                        stallTimeout: 1000,
+                      }
+                    }),
+                  rpc_urls.length / 3,
+                )
 
             _rpcs[chain_id] = provider
           }
