@@ -479,7 +479,7 @@ export default () => {
               (Array.isArray(response) ?
                 response
                   .filter(r =>
-                    r?.router_address
+                    r?./*router_*/address
                   ) :
                 []
               )
@@ -622,22 +622,30 @@ export default () => {
       if (
         chains_data &&
         asset_balances_data &&
-        chains_data.filter(c => !c?.disabled).length <= Object.keys(asset_balances_data).length
+        chains_data
+          .filter(c =>
+            !c?.disabled
+          )
+          .length <=
+          Object.keys(asset_balances_data).length
       ) {
-        const addresses = _.uniq(
-          Object.values(asset_balances_data)
-            .flatMap(a => a)
-            .map(a => a?.router_address)
-            .filter(a => a && !ens_data?.[a])
-        )
+        const addresses =
+          _.uniq(
+            Object.values(asset_balances_data)
+              .flatMap(a => a)
+              .map(a => a?./*router_*/address)
+              .filter(a => a && !ens_data?.[a])
+          )
 
         const ens_data = await getEns(addresses)
 
         if (ens_data) {
-          dispatch({
-            type: ENS_DATA,
-            value: ens_data,
-          })
+          dispatch(
+            {
+              type: ENS_DATA,
+              value: ens_data,
+            }
+          )
         }
       }
     }

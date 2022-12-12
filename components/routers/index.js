@@ -268,7 +268,8 @@ export default () => {
         _.groupBy(
           Object.values({ ...asset_balances_data })
             .flatMap(a => a),
-          'router_address',
+          // 'router_address',
+          'address',
         )
       )
       .map(([k, v]) => {

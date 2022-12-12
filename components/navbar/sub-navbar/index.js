@@ -247,7 +247,7 @@ export default () => {
                                 .flatMap(v =>
                                   v?.map(_v => _v)
                                 )
-                                .map(a => a?.router_address?.toLowerCase())
+                                .map(a => a?./*router_*/address?.toLowerCase())
                                 .filter(a => a)
                             )
                             .length,

@@ -54,7 +54,7 @@ export default () => {
         _.uniq(
           Object.values(asset_balances_data)
             .flatMap(a => a)
-            .map(a => a?.router_address)
+            .map(a => a?./*router_*/address)
             .filter(a => a)
         )
       )
