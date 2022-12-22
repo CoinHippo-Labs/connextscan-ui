@@ -5,9 +5,11 @@ import Image from '../image'
 import { currency_symbol } from '../../lib/object/currency'
 import { number_format, loader_color } from '../../lib/utils'
 
-export default ({
-  data,
-}) => {
+export default (
+  {
+    data,
+  },
+) => {
   const {
     preferences,
     chains,
@@ -46,14 +48,16 @@ export default ({
         </span>
         <div className="uppercase text-3xl font-bold">
           {data ?
-            `${currency_symbol}${number_format(
-              liquidity,
-              liquidity > 1000000 ?
-                '0,0.00a' :
-                liquidity > 10000 ?
-                  '0,0' :
-                  '0,0.00',
-            )}` :
+            `${currency_symbol}${
+              number_format(
+                liquidity,
+                liquidity > 1000000 ?
+                  '0,0.00a' :
+                  liquidity > 1000 ?
+                    '0,0' :
+                    '0,0.00',
+              )
+            }` :
             <TailSpin
               color={loader_color(theme)}
               width="32"
@@ -68,10 +72,16 @@ export default ({
         </span>
         <div className="uppercase text-3xl font-bold">
           {data ?
-            `${currency_symbol}${number_format(
-              volume,
-              '0,0',
-            )}` :
+            `${currency_symbol}${
+              number_format(
+                volume,
+                volume > 1000000 ?
+                  '0,0.00a' :
+                  volume > 1000 ?
+                    '0,0' :
+                    '0,0.00',
+              )
+            }` :
             <TailSpin
               color={loader_color(theme)}
               width="32"
@@ -107,10 +117,12 @@ export default ({
             </span>
             <div className="uppercase text-3xl font-bold">
               {data ?
-                `${currency_symbol}${number_format(
-                  fee,
-                  '0,0',
-                )}` :
+                `${currency_symbol}${
+                  number_format(
+                    fee,
+                    '0,0',
+                  )
+                }` :
                 <TailSpin
                   color={loader_color(theme)}
                   width="32"
@@ -136,9 +148,17 @@ export default ({
                       const {
                         name,
                         image,
-                      } = { ...chains_data?.find(c => c?.chain_id === id) }
+                      } = {
+                        ...(
+                          (chains_data || [])
+                            .find(c =>
+                              c?.chain_id === id
+                            )
+                        ),
+                      }
 
-                      return image &&
+                      return (
+                        image &&
                         (
                           <div
                             key={i}
@@ -154,6 +174,7 @@ export default ({
                             />
                           </div>
                         )
+                      )
                     })
                     .filter(c => c)
                   }

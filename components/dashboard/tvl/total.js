@@ -102,7 +102,7 @@ export default () => {
                   total,
                   total > 50000000 ?
                     '0,0.00a' :
-                    total > 10000000 ?
+                    total > 1000 ?
                       '0,0' :
                       '0,0.00',
                 )}

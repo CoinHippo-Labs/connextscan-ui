@@ -459,10 +459,7 @@ export default () => {
 
   const asset_data = (assets_data || [])
     .find(a =>
-      [
-        a?.source_asset_data?.id,
-        a?.destination_asset_data?.id,
-      ].includes(a?.id)
+      a?.id === assetSelect
     )
 
   const data_filtered =

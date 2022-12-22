@@ -417,7 +417,7 @@ export default ({
                             props.value,
                             props.value > 1000000 ?
                               '0,0.00a' :
-                              props.value > 10000 ?
+                              props.value > 1000 ?
                                 '0,0' :
                                 '0,0.00',
                           )}

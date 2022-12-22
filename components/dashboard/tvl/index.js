@@ -70,7 +70,7 @@ export default ({
                 value,
                 value > 1000000 ?
                   '0,0.00a' :
-                  value > 10000 ?
+                  value > 1000 ?
                     '0,0' :
                     '0,0.00',
               ),

@@ -41,7 +41,7 @@ export default ({
                   total_volume,
                   total_volume > 100000000 ?
                     '0,0.00a' :
-                    total_volume > 10000000 ?
+                    total_volume > 1000 ?
                       '0,0' :
                       '0,0.00',
                 )}
@@ -114,7 +114,7 @@ export default ({
                         volume,
                         volume > 10000000 ?
                           '0,0.00a' :
-                          volume > 1000000 ?
+                          volume > 1000 ?
                             '0,0' :
                             '0,0.00',
                       )}

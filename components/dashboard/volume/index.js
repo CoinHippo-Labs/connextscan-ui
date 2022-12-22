@@ -155,7 +155,7 @@ export default ({
                   volume,
                   volume > 1000000 ?
                     '0,0.00a' :
-                    volume > 10000 ?
+                    volume > 1000 ?
                       '0,0' :
                       '0,0.00',
                 ),

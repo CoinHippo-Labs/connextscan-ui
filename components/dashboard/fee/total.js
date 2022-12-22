@@ -41,7 +41,7 @@ export default ({
                   total_fee,
                   total_fee > 100000 ?
                     '0,0.00a' :
-                    total_fee > 10000 ?
+                    total_fee > 1000 ?
                       '0,0' :
                       '0,0.00',
                 )}
@@ -114,7 +114,7 @@ export default ({
                         fee,
                         fee > 10000 ?
                           '0,0.00a' :
-                          fee > 1000 ?
+                          fee > 100 ?
                             '0,0' :
                             '0,0.00',
                       )}
