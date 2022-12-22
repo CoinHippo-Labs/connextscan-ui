@@ -474,7 +474,6 @@ export default () => {
           response ||
           !is_interval
         ) {
-console.log('[qqq]', response)
           const data =
             _.groupBy(
               (Array.isArray(response) ?
