@@ -18,10 +18,12 @@ import Image from '../../image'
 import { currency_symbol } from '../../../lib/object/currency'
 import { number_format, loader_color } from '../../../lib/utils'
 
-export default ({
-  title = 'TVL',
-  description = 'Total value locked by chain',
-}) => {
+export default (
+  {
+    title = 'TVL',
+    description = 'Total value locked by chain',
+  },
+) => {
   const {
     preferences,
     asset_balances,
@@ -46,41 +48,50 @@ export default ({
   const [data, setData] = useState(null)
   const [xFocus, setXFocus] = useState(null)
 
-  useEffect(() => {
-    if (asset_balances_data) {
-      setData(
-        Object.values(asset_balances_data)
-          .map(v => {
-            return {
-              ..._.head(v)?.chain_data,
-              value: _.sumBy(
-                v,
-                'value',
-              ),
-            }
-          })
-          .map(l => {
-            const {
-              value,
-            } = { ...l }
-
-            return {
-              ...l,
-              value_string: number_format(
+  useEffect(
+    () => {
+      if (asset_balances_data) {
+        setData(
+          Object.values(asset_balances_data)
+            .map(v => {
+              return {
+                ..._.head(v)?.chain_data,
+                value:
+                  _.sumBy(
+                    v,
+                    'value',
+                  ),
+              }
+            })
+            .filter(l => l.id)
+            .map(l => {
+              const {
                 value,
-                value > 1000000 ?
-                  '0,0.00a' :
-                  value > 1000 ?
-                    '0,0' :
-                    '0,0.00',
-              ),
-            }
-          })
-      )
-    }
-  }, [asset_balances_data])
+              } = { ...l }
 
-  const d = data?.find(d => d.id === xFocus)
+              return {
+                ...l,
+                value_string:
+                  number_format(
+                    value,
+                    value > 1000000 ?
+                      '0,0.00a' :
+                      value > 1000 ?
+                        '0,0' :
+                        '0,0.00',
+                  ),
+              }
+            })
+        )
+      }
+    },
+    [asset_balances_data],
+  )
+
+  const d = (data || [])
+    .find(d =>
+      d.id === xFocus
+    )
   const {
     id,
     name,
