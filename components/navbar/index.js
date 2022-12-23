@@ -571,7 +571,7 @@ export default () => {
                           0
                         ).toString()
                       ),
-                      decimals ||
+                      // decimals ||
                       18,
                     )
                   )

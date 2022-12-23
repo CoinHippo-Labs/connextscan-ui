@@ -165,7 +165,7 @@ export default () => {
                       )
                       .toString()
                     ),
-                    decimals ||
+                    // decimals ||
                     18,
                   )
                 )
@@ -326,7 +326,7 @@ export default () => {
                     )
                     .toString()
                   ),
-                  decimals ||
+                  // decimals ||
                   18,
                 )
               )
