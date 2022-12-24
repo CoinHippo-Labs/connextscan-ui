@@ -52,50 +52,215 @@ export default () => {
   const [timeframe, setTimeframe] = useState(null)
   const [data, setData] = useState(null)
 
-  useEffect(() => {
-    const getData = async is_interval => {
-      if (
-        chain &&
-        sdk &&
-        chains_data &&
-        assets_data
-      ) {
-        const response =
-          await sdk.nxtpSdkUtils
-            .getRoutersData()
-
+  useEffect(
+    () => {
+      const getData = async is_interval => {
         if (
-          Array.isArray(response) ||
-          !is_interval
+          chain &&
+          sdk &&
+          chains_data &&
+          assets_data
         ) {
+          const response =
+            await sdk.nxtpSdkUtils
+              .getRoutersData()
+
+          if (
+            Array.isArray(response) ||
+            !is_interval
+          ) {
+            const chain_data = chains_data
+              .find(c =>
+                c?.id === chain
+              )
+            const {
+              chain_id,
+              domain_id,
+            } = { ...chain_data }
+
+            const data =
+              (Array.isArray(response) ?
+                response :
+                []
+              )
+              .filter(l =>
+                l?.domain === domain_id
+              )
+              .map(l => {
+                const {
+                  local,
+                  balance,
+                } = { ...l }
+
+                let asset_data = assets_data
+                  .find(a =>
+                    (a?.contracts || [])
+                      .findIndex(c =>
+                        c?.chain_id === chain_id &&
+                        [
+                          c?.next_asset?.contract_address,
+                          c?.contract_address,
+                        ]
+                        .filter(_a => _a)
+                        .findIndex(_a =>
+                          equals_ignore_case(
+                            _a,
+                            local,
+                          )
+                        ) > -1
+                      ) > -1
+                  )
+
+                asset_data = {
+                  ...asset_data,
+                  ...(
+                    (asset_data?.contracts || [])
+                      .find(c =>
+                        c?.chain_id === chain_id &&
+                        [
+                          c?.next_asset?.contract_address,
+                          c?.contract_address,
+                        ]
+                        .filter(_a => _a)
+                        .findIndex(_a =>
+                          equals_ignore_case(
+                            _a,
+                            local,
+                          )
+                        ) > -1
+                      )
+                  ),
+                }
+
+                if (asset_data.contracts) {
+                  delete asset_data.contracts
+                }
+
+                if (
+                  asset_data.next_asset &&
+                  equals_ignore_case(
+                    asset_data.next_asset.contract_address,
+                    local,
+                  )
+                ) {
+                  asset_data = {
+                    ...asset_data,
+                    ...asset_data.next_asset,
+                  }
+
+                  delete asset_data.next_asset
+                }
+
+                const {
+                  decimals,
+                  price,
+                } = { ...asset_data }
+
+                const amount =
+                  Number(
+                    utils.formatUnits(
+                      BigNumber.from(
+                        BigInt(
+                          balance ||
+                          0
+                        )
+                        .toString()
+                      ),
+                      decimals ||
+                      18,
+                    )
+                  )
+
+                return {
+                  ...l,
+                  chain_id,
+                  contract_address: local,
+                  amount,
+                  value:
+                    amount *
+                    (
+                      price ||
+                      0
+                    ),
+                }
+              })
+
+            setLiquidity(data)
+          }
+        }
+      }
+
+      getData()
+
+      const interval =
+        setInterval(() =>
+          getData(true),
+          0.5 * 60 * 1000,
+        )
+
+      return () => clearInterval(interval)
+    },
+    [chain, sdk, chains_data, assets_data],
+  )
+
+  useEffect(
+    () => {
+      const getData = async () => {
+        if (
+          chain &&
+          sdk &&
+          chains_data &&
+          assets_data
+        ) {
+          const _timeframe = timeframes
+            .find(t =>
+              t?.day === timeframe
+            )
+
           const chain_data = chains_data
             .find(c =>
               c?.id === chain
             )
+
           const {
-            chain_id,
             domain_id,
           } = { ...chain_data }
 
-          const data =
-            (Array.isArray(response) ?
-              response :
+          let volumes =
+            await daily_transfer_volume(
+              {
+                destination_chain: `eq.${domain_id}`,
+              },
+            )
+
+          volumes =
+            (Array.isArray(volumes) ?
+              volumes :
               []
             )
-            .filter(l =>
-              l?.domain === domain_id
-            )
-            .map(l => {
+            .map(v => {
               const {
-                local,
-                balance,
-              } = { ...l }
+                transfer_date,
+                origin_chain,
+                destination_chain,
+                asset,
+                volume,
+              } = { ...v }
+
+              const origin_chain_data = chains_data
+                .find(c =>
+                  c?.domain_id === origin_chain
+                )
+              const destination_chain_data = chains_data
+                .find(c =>
+                  c?.domain_id === destination_chain
+                )
 
               let asset_data = assets_data
                 .find(a =>
                   (a?.contracts || [])
                     .findIndex(c =>
-                      c?.chain_id === chain_id &&
+                      c?.chain_id === origin_chain_data?.chain_id &&
                       [
                         c?.next_asset?.contract_address,
                         c?.contract_address,
@@ -104,7 +269,7 @@ export default () => {
                       .findIndex(_a =>
                         equals_ignore_case(
                           _a,
-                          local,
+                          asset,
                         )
                       ) > -1
                     ) > -1
@@ -114,20 +279,20 @@ export default () => {
                 ...asset_data,
                 ...(
                   (asset_data?.contracts || [])
-                    .find(c =>
-                      c?.chain_id === chain_id &&
-                      [
-                        c?.next_asset?.contract_address,
-                        c?.contract_address,
-                      ]
-                      .filter(_a => _a)
-                      .findIndex(_a =>
-                        equals_ignore_case(
-                          _a,
-                          local,
-                        )
-                      ) > -1
-                    )
+                  .find(c =>
+                    c?.chain_id === origin_chain_data?.chain_id &&
+                    [
+                      c?.next_asset?.contract_address,
+                      c?.contract_address,
+                    ]
+                    .filter(_a => _a)
+                    .findIndex(_a =>
+                      equals_ignore_case(
+                        _a,
+                        asset,
+                      )
+                    ) > -1
+                  )
                 ),
               }
 
@@ -135,13 +300,7 @@ export default () => {
                 delete asset_data.contracts
               }
 
-              if (
-                asset_data.next_asset &&
-                equals_ignore_case(
-                  asset_data.next_asset.contract_address,
-                  local,
-                )
-              ) {
+              if (asset_data.next_asset) {
                 asset_data = {
                   ...asset_data,
                   ...asset_data.next_asset,
@@ -160,7 +319,7 @@ export default () => {
                   utils.formatUnits(
                     BigNumber.from(
                       BigInt(
-                        balance ||
+                        volume ||
                         0
                       )
                       .toString()
@@ -171,11 +330,19 @@ export default () => {
                 )
 
               return {
-                ...l,
-                chain_id,
-                contract_address: local,
+                ...v,
+                timestamp:
+                  moment(
+                    transfer_date,
+                    'YYYY-MM-DD',
+                  )
+                  .startOf(_timeframe?.timeframe)
+                  .valueOf(),
+                origin_chain_data,
+                destination_chain_data,
+                asset_data,
                 amount,
-                value:
+                volume:
                   amount *
                   (
                     price ||
@@ -184,285 +351,124 @@ export default () => {
               }
             })
 
-          setLiquidity(data)
+          let transfers =
+            await daily_transfer_metrics(
+              {
+                destination_chain: `eq.${domain_id}`,
+              },
+            )
+
+          transfers =
+            (Array.isArray(transfers) ?
+              transfers :
+              []
+            )
+            .map(t => {
+              const {
+                transfer_date,
+                origin_chain,
+                destination_chain,
+              } = { ...t }
+
+              const origin_chain_data = chains_data
+                .find(c =>
+                  c?.domain_id === origin_chain
+                )
+
+              const destination_chain_data = chains_data
+                .find(c =>
+                  c?.domain_id === destination_chain
+                )
+
+              return {
+                ...t,
+                timestamp:
+                  moment(
+                    transfer_date,
+                    'YYYY-MM-DD',
+                  )
+                  .startOf(_timeframe?.timeframe)
+                  .valueOf(),
+                origin_chain_data,
+                destination_chain_data,
+              }
+            })
+
+          setData(
+            {
+              total_volume:
+                _.sumBy(
+                  volumes,
+                  'volume',
+                ),
+              volumes:
+                _.slice(
+                  _.orderBy(
+                    Object.entries(
+                      _.groupBy(
+                        volumes,
+                        'timestamp',
+                      )
+                    )
+                    .map(([k, v]) => {
+                      return {
+                        timestamp: Number(k),
+                        volume:
+                          _.sumBy(
+                            v,
+                            'volume',
+                          ),
+                      }
+                    }),
+                    ['timestamp'],
+                    ['asc'],
+                  ),
+                  -(
+                    timeframe ||
+                    52
+                  ),
+                ),
+              total_transfers:
+                _.sumBy(
+                  transfers,
+                  'transfer_count',
+                ),
+              transfers:
+                _.slice(
+                  _.orderBy(
+                    Object.entries(
+                      _.groupBy(
+                        transfers,
+                        'timestamp',
+                      )
+                    )
+                    .map(([k, v]) => {
+                      return {
+                        timestamp: Number(k),
+                        transfers:
+                          _.sumBy(
+                            v,
+                            'transfer_count',
+                          ),
+                      }
+                    }),
+                    ['timestamp'],
+                    ['asc'],
+                  ),
+                  -(
+                    timeframe ||
+                    52
+                  ),
+                ),
+            },
+          )
         }
       }
-    }
 
-    getData()
-
-    const interval =
-      setInterval(() =>
-        getData(true),
-        0.5 * 60 * 1000,
-      )
-
-    return () => clearInterval(interval)
-  }, [chain, sdk, chains_data, assets_data])
-
-  useEffect(() => {
-    const getData = async () => {
-      if (
-        chain &&
-        sdk &&
-        chains_data &&
-        assets_data
-      ) {
-        const _timeframe = timeframes
-          .find(t =>
-            t?.day === timeframe
-          )
-
-        const chain_data = chains_data
-          .find(c =>
-            c?.id === chain
-          )
-
-        const {
-          domain_id,
-        } = { ...chain_data }
-
-        let volumes =
-          await daily_transfer_volume(
-            {
-              destination_chain: `eq.${domain_id}`,
-            },
-          )
-
-        volumes =
-          (Array.isArray(volumes) ?
-            volumes :
-            []
-          )
-          .map(v => {
-            const {
-              transfer_date,
-              origin_chain,
-              destination_chain,
-              asset,
-              volume,
-            } = { ...v }
-
-            const origin_chain_data = chains_data
-              .find(c =>
-                c?.domain_id === origin_chain
-              )
-            const destination_chain_data = chains_data
-              .find(c =>
-                c?.domain_id === destination_chain
-              )
-
-            let asset_data = assets_data
-              .find(a =>
-                (a?.contracts || [])
-                  .findIndex(c =>
-                    c?.chain_id === origin_chain_data?.chain_id &&
-                    [
-                      c?.next_asset?.contract_address,
-                      c?.contract_address,
-                    ]
-                    .filter(_a => _a)
-                    .findIndex(_a =>
-                      equals_ignore_case(
-                        _a,
-                        asset,
-                      )
-                    ) > -1
-                  ) > -1
-              )
-
-            asset_data = {
-              ...asset_data,
-              ...(
-                (asset_data?.contracts || [])
-                .find(c =>
-                  c?.chain_id === origin_chain_data?.chain_id &&
-                  [
-                    c?.next_asset?.contract_address,
-                    c?.contract_address,
-                  ]
-                  .filter(_a => _a)
-                  .findIndex(_a =>
-                    equals_ignore_case(
-                      _a,
-                      asset,
-                    )
-                  ) > -1
-                )
-              ),
-            }
-
-            if (asset_data.contracts) {
-              delete asset_data.contracts
-            }
-
-            if (asset_data.next_asset) {
-              asset_data = {
-                ...asset_data,
-                ...asset_data.next_asset,
-              }
-
-              delete asset_data.next_asset
-            }
-
-            const {
-              decimals,
-              price,
-            } = { ...asset_data }
-
-            const amount =
-              Number(
-                utils.formatUnits(
-                  BigNumber.from(
-                    BigInt(
-                      volume ||
-                      0
-                    )
-                    .toString()
-                  ),
-                  // decimals ||
-                  18,
-                )
-              )
-
-            return {
-              ...v,
-              timestamp:
-                moment(
-                  transfer_date,
-                  'YYYY-MM-DD',
-                )
-                .startOf(_timeframe?.timeframe)
-                .valueOf(),
-              origin_chain_data,
-              destination_chain_data,
-              asset_data,
-              amount,
-              volume:
-                amount *
-                (
-                  price ||
-                  0
-                ),
-            }
-          })
-
-        let transfers =
-          await daily_transfer_metrics(
-            {
-              destination_chain: `eq.${domain_id}`,
-            },
-          )
-
-        transfers =
-          (Array.isArray(transfers) ?
-            transfers :
-            []
-          )
-          .map(t => {
-            const {
-              transfer_date,
-              origin_chain,
-              destination_chain,
-            } = { ...t }
-
-            const origin_chain_data = chains_data
-              .find(c =>
-                c?.domain_id === origin_chain
-              )
-
-            const destination_chain_data = chains_data
-              .find(c =>
-                c?.domain_id === destination_chain
-              )
-
-            return {
-              ...t,
-              timestamp:
-                moment(
-                  transfer_date,
-                  'YYYY-MM-DD',
-                )
-                .startOf(_timeframe?.timeframe)
-                .valueOf(),
-              origin_chain_data,
-              destination_chain_data,
-            }
-          })
-
-        setData(
-          {
-            total_volume:
-              _.sumBy(
-                volumes,
-                'volume',
-              ),
-            volumes:
-              _.slice(
-                _.orderBy(
-                  Object.entries(
-                    _.groupBy(
-                      volumes,
-                      'timestamp',
-                    )
-                  )
-                  .map(([k, v]) => {
-                    return {
-                      timestamp: Number(k),
-                      volume:
-                        _.sumBy(
-                          v,
-                          'volume',
-                        ),
-                    }
-                  }),
-                  ['timestamp'],
-                  ['asc'],
-                ),
-                -(
-                  timeframe ||
-                  52
-                ),
-              ),
-            total_transfers:
-              _.sumBy(
-                transfers,
-                'transfer_count',
-              ),
-            transfers:
-              _.slice(
-                _.orderBy(
-                  Object.entries(
-                    _.groupBy(
-                      transfers,
-                      'timestamp',
-                    )
-                  )
-                  .map(([k, v]) => {
-                    return {
-                      timestamp: Number(k),
-                      transfers:
-                        _.sumBy(
-                          v,
-                          'transfer_count',
-                        ),
-                    }
-                  }),
-                  ['timestamp'],
-                  ['asc'],
-                ),
-                -(
-                  timeframe ||
-                  52
-                ),
-              ),
-          },
-        )
-      }
-    }
-
-    getData()
-  }, [chain, sdk, timeframe, chains_data, assets_data])
+      getData()
+    },
+    [chain, sdk, timeframe, chains_data, assets_data],
+  )
 
   const {
     total_volume,
