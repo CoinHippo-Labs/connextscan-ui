@@ -17,9 +17,11 @@ import { chainName } from '../../lib/object/chain'
 import { currency_symbol } from '../../lib/object/currency'
 import { number_format, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
 
-export default ({
-  data,
-}) => {
+export default (
+  {
+    data,
+  },
+) => {
   const {
     preferences,
     chains,
@@ -55,11 +57,14 @@ export default ({
   const [chainSelect, setChainSelect] = useState('')
   const [assetSelect, setAssetSelect] = useState('')
 
-  useEffect(() => {
-    if (chain) {
-      setChainSelect(chain)
-    }
-  }, [chain])
+  useEffect(
+    () => {
+      if (chain) {
+        setChainSelect(chain)
+      }
+    },
+    [chain],
+  )
 
   const chain_data = (chains_data || [])
     .find(c =>
@@ -293,7 +298,8 @@ export default ({
                     icon,
                   } = { ...explorer }
 
-                  return value &&
+                  return (
+                    value &&
                     (
                       <div className="min-w-max flex items-center space-x-1.5 -mt-1">
                         <Copy
@@ -349,6 +355,7 @@ export default ({
                         />
                       </div>
                     )
+                  )
                 },
               },
               {
@@ -448,7 +455,9 @@ export default ({
             ]
             .filter(c =>
               !chain ||
-              !['chain_data.name'].includes(c.accessor)
+              ![
+                'chain_data.name',
+              ].includes(c.accessor)
             )
           }
           data={_assets_data}
