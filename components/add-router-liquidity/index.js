@@ -293,7 +293,7 @@ export default () => {
         asset_data?.symbol
 
       const addParams = {
-        domain: domain_id,
+        domainId: domain_id,
         amount:
           utils.parseUnits(
             (
@@ -304,7 +304,7 @@ export default () => {
             decimals,
           )
           .toString(),
-        assetId: contract_address,
+        tokenAddress: contract_address,
         router: address,
       }
 
@@ -314,8 +314,8 @@ export default () => {
         const approve_request =
           await sdk.nxtpSdkBase
             .approveIfNeeded(
-              addParams.domain,
-              addParams.assetId,
+              addParams.domainId,
+              addParams.tokenAddress,
               addParams.amount,
               false,
             )
