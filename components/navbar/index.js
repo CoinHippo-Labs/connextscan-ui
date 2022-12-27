@@ -309,7 +309,8 @@ export default () => {
     const init = async () => {
       if (
         chains_data &&
-        (assets_data || [])
+        assets_data &&
+        assets_data
           .findIndex(a =>
             typeof a.price !== 'number'
           ) < 0

@@ -155,7 +155,14 @@ export default () => {
                   c?.chain_id === destination_chain_data?.chain_id &&
                   [
                     _data?.destination_transacting_asset,
-                    _data?.destination_local_asset,
+                    equals_ignore_case(
+                      source_asset_data?.id,
+                      a?.id,
+                    ) ?
+                      _data?.receive_local ?
+                        c?.next_asset?.contract_address :
+                        c?.contract_address :
+                      _data?.destination_local_asset,
                   ].findIndex(_a =>
                     [
                       c?.next_asset?.contract_address,
@@ -179,9 +186,12 @@ export default () => {
 
           if (
             destination_contract_data?.next_asset &&
-            equals_ignore_case(
-              destination_contract_data.next_asset.contract_address,
-              _data?.destination_local_asset,
+            (
+              equals_ignore_case(
+                destination_contract_data.next_asset.contract_address,
+                _data?.destination_transacting_asset,
+              ) ||
+              _data?.receive_local
             )
           ) {
             destination_contract_data = {
