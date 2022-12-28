@@ -300,7 +300,7 @@ export default () => {
 
   const source_symbol = source_asset_data?.symbol
   const source_decimals =
-    // source_asset_data?.decimals ||
+    source_asset_data?.decimals ||
     18
   const source_asset_image = source_asset_data?.image
   const source_amount =
@@ -329,7 +329,7 @@ export default () => {
 
   const destination_symbol = destination_asset_data?.symbol
   const destination_decimals =
-    // destination_asset_data?.decimals ||
+    destination_asset_data?.decimals ||
     18
   const destination_asset_image = destination_asset_data?.image
   const destination_amount =

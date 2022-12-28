@@ -392,7 +392,7 @@ export default () => {
                             BigInt(a)
                               .toString()
                           ),
-                          // source_asset_data?.decimals ||
+                          source_asset_data?.decimals ||
                           18,
                         )
                       )
@@ -417,7 +417,7 @@ export default () => {
                             BigInt(a)
                               .toString()
                           ),
-                          // destination_asset_data?.decimals ||
+                          destination_asset_data?.decimals ||
                           18,
                         )
                       )

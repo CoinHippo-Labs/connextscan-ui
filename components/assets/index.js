@@ -94,7 +94,7 @@ export default (
                 ) > -1
             )
             .map((c, i) => {
-              const asset_data = {
+              let asset_data = {
                 ...a,
                 ...c,
                 i,
@@ -138,18 +138,18 @@ export default (
                   )
 
               if (
-                liquidity?.next_asset &&
+                next_asset &&
                 equals_ignore_case(
-                  liquidity.next_asset.contract_address,
-                  liquidity.contract_address,
+                  next_asset.contract_address,
+                  liquidity?.contract_address,
                 )
               ) {
-                liquidity = {
-                  ...liquidity,
-                  ...liquidity.next_asset,
+                asset_data = {
+                  ...asset_data,
+                  ...next_asset,
                 }
 
-                delete liquidity.next_asset
+                delete asset_data.next_asset
               }
 
               const amount =
