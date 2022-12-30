@@ -300,7 +300,13 @@ export default () => {
                 delete asset_data.contracts
               }
 
-              if (asset_data.next_asset) {
+              if (
+                asset_data.next_asset &&
+                equals_ignore_case(
+                  asset_data.next_asset.contract_address,
+                  asset,
+                )
+              ) {
                 asset_data = {
                   ...asset_data,
                   ...asset_data.next_asset,
@@ -324,7 +330,7 @@ export default () => {
                       )
                       .toString()
                     ),
-                    // decimals ||
+                    decimals ||
                     18,
                   )
                 )
