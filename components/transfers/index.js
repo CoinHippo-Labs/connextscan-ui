@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import moment from 'moment'
-import { BigNumber, utils } from 'ethers'
+import { BigNumber, constants, utils } from 'ethers'
 import { XTransferStatus } from '@connext/nxtp-utils'
 import { TailSpin } from 'react-loader-spinner'
 import { HiCheckCircle } from 'react-icons/hi'
@@ -77,386 +77,488 @@ export default () => {
   const [assetSelect, setAssetSelect] = useState('')
   const [statusSelect, setStatusSelect] = useState('')
 
-  useEffect(() => {
-    if (
-      fromChainSelect &&
-      fromChainSelect === toChainSelect
-    ) {
-      setToChainSelect('')
-    }
-  }, [fromChainSelect])
+  useEffect(
+    () => {
+      if (
+        fromChainSelect &&
+        fromChainSelect === toChainSelect
+      ) {
+        setToChainSelect('')
+      }
+    },
+    [fromChainSelect],
+  )
 
-  useEffect(() => {
-    if (
-      toChainSelect &&
-      toChainSelect === fromChainSelect
-    ) {
-      setFromChainSelect('')
-    }
-  }, [toChainSelect])
+  useEffect(
+    () => {
+      if (
+        toChainSelect &&
+        toChainSelect === fromChainSelect
+      ) {
+        setFromChainSelect('')
+      }
+    },
+    [toChainSelect],
+  )
 
-  useEffect(() => {
-    const triggering = is_interval => {
-      if (sdk) {
-        setFetchTrigger(
-          is_interval ?
-            moment()
-              .valueOf() :
-            typeof fetchTrigger === 'number' ?
-              null :
-              0
+  useEffect(
+    () => {
+      const triggering = is_interval => {
+        if (sdk) {
+          setFetchTrigger(
+            is_interval ?
+              moment()
+                .valueOf() :
+              typeof fetchTrigger === 'number' ?
+                null :
+                0
+          )
+        }
+      }
+
+      triggering()
+
+      const interval =
+        setInterval(() =>
+          triggering(true),
+          0.25 * 60 * 1000,
         )
-      }
-    }
 
-    triggering()
+      return () => clearInterval(interval)
+    },
+    [sdk, pathname, address, statusSelect],
+  )
 
-    const interval =
-      setInterval(() =>
-        triggering(true),
-        0.25 * 60 * 1000,
-      )
+  useEffect(
+    () => {
+      const getData = async () => {
+        if (sdk) {
+          setFetching(true)
 
-    return () => clearInterval(interval)
-  }, [sdk, pathname, address, statusSelect])
+          if (!fetchTrigger) {
+            setData(null)
+            setOffset(0)
+            setNoMore(false)
+          }
 
-  useEffect(() => {
-    const getData = async () => {
-      if (sdk) {
-        setFetching(true)
+          let response
 
-        if (!fetchTrigger) {
-          setData(null)
-          setOffset(0)
-          setNoMore(false)
-        }
+          const status =
+            statusSelect ||
+            undefined
 
-        let response
+          const _data =
+            !fetchTrigger ?
+              [] :
+              data ||
+              []
 
-        const status =
-          statusSelect ||
-          undefined
+          const limit = LIMIT
 
-        const _data =
-          !fetchTrigger ?
-            [] :
-            data ||
-            []
+          const offset =
+            fetchTrigger ?
+              _data.length :
+              0
 
-        const limit = LIMIT
-
-        const offset =
-          fetchTrigger ?
-            _data.length :
-            0
-
-        switch (pathname) {
-          case '/address/[address]':
-            try {
-              if (address) {
-                response =
-                  await sdk.nxtpSdkUtils
-                    .getTransfersByUser(
-                      {
-                        userAddress: address,
-                        status,
-                        range: {
-                          limit,
-                          offset,
+          switch (pathname) {
+            case '/address/[address]':
+              try {
+                if (address) {
+                  response =
+                    await sdk.nxtpSdkUtils
+                      .getTransfersByUser(
+                        {
+                          userAddress: address,
+                          status,
+                          range: {
+                            limit,
+                            offset,
+                          },
                         },
-                      },
-                    )
-              }
-            } catch (error) {}
-            break
-          case '/router/[address]':
-            try {
-              if (address) {
-                response =
-                  await sdk.nxtpSdkUtils
-                    .getTransfersByRouter(
-                      {
-                        routerAddress: address,
-                        status,
-                        range: {
-                          limit,
-                          offset,
+                      )
+                }
+              } catch (error) {}
+              break
+            case '/router/[address]':
+              try {
+                if (address) {
+                  response =
+                    await sdk.nxtpSdkUtils
+                      .getTransfersByRouter(
+                        {
+                          routerAddress: address,
+                          status,
+                          range: {
+                            limit,
+                            offset,
+                          },
                         },
-                      },
-                    )
-              }
-            } catch (error) {}
-            break
-          default:
-            try {
-              if (status) {
-                response =
-                  await sdk.nxtpSdkUtils
-                    .getTransfersByStatus(
-                      {
-                        status,
-                        range: {
-                          limit,
-                          offset,
+                      )
+                }
+              } catch (error) {}
+              break
+            default:
+              try {
+                if (status) {
+                  response =
+                    await sdk.nxtpSdkUtils
+                      .getTransfersByStatus(
+                        {
+                          status,
+                          range: {
+                            limit,
+                            offset,
+                          },
                         },
-                      },
-                    )
-              }
-              else {
-                response =
-                  await sdk.nxtpSdkUtils
-                    .getTransfers(
-                      {
-                        range: {
-                          limit,
-                          offset,
+                      )
+                }
+                else {
+                  response =
+                    await sdk.nxtpSdkUtils
+                      .getTransfers(
+                        {
+                          range: {
+                            limit,
+                            offset,
+                          },
                         },
-                      },
-                    )
-              }
-            } catch (error) {}
-            break
-        }
+                      )
+                }
+              } catch (error) {}
+              break
+          }
 
-        if (Array.isArray(response)) {
-          response =
-            _.orderBy(
-              _.uniqBy(
-                _.concat(
-                  _data,
-                  response,
+          if (Array.isArray(response)) {
+            response =
+              _.orderBy(
+                _.uniqBy(
+                  _.concat(
+                    _data,
+                    response,
+                  ),
+                  'transfer_id'
                 ),
-                'transfer_id'
-              ),
-              ['xcall_timestamp'],
-              ['desc'],
-            )
+                ['xcall_timestamp'],
+                ['desc'],
+              )
 
-          response =
-            response
-              .map(t => {
-                const source_chain_data = (chains_data || [])
-                  .find(c =>
-                    c?.chain_id === Number(t?.origin_chain) ||
-                    c?.domain_id === t?.origin_domain
-                  )
-
-                const source_asset_data = (assets_data || [])
-                  .find(a =>
-                    (a?.contracts || [])
-                      .findIndex(c =>
-                        c?.chain_id === source_chain_data?.chain_id &&
-                        [
-                          t?.origin_transacting_asset,
-                          t?.origin_bridged_asset,
-                        ].findIndex(_a =>
-                          [
-                            c?.next_asset?.contract_address,
-                            c?.contract_address,
-                          ]
-                          .filter(__a => __a)
-                          .findIndex(__a =>
-                            equals_ignore_case(
-                              __a,
-                              _a,
-                            )
-                          ) > -1
-                        ) > -1
-                      ) > -1
+            response =
+              response
+                .map(t => {
+                  const source_chain_data = (chains_data || [])
+                    .find(c =>
+                      c?.chain_id === Number(t?.origin_chain) ||
+                      c?.domain_id === t?.origin_domain
                     )
 
-                let source_contract_data = (source_asset_data?.contracts || [])
-                  .find(c =>
-                    c?.chain_id === source_chain_data?.chain_id,
-                  )
-
-                if (
-                  source_contract_data?.next_asset &&
-                  equals_ignore_case(
-                    source_contract_data.next_asset.contract_address,
-                    t?.origin_transacting_asset,
-                  )
-                ) {
-                  source_contract_data = {
-                    ...source_contract_data,
-                    ...source_contract_data.next_asset,
-                  }
-
-                  delete source_contract_data.next_asset
-                }
-
-                const destination_chain_data = (chains_data || [])
-                  .find(c =>
-                    c?.chain_id === Number(t?.destination_chain) ||
-                    c?.domain_id === t?.destination_domain
-                  )
-
-                const destination_asset_data = (assets_data || [])
-                  .find(a =>
-                    (a?.contracts || [])
-                      .findIndex(c =>
-                        c?.chain_id === destination_chain_data?.chain_id &&
-                        [
-                          t?.destination_transacting_asset,
-                          equals_ignore_case(
-                            source_asset_data?.id,
-                            a?.id,
-                          ) ?
-                            _data?.receive_local ?
-                              c?.next_asset?.contract_address :
-                              c?.contract_address :
-                            t?.destination_local_asset,
-                        ].findIndex(_a =>
+                  const source_asset_data = (assets_data || [])
+                    .find(a =>
+                      (a?.contracts || [])
+                        .findIndex(c =>
+                          c?.chain_id === source_chain_data?.chain_id &&
                           [
-                            c?.next_asset?.contract_address,
-                            c?.contract_address,
-                          ]
-                          .filter(__a => __a)
-                          .findIndex(__a =>
-                            equals_ignore_case(
-                              __a,
-                              _a,
-                            )
+                            t?.origin_transacting_asset,
+                            t?.origin_bridged_asset,
+                          ].findIndex(_a =>
+                            [
+                              c?.next_asset?.contract_address,
+                              c?.contract_address,
+                            ]
+                            .filter(__a => __a)
+                            .findIndex(__a =>
+                              equals_ignore_case(
+                                __a,
+                                _a,
+                              )
+                            ) > -1
                           ) > -1
                         ) > -1
-                      ) > -1
-                  )
+                      )
 
-                let destination_contract_data = (destination_asset_data?.contracts || [])
-                  .find(c =>
-                    c?.chain_id === destination_chain_data?.chain_id,
-                  )
+                  let source_contract_data = (source_asset_data?.contracts || [])
+                    .find(c =>
+                      c?.chain_id === source_chain_data?.chain_id,
+                    )
 
-                if (
-                  destination_contract_data?.next_asset &&
-                  (
+                  if (
+                    source_contract_data?.next_asset &&
                     equals_ignore_case(
-                      destination_contract_data.next_asset.contract_address,
-                      t?.destination_transacting_asset,
-                    ) ||
-                    t?.receive_local
-                  )
-                ) {
-                  destination_contract_data = {
-                    ...destination_contract_data,
-                    ...destination_contract_data.next_asset,
+                      source_contract_data.next_asset.contract_address,
+                      t?.origin_transacting_asset,
+                    )
+                  ) {
+                    source_contract_data = {
+                      ...source_contract_data,
+                      ...source_contract_data.next_asset,
+                    }
+
+                    delete source_contract_data.next_asset
                   }
 
-                  delete destination_contract_data.next_asset
-                }
+                  if (
+                    !source_contract_data &&
+                    equals_ignore_case(
+                      t?.origin_transacting_asset,
+                      constants.AddressZero,
+                    )
+                  ) {
+                    const {
+                      nativeCurrency,
+                    } = {
+                      ...(
+                        _.head(source_chain_data?.provider_params)
+                      ),
+                    }
+                    const {
+                      symbol,
+                    } = { ...nativeCurrency }
 
-                return {
-                  ...t,
-                  source_chain_data,
-                  destination_chain_data,
-                  source_asset_data: {
-                    ...source_asset_data,
-                    ...source_contract_data,
-                  },
-                  destination_asset_data: {
-                    ...destination_asset_data,
-                    ...destination_contract_data,
-                  },
-                  pending:
-                    ![
-                      XTransferStatus.Executed,
-                      XTransferStatus.CompletedFast,
-                      XTransferStatus.CompletedSlow,
-                    ].includes(t?.status),
-                }
-              })
-              .map(t => {
-                const {
-                  source_asset_data,
-                  destination_asset_data,
-                  origin_transacting_amount,
-                  origin_bridged_amount,
-                  destination_transacting_amount,
-                  destination_local_amount,
-                } = { ...t }
+                    const _source_asset_data = (assets_data || [])
+                      .find(a =>
+                        [
+                          a?.id,
+                          a?.symbol,
+                        ].findIndex(s =>
+                          equals_ignore_case(
+                            s,
+                            symbol,
+                          )
+                        ) > -1
+                      )
 
-                const source_amount =
-                  _.head(
-                    [
-                      origin_transacting_amount,
-                      // origin_bridged_amount,
-                    ]
-                    .map(a =>
+                    source_contract_data = {
+                      ...(
+                        (_source_asset_data?.contracts || [])
+                          .find(c =>
+                            c?.chain_id === source_chain_data?.chain_id,
+                          )
+                      ),
+                      contract_address: t?.origin_transacting_asset,
+                      ...nativeCurrency,
+                    }
+                  }
+
+                  const destination_chain_data = (chains_data || [])
+                    .find(c =>
+                      c?.chain_id === Number(t?.destination_chain) ||
+                      c?.domain_id === t?.destination_domain
+                    )
+
+                  const destination_asset_data = (assets_data || [])
+                    .find(a =>
+                      (a?.contracts || [])
+                        .findIndex(c =>
+                          c?.chain_id === destination_chain_data?.chain_id &&
+                          [
+                            t?.destination_transacting_asset,
+                            equals_ignore_case(
+                              source_asset_data?.id,
+                              a?.id,
+                            ) ?
+                              _data?.receive_local ?
+                                c?.next_asset?.contract_address :
+                                c?.contract_address :
+                              t?.destination_local_asset,
+                          ].findIndex(_a =>
+                            [
+                              c?.next_asset?.contract_address,
+                              c?.contract_address,
+                            ]
+                            .filter(__a => __a)
+                            .findIndex(__a =>
+                              equals_ignore_case(
+                                __a,
+                                _a,
+                              )
+                            ) > -1
+                          ) > -1
+                        ) > -1
+                    )
+
+                  let destination_contract_data = (destination_asset_data?.contracts || [])
+                    .find(c =>
+                      c?.chain_id === destination_chain_data?.chain_id,
+                    )
+
+                  if (
+                    destination_contract_data?.next_asset &&
+                    (
+                      equals_ignore_case(
+                        destination_contract_data.next_asset.contract_address,
+                        t?.destination_transacting_asset,
+                      ) ||
+                      t?.receive_local
+                    )
+                  ) {
+                    destination_contract_data = {
+                      ...destination_contract_data,
+                      ...destination_contract_data.next_asset,
+                    }
+
+                    delete destination_contract_data.next_asset
+                  }
+
+                  if (
+                    !destination_contract_data &&
+                    equals_ignore_case(
+                      t?.destination_transacting_asset,
+                      constants.AddressZero,
+                    )
+                  ) {
+                    const {
+                      nativeCurrency,
+                    } = {
+                      ...(
+                        _.head(destination_chain_data?.provider_params)
+                      ),
+                    }
+                    const {
+                      symbol,
+                    } = { ...nativeCurrency }
+
+                    const _destination_asset_data = (assets_data || [])
+                      .find(a =>
+                        [
+                          a?.id,
+                          a?.symbol,
+                        ].findIndex(s =>
+                          equals_ignore_case(
+                            s,
+                            symbol,
+                          )
+                        ) > -1
+                      )
+
+                    destination_contract_data = {
+                      ...(
+                        (_destination_asset_data?.contracts || [])
+                          .find(c =>
+                            c?.chain_id === destination_chain_data?.chain_id,
+                          )
+                      ),
+                      contract_address: t?.destination_transacting_asset,
+                      ...nativeCurrency,
+                    }
+                  }
+
+                  return {
+                    ...t,
+                    source_chain_data,
+                    destination_chain_data,
+                    source_asset_data: {
+                      ...source_asset_data,
+                      ...source_contract_data,
+                    },
+                    destination_asset_data: {
+                      ...destination_asset_data,
+                      ...destination_contract_data,
+                    },
+                    pending:
+                      ![
+                        XTransferStatus.Executed,
+                        XTransferStatus.CompletedFast,
+                        XTransferStatus.CompletedSlow,
+                      ].includes(t?.status),
+                  }
+                })
+                .map(t => {
+                  const {
+                    source_asset_data,
+                    destination_asset_data,
+                    origin_transacting_amount,
+                    origin_bridged_amount,
+                    destination_transacting_amount,
+                    destination_local_amount,
+                  } = { ...t }
+
+                  const source_amount =
+                    _.head(
                       [
-                        'number',
-                        'string',
-                      ].includes(typeof a) &&
-                      Number(
-                        utils.formatUnits(
-                          BigNumber.from(
-                            BigInt(a)
-                              .toString()
-                          ),
-                          source_asset_data?.decimals ||
-                          18,
+                        origin_transacting_amount,
+                        // origin_bridged_amount,
+                      ]
+                      .map(a =>
+                        [
+                          'number',
+                          'string',
+                        ].includes(typeof a) &&
+                        Number(
+                          utils.formatUnits(
+                            BigNumber.from(
+                              BigInt(a)
+                                .toString()
+                            ),
+                            source_asset_data?.decimals ||
+                            18,
+                          )
                         )
                       )
-                    )
-                    .filter(a => a)
-                  )
-
-                const destination_amount =
-                  _.head(
-                    [
-                      destination_transacting_amount,
-                      // destination_local_amount,
-                    ]
-                    .map(a =>
-                      [
-                        'number',
-                        'string',
-                      ].includes(typeof a) &&
-                      Number(
-                        utils.formatUnits(
-                          BigNumber.from(
-                            BigInt(a)
-                              .toString()
-                          ),
-                          destination_asset_data?.decimals ||
-                          18,
-                        )
+                      .filter(a =>
+                        typeof a === 'number'
                       )
                     )
-                    .filter(a => a)
-                  ) ||
-                  source_amount *
-                  (
-                    1 -
-                    ROUTER_FEE_PERCENT / 100
-                  )
 
-                return {
-                  ...t,
-                  source_asset_data: {
-                    ...source_asset_data,
-                    amount: source_amount,
-                  },
-                  destination_asset_data: {
-                    ...destination_asset_data,
-                    amount: destination_amount,
-                  },
-                }
-              })
+                  const destination_amount =
+                    _.head(
+                      [
+                        destination_transacting_amount,
+                        // destination_local_amount,
+                      ]
+                      .map(a =>
+                        [
+                          'number',
+                          'string',
+                        ].includes(typeof a) &&
+                        Number(
+                          utils.formatUnits(
+                            BigNumber.from(
+                              BigInt(a)
+                                .toString()
+                            ),
+                            destination_asset_data?.decimals ||
+                            18,
+                          )
+                        )
+                      )
+                      .filter(a =>
+                        typeof a === 'number'
+                      )
+                    ) ||
+                    source_amount *
+                    (
+                      1 -
+                      ROUTER_FEE_PERCENT / 100
+                    )
 
-          setData(response)
-          setNoMore(response.length <= _data.length)
+                  return {
+                    ...t,
+                    source_asset_data: {
+                      ...source_asset_data,
+                      amount: source_amount,
+                    },
+                    destination_asset_data: {
+                      ...destination_asset_data,
+                      amount: destination_amount,
+                    },
+                  }
+                })
+
+            setData(response)
+            setNoMore(response.length <= _data.length)
+          }
+          else if (!fetchTrigger) {
+            setData([])
+            setNoMore(false)
+          }
+
+          setFetching(false)
         }
-        else if (!fetchTrigger) {
-          setData([])
-          setNoMore(false)
-        }
-
-        setFetching(false)
       }
-    }
 
-    getData()
-  }, [fetchTrigger])
+      getData()
+    },
+    [fetchTrigger],
+  )
 
   const source_chain_data = (chains_data || [])
     .find(c =>
@@ -586,7 +688,8 @@ export default () => {
                         !execute_transaction_hash
                       )
 
-                    return value &&
+                    return (
+                      value &&
                       (
                         <div className="flex flex-col items-start space-y-2">
                           <div className="flex items-center space-x-1">
@@ -667,6 +770,7 @@ export default () => {
                           }
                         </div>
                       )
+                    )
                   },
                   headerClassName: 'whitespace-nowrap',
                 },
@@ -812,7 +916,7 @@ export default () => {
                             )
                           }
                           {
-                            amount > 0 &&
+                            amount >= 0 &&
                             (
                               <span className="text-xs font-semibold">
                                 {number_format(
@@ -949,7 +1053,7 @@ export default () => {
                             )
                           }
                           {
-                            amount > 0 &&
+                            amount >= 0 &&
                             (
                               <span className="text-xs font-semibold">
                                 {number_format(

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import moment from 'moment'
-import { BigNumber, utils } from 'ethers'
+import { BigNumber, constants, utils } from 'ethers'
 import { XTransferStatus } from '@connext/nxtp-utils'
 import { TailSpin } from 'react-loader-spinner'
 import { Tooltip } from '@material-tailwind/react'
@@ -142,6 +142,49 @@ export default () => {
             delete source_contract_data.next_asset
           }
 
+          if (
+            !source_contract_data &&
+            equals_ignore_case(
+              _data?.origin_transacting_asset,
+              constants.AddressZero,
+            )
+          ) {
+            const {
+              nativeCurrency,
+            } = {
+              ...(
+                _.head(source_chain_data?.provider_params)
+              ),
+            }
+            const {
+              symbol,
+            } = { ...nativeCurrency }
+
+            const _source_asset_data = (assets_data || [])
+              .find(a =>
+                [
+                  a?.id,
+                  a?.symbol,
+                ].findIndex(s =>
+                  equals_ignore_case(
+                    s,
+                    symbol,
+                  )
+                ) > -1
+              )
+
+            source_contract_data = {
+              ...(
+                (_source_asset_data?.contracts || [])
+                  .find(c =>
+                    c?.chain_id === source_chain_data?.chain_id,
+                  )
+              ),
+              contract_address: _data?.origin_transacting_asset,
+              ...nativeCurrency,
+            }
+          }
+
           const destination_chain_data = (chains_data || [])
             .find(c =>
               c?.chain_id === Number(_data.destination_chain) ||
@@ -202,17 +245,68 @@ export default () => {
             delete destination_contract_data.next_asset
           }
 
+          if (
+            !destination_contract_data &&
+            equals_ignore_case(
+              _data?.destination_transacting_asset,
+              constants.AddressZero,
+            )
+          ) {
+            const {
+              nativeCurrency,
+            } = {
+              ...(
+                _.head(destination_chain_data?.provider_params)
+              ),
+            }
+            const {
+              symbol,
+            } = { ...nativeCurrency }
+
+            const _destination_asset_data = (assets_data || [])
+              .find(a =>
+                [
+                  a?.id,
+                  a?.symbol,
+                ].findIndex(s =>
+                  equals_ignore_case(
+                    s,
+                    symbol,
+                  )
+                ) > -1
+              )
+
+            destination_contract_data = {
+              ...(
+                (_destination_asset_data?.contracts || [])
+                  .find(c =>
+                    c?.chain_id === destination_chain_data?.chain_id,
+                  )
+              ),
+              contract_address: _data?.destination_transacting_asset,
+              ...nativeCurrency,
+            }
+          }
+
           setData(
             {
               ..._data,
               source_chain_data,
               destination_chain_data,
-              source_asset_data: source_asset_data &&
+              source_asset_data:
+                (
+                  source_asset_data ||
+                  source_contract_data
+                ) &&
                 {
                   ...source_asset_data,
                   ...source_contract_data,
                 },
-              destination_asset_data: destination_asset_data &&
+              destination_asset_data:
+                (
+                  destination_asset_data ||
+                  destination_contract_data
+                ) &&
                 {
                   ...destination_asset_data,
                   ...destination_contract_data,
@@ -299,10 +393,13 @@ export default () => {
     )
 
   const source_symbol = source_asset_data?.symbol
+
   const source_decimals =
     source_asset_data?.decimals ||
     18
+
   const source_asset_image = source_asset_data?.image
+
   const source_amount =
     _.head(
       [
@@ -324,14 +421,19 @@ export default () => {
           )
         )
       )
-      .filter(a => a)
+      .filter(a =>
+        typeof a === 'number'
+      )
     )
 
   const destination_symbol = destination_asset_data?.symbol
+
   const destination_decimals =
     destination_asset_data?.decimals ||
     18
+
   const destination_asset_image = destination_asset_data?.image
+
   const destination_amount =
     _.head(
       [
@@ -353,7 +455,9 @@ export default () => {
           )
         )
       )
-      .filter(a => a)
+      .filter(a =>
+        typeof a === 'number'
+      )
     ) ||
     source_amount *
     (
@@ -481,7 +585,7 @@ export default () => {
                         />
                       )
                     }
-                    {source_amount ?
+                    {source_amount >= 0 ?
                       <span className="text-lg font-semibold">
                         {number_format(
                           source_amount,
@@ -508,9 +612,11 @@ export default () => {
                             )
                           }
                           <AddToken
-                            token_data={{
-                              ...source_asset_data,
-                            }}
+                            token_data={
+                              {
+                                ...source_asset_data,
+                              }
+                            }
                           />
                         </>
                       )
@@ -567,7 +673,7 @@ export default () => {
                         />
                       )
                     }
-                    {destination_amount ?
+                    {destination_amount >= 0 ?
                       <span className="text-lg font-semibold">
                         {number_format(
                           destination_amount,
@@ -594,9 +700,11 @@ export default () => {
                             )
                           }
                           <AddToken
-                            token_data={{
-                              ...destination_asset_data,
-                            }}
+                            token_data={
+                              {
+                                ...destination_asset_data,
+                              }
+                            }
                           />
                         </>
                       )
