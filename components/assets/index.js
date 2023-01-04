@@ -420,25 +420,41 @@ export default (
                     typeof props.value === 'number' ?
                       <div className="flex flex-col items-end space-y-0.5 -mt-0.5">
                         <span className="uppercase text-base font-bold">
-                          {number_format(
-                            props.value,
-                            props.value > 1000000 ?
-                              '0,0.00a' :
-                              props.value > 1000 ?
-                                '0,0' :
-                                '0,0.00',
-                          )}
+                          {
+                            props.value <
+                            Math.pow(
+                              10,
+                              -12,
+                            ) ?
+                              '0' :
+                              number_format(
+                                props.value,
+                                props.value > 1000000 ?
+                                  '0,0.00a' :
+                                  props.value > 1000 ?
+                                    '0,0' :
+                                    '0,0.00',
+                              )
+                          }
                         </span>
                         <span className="uppercase text-slate-400 dark:text-slate-500 text-xs font-semibold">
                           {currency_symbol}
-                          {number_format(
-                            value,
-                            value > 100000 ?
-                              '0,0.00a' :
-                              value > 1000 ?
-                                '0,0' :
-                                '0,0.00',
-                          )}
+                          {
+                            value <
+                            Math.pow(
+                              10,
+                              -12,
+                            ) ?
+                              '0' :
+                              number_format(
+                                value,
+                                value > 100000 ?
+                                  '0,0.00a' :
+                                  value > 1000 ?
+                                    '0,0' :
+                                    '0,0.00',
+                              )
+                          }
                         </span>
                       </div> :
                       <div className="flex items-center justify-end">
