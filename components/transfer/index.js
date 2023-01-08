@@ -541,12 +541,20 @@ export default () => {
                     xcall_caller &&
                     (
                       <div className="flex items-center justify-center sm:justify-start space-x-1.5">
-                        <Link href={`/address/${xcall_caller}`}>
-                          <a>
-                            <EnsProfile
-                              address={xcall_caller}
-                              no_copy={true}
-                              fallback={<span className="text-slate-400 dark:text-slate-600 font-semibold">
+                        <a
+                          href={
+                            source_chain_data?.explorer?.url ?
+                              `${source_chain_data.explorer.url}${source_chain_data.explorer.address_path?.replace('{address}', xcall_caller)}` :
+                              `/address/${xcall_caller}`
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <EnsProfile
+                            address={xcall_caller}
+                            no_copy={true}
+                            fallback={
+                              <span className="text-slate-400 dark:text-slate-600 font-semibold">
                                 <span className="sm:hidden">
                                   {ellipse(
                                     xcall_caller,
@@ -559,10 +567,10 @@ export default () => {
                                     12,
                                   )}
                                 </span>
-                              </span>}
-                            />
-                          </a>
-                        </Link>
+                              </span>
+                            }
+                          />
+                        </a>
                         <Copy
                           size={20}
                           value={xcall_caller}
@@ -742,12 +750,20 @@ export default () => {
                     to &&
                     (
                       <div className="flex items-center justify-center sm:justify-end space-x-1.5">
-                        <Link href={`/address/${to}`}>
-                          <a>
-                            <EnsProfile
-                              address={to}
-                              no_copy={true}
-                              fallback={<span className="text-slate-400 dark:text-slate-600 font-semibold">
+                        <a
+                          href={
+                            destination_chain_data?.explorer?.url ?
+                              `${destination_chain_data.explorer.url}${destination_chain_data.explorer.address_path?.replace('{address}', to)}` :
+                              `/address/${to}`
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <EnsProfile
+                            address={to}
+                            no_copy={true}
+                            fallback={
+                              <span className="text-slate-400 dark:text-slate-600 font-semibold">
                                 <span className="sm:hidden">
                                   {ellipse(
                                     to,
@@ -760,10 +776,10 @@ export default () => {
                                     12,
                                   )}
                                 </span>
-                              </span>}
-                            />
-                          </a>
-                        </Link>
+                              </span>
+                            }
+                          />
+                        </a>
                         <Copy
                           size={20}
                           value={to}

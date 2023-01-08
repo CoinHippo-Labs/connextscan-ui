@@ -21,17 +21,24 @@ import { chainName } from '../../../lib/object/chain'
 import { currency_symbol } from '../../../lib/object/currency'
 import { number_format, loader_color } from '../../../lib/utils'
 
-const CustomTooltip = ({
-  active,
-  payload,
-  label,
-}) => {
+const CustomTooltip = (
+  {
+    active,
+    payload,
+    label,
+  },
+) => {
   if (active) {
     const {
       values,
-    } = { ...payload?.[0]?.payload }
+    } = {
+      ...(
+        _.head(payload)?.payload
+      ),
+    }
 
-    return values?.length > 0 &&
+    return (
+      values?.length > 0 &&
       (
         <div className="bg-slate-100 dark:bg-slate-800 dark:bg-opacity-75 border border-slate-200 dark:border-slate-800 flex flex-col space-y-1 p-2">
           {values
@@ -81,18 +88,21 @@ const CustomTooltip = ({
           }
         </div>
       )
+    )
   }
 
   return null
 }
 
-export default ({
-  title = 'Volume',
-  description = 'Transfer volume by',
-  timeframe = null,
-  stacked = false,
-  volumes,
-}) => {
+export default (
+  {
+    title = 'Volume',
+    description = 'Transfer volume by',
+    timeframe = null,
+    stacked = false,
+    volumes,
+  },
+) => {
   const {
     preferences,
   } = useSelector(state =>
@@ -259,12 +269,14 @@ export default ({
                 }
               }}
               onMouseLeave={() => setXFocus(null)}
-              margin={{
-                top: 10,
-                right: 2,
-                bottom: 4,
-                left: 2,
-              }}
+              margin={
+                {
+                  top: 10,
+                  right: 2,
+                  bottom: 4,
+                  left: 2,
+                }
+              }
               className="mobile-hidden-x small-x"
             >
               <defs>
@@ -297,12 +309,14 @@ export default ({
                 values?.length > 0 ?
                   <>
                     <Tooltip
-                      content={(
+                      content={
                         <CustomTooltip />
-                      )}
-                      cursor={{
-                        fill: 'transparent',
-                      }}
+                      }
+                      cursor={
+                        {
+                          fill: 'transparent',
+                        }
+                      }
                     />
                     {
                       _.orderBy(

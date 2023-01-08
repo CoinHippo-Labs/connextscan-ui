@@ -11,12 +11,74 @@ import {
   Bar,
   LabelList,
   Cell,
+  Tooltip,
 } from 'recharts'
 import { TailSpin } from 'react-loader-spinner'
 
 import Image from '../../image'
 import { currency_symbol } from '../../../lib/object/currency'
 import { number_format, loader_color } from '../../../lib/utils'
+
+const CustomTooltip = (
+  {
+    active,
+    payload,
+    label,
+  },
+) => {
+  if (active) {
+    const {
+      values,
+    } = {
+      ...(
+        _.head(payload)?.payload
+      ),
+    }
+
+    return (
+      values?.length > 0 &&
+      (
+        <div className="bg-slate-100 dark:bg-slate-800 dark:bg-opacity-75 border border-slate-200 dark:border-slate-800 flex flex-col space-y-1 p-2">
+          {values
+            .filter(v =>
+              v?.value
+            )
+            .map((v, i) => {
+              const {
+                id,
+                value,
+              } = { ...v }
+
+              return (
+                <div
+                  key={i}
+                  className="flex items-center justify-between space-x-4"
+                >
+                  <div className="flex items-center space-x-1.5">
+                    <span className="text-xs font-semibold">
+                      {id}
+                    </span>
+                  </div>
+                  <span className=" text-xs font-semibold">
+                    {currency_symbol}
+                    {number_format(
+                      value,
+                      value > 10000 ?
+                        '0,0' :
+                        '0,0.000000',
+                    )}
+                  </span>
+                </div>
+              )
+            })
+          }
+        </div>
+      )
+    )
+  }
+
+  return null
+}
 
 export default (
   {
@@ -27,11 +89,13 @@ export default (
   const {
     preferences,
     asset_balances,
+    pools,
   } = useSelector(state =>
     (
       {
         preferences: state.preferences,
         asset_balances: state.asset_balances,
+        pools: state.pools,
       }
     ),
     shallowEqual,
@@ -42,6 +106,9 @@ export default (
   const {
     asset_balances_data,
   } = { ...asset_balances }
+  const {
+    pools_data,
+  } = { ...pools }
 
   const router = useRouter()
 
@@ -54,18 +121,42 @@ export default (
         setData(
           Object.values(asset_balances_data)
             .map(v => {
+              const {
+                chain_data,
+              } = {  
+                ...(
+                  _.head(v)
+                ),
+              }
+
+              const router_value =
+                _.sumBy(
+                  v,
+                  'value',
+                )
+
+              const pool_value =
+                _.sumBy(
+                  (pools_data || [])
+                    .filter(p =>
+                      p?.chain_data?.id === chain_data?.id
+                    ),
+                  'tvl',
+                ) ||
+                0
+
               return {
-                ..._.head(v)?.chain_data,
-                value:
-                  _.sumBy(
-                    v,
-                    'value',
-                  ),
+                ...chain_data,
+                router_value,
+                pool_value,
+                value: router_value + pool_value,
               }
             })
             .filter(l => l.id)
             .map(l => {
               const {
+                router_value,
+                pool_value,
                 value,
               } = { ...l }
 
@@ -80,12 +171,23 @@ export default (
                         '0,0' :
                         '0,0.00',
                   ),
+                values:
+                  [
+                    {
+                      id: 'Routers',
+                      value: router_value,
+                    },
+                    {
+                      id: 'Pools',
+                      value: pool_value,
+                    },
+                  ],
               }
             })
         )
       }
     },
-    [asset_balances_data],
+    [asset_balances_data, pools_data],
   )
 
   const d = (data || [])
@@ -166,12 +268,14 @@ export default (
                 }
               }}
               onMouseLeave={() => setXFocus(null)}
-              margin={{
-                top: 10,
-                right: 2,
-                bottom: 4,
-                left: 2,
-              }}
+              margin={
+                {
+                  top: 10,
+                  right: 2,
+                  bottom: 4,
+                  left: 2,
+                }
+              }
               className="small-x"
             >
               <defs>
@@ -210,6 +314,16 @@ export default (
                 dataKey="short_name"
                 axisLine={false}
                 tickLine={false}
+              />
+              <Tooltip
+                content={
+                  <CustomTooltip />
+                }
+                cursor={
+                  {
+                    fill: 'transparent',
+                  }
+                }
               />
               <Bar
                 dataKey="value"

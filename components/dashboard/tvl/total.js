@@ -12,11 +12,13 @@ export default () => {
   const {
     preferences,
     asset_balances,
+    pools,
   } = useSelector(state =>
     (
       {
         preferences: state.preferences,
         asset_balances: state.asset_balances,
+        pools: state.pools,
       }
     ),
     shallowEqual,
@@ -27,62 +29,127 @@ export default () => {
   const {
     asset_balances_data,
   } = { ...asset_balances }
+  const {
+    pools_data,
+  } = { ...pools }
 
   const [data, setData] = useState(null)
 
-  useEffect(() => {
-    if (asset_balances_data) {
-      setData({
-        total: _.sumBy(
-          Object.values(asset_balances_data)
-            .flatMap(l => l),
-          'value',
-        ),
-        top_chains: _.slice(
-          _.orderBy(
-            Object.values(asset_balances_data)
-              .map(v => {
-                return {
-                  ..._.head(v)?.chain_data,
-                  value: _.sumBy(
-                    v,
-                    'value',
-                  ),
-                }
-              }),
-            ['value'],
-            ['desc'],
-          ),
-          0,
-          3,
-        ),
-        top_assets: _.slice(
-          _.orderBy(
-            Object.values(
-              _.groupBy(
+  useEffect(
+    () => {
+      if (asset_balances_data) {
+        setData(
+          {
+            total:
+              _.sumBy(
                 Object.values(asset_balances_data)
                   .flatMap(l => l),
-                'asset_data.id',
-              )
-            )
-            .map(v => {
-              return {
-                ..._.head(v)?.asset_data,
-                value: _.sumBy(
-                  v,
-                  'value',
+                'value',
+              ) +
+              (
+                _.sumBy(
+                  pools_data ||
+                  [],
+                  'tvl',
+                ) ||
+                0
+              ),
+            top_chains:
+              _.slice(
+                _.orderBy(
+                  Object.values(asset_balances_data)
+                    .map(v => {
+                      const {
+                        chain_data,
+                      } = {  
+                        ...(
+                          _.head(v)
+                        ),
+                      }
+
+                      const router_value =
+                        _.sumBy(
+                          v,
+                          'value',
+                        )
+
+                      const pool_value =
+                        _.sumBy(
+                          (pools_data || [])
+                            .filter(p =>
+                              p?.chain_data?.id === chain_data?.id
+                            ),
+                          'tvl',
+                        ) ||
+                        0
+
+                      return {
+                        ...chain_data,
+                        router_value,
+                        pool_value,
+                        value: router_value + pool_value,
+                      }
+                    }),
+                  ['value'],
+                  ['desc'],
                 ),
-              }
-            }),
-            ['value'],
-            ['desc'],
-          ),
-          0,
-          3,
-        ),
-      })
-    }
-  }, [asset_balances_data])
+                0,
+                3,
+              ),
+            top_assets:
+              _.slice(
+                _.orderBy(
+                  Object.values(
+                    _.groupBy(
+                      Object.values(asset_balances_data)
+                        .flatMap(l => l),
+                      'asset_data.id',
+                    )
+                  )
+                  .map(v => {
+                    const {
+                      asset_data,
+                    } = {  
+                      ...(
+                        _.head(v)
+                      ),
+                    }
+
+                    const router_value =
+                      _.sumBy(
+                        v,
+                        'value',
+                      )
+
+                    const pool_value =
+                      _.sumBy(
+                        (pools_data || [])
+                          .filter(p =>
+                            p?.asset_data?.id === asset_data?.id
+                          ),
+                        'tvl',
+                      ) ||
+                      0
+
+                    return {
+                      ...asset_data,
+                      router_value,
+                      pool_value,
+                      value: router_value + pool_value,
+                    }
+                  }),
+                  ['value'],
+                  ['desc'],
+                ),
+                0,
+                3,
+              ),
+          }
+        )
+      }
+    },
+    [asset_balances_data, pools_data],
+  )
 
   const {
     total,

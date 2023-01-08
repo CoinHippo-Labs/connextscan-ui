@@ -6,6 +6,7 @@ export const CHAINS_DATA = 'chains_data'
 
 // assets
 export const ASSETS_DATA = 'assets_data'
+export const POOL_ASSETS_DATA = 'pool_assets_data'
 
 // ens
 export const ENS_DATA = 'ens_data'
@@ -15,6 +16,9 @@ export const CHAIN_DATA = 'chain_data'
 
 // asset balances
 export const ASSET_BALANCES_DATA = 'asset_balances_data'
+
+// pools
+export const POOLS_DATA = 'pools_data'
 
 // rpc
 export const RPCS = 'rpcs'

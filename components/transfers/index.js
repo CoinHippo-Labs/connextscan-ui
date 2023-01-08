@@ -868,7 +868,12 @@ export default () => {
                     const {
                       name,
                       image,
+                      explorer,
                     } = { ...value }
+                    const {
+                      url,
+                      address_path,
+                    } = { ...explorer }
                     const {
                       symbol,
                       amount,
@@ -943,9 +948,11 @@ export default () => {
                                   source_asset_data.contract_address &&
                                   (
                                     <AddToken
-                                      token_data={{
-                                        ...source_asset_data,
-                                      }}
+                                      token_data={
+                                        {
+                                          ...source_asset_data,
+                                        }
+                                      }
                                     />
                                   )
                                 }
@@ -957,13 +964,21 @@ export default () => {
                           xcall_caller &&
                           (
                             <div className="flex items-center justify-center sm:justify-start space-x-1">
-                              <Link href={`/address/${xcall_caller}`}>
-                                <a>
-                                  <EnsProfile
-                                    address={xcall_caller}
-                                    no_copy={true}
-                                    no_image={true}
-                                    fallback={<span className="text-slate-400 dark:text-slate-600 text-xs font-semibold">
+                              <a
+                                href={
+                                  url ?
+                                    `${url}${address_path?.replace('{address}', xcall_caller)}` :
+                                    `/address/${xcall_caller}`
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <EnsProfile
+                                  address={xcall_caller}
+                                  no_copy={true}
+                                  no_image={true}
+                                  fallback={
+                                    <span className="text-slate-400 dark:text-slate-600 text-xs font-semibold">
                                       <span className="sm:hidden">
                                         {ellipse(
                                           xcall_caller,
@@ -976,10 +991,10 @@ export default () => {
                                           8,
                                         )}
                                       </span>
-                                    </span>}
-                                  />
-                                </a>
-                              </Link>
+                                    </span>
+                                  }
+                                />
+                              </a>
                               <Copy
                                 value={xcall_caller}
                               />
@@ -1005,7 +1020,12 @@ export default () => {
                     const {
                       name,
                       image,
+                      explorer,
                     } = { ...value }
+                    const {
+                      url,
+                      address_path,
+                    } = { ...explorer }
                     const {
                       symbol,
                       amount,
@@ -1080,9 +1100,11 @@ export default () => {
                                   destination_asset_data.contract_address &&
                                   (
                                     <AddToken
-                                      token_data={{
-                                        ...destination_asset_data,
-                                      }}
+                                      token_data={
+                                        {
+                                          ...destination_asset_data,
+                                        }
+                                      }
                                     />
                                   )
                                 }
@@ -1094,13 +1116,21 @@ export default () => {
                           to &&
                           (
                             <div className="flex items-center justify-center sm:justify-start space-x-1">
-                              <Link href={`/address/${to}`}>
-                                <a>
-                                  <EnsProfile
-                                    address={to}
-                                    no_copy={true}
-                                    no_image={true}
-                                    fallback={<span className="text-slate-400 dark:text-slate-600 text-xs font-semibold">
+                              <a
+                                href={
+                                  url ?
+                                    `${url}${address_path?.replace('{address}', to)}` :
+                                    `/address/${to}`
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <EnsProfile
+                                  address={to}
+                                  no_copy={true}
+                                  no_image={true}
+                                  fallback={
+                                    <span className="text-slate-400 dark:text-slate-600 text-xs font-semibold">
                                       <span className="sm:hidden">
                                         {ellipse(
                                           to,
@@ -1113,10 +1143,10 @@ export default () => {
                                           8,
                                         )}
                                       </span>
-                                    </span>}
-                                  />
-                                </a>
-                              </Link>
+                                    </span>
+                                  }
+                                />
+                              </a>
                               <Copy
                                 value={to}
                               />
