@@ -357,6 +357,7 @@ export default () => {
     () => {
       const init = async () => {
         if (
+          !sdk &&
           chains_data &&
           assets_data &&
           assets_data
@@ -457,7 +458,7 @@ export default () => {
 
       init()
     },
-    [chains_data, assets_data],
+    [chains_data, assets_data, sdk],
   )
 
   // sdk
@@ -496,7 +497,7 @@ export default () => {
           setCurrentAddress(address)
 
           console.log(
-            '[Signer address]',
+            '[SDK change signer address]',
             address,
           )
 
@@ -937,7 +938,13 @@ export default () => {
 
             let tvl
 
-            if (Array.isArray(pool.balances)) {
+            if (
+              [
+                'string',
+                'number',
+              ].includes(typeof supply) ||
+              Array.isArray(pool.balances)
+            ) {
               const {
                 price,
               } = {
@@ -954,16 +961,19 @@ export default () => {
                   (
                     supply ||
                     _.sum(
-                      pool.balances
-                        .map((b, i) =>
-                          b /
-                          (
-                            i > 0 &&
-                            rate > 0 ?
-                              rate :
-                              1
-                          )
+                      (Array.isArray(pool.balances) ?
+                        pool.balances :
+                        []
+                      )
+                      .map((b, i) =>
+                        b /
+                        (
+                          i > 0 &&
+                          rate > 0 ?
+                            rate :
+                            1
                         )
+                      )
                     )
                   ) *
                   price :
