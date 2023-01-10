@@ -750,7 +750,6 @@ export default () => {
           )
         const {
           contract_address,
-          next_asset,
         } = { ...contract_data }
 
         if (contract_address) {
@@ -785,8 +784,8 @@ export default () => {
 
             const {
               lpTokenAddress,
-              balances,
-              decimals,
+              adopted,
+              local,
             } = { ...pool }
             let {
               name,
@@ -817,21 +816,76 @@ export default () => {
               pool.symbol = symbol
             }
 
-            /*if (Array.isArray(balances)) {
-              pool.balances =
-                balances
-                  .map((b, i) =>
-                    typeof b === 'number' ?
-                      b :
-                      Number(
-                        utils.formatUnits(
-                          b,
-                          decimals?.[i] ||
-                          18,
-                        )
-                      )
+            if (symbol?.includes('-')) {
+              const symbols =
+                symbol
+                  .split('-')
+
+              if (
+                equals_ignore_case(
+                  _.head(symbols),
+                  _.last(symbols),
+                ) &&
+                adopted?.symbol &&
+                local?.symbol
+              ) {
+                symbol =
+                  [
+                    adopted.symbol,
+                    local.symbol,
+                  ]
+                  .join('-')
+
+                pool.symbol = symbol
+              }
+            }
+
+            const symbols =
+              (symbol || '')
+                .split('-')
+                .filter(s => s)
+
+            if (adopted) {
+              const {
+                balance,
+                decimals,
+              } = { ...adopted }
+
+              adopted.balance =
+                typeof balance === 'string' ?
+                  balance :
+                  utils.formatUnits(
+                    BigNumber.from(
+                      balance ||
+                      '0'
+                    ),
+                    decimals ||
+                    18,
                   )
-            }*/
+
+              pool.adopted = adopted
+            }
+
+            if (local) {
+              const {
+                balance,
+                decimals,
+              } = { ...local }
+
+              local.balance =
+                typeof balance === 'string' ?
+                  balance :
+                  utils.formatUnits(
+                    BigNumber.from(
+                      balance ||
+                      '0'
+                    ),
+                    decimals ||
+                    18,
+                  )
+
+              pool.local = local
+            }
 
             let supply
 
@@ -859,9 +913,18 @@ export default () => {
                     ),
                     18,
                   )
+
+                console.log(
+                  '[LPTokenSupply]',
+                  {
+                    domain_id,
+                    lpTokenAddress,
+                    supply,
+                  },
+                )
               } catch (error) {
                 console.log(
-                  '[ERROR getLPTokenSupply]',
+                  '[getLPTokenSupply error]',
                   {
                     domain_id,
                     lpTokenAddress,
@@ -869,42 +932,9 @@ export default () => {
                   error,
                 )
               }
-
-              console.log(
-                '[LPTokenSupply]',
-                {
-                  domain_id,
-                  lpTokenAddress,
-                  supply,
-                },
-              )
             }
 
-            let symbols =
-              (symbol || '')
-                .split('-')
-                .filter(s => s)
-
-            if (pool) {
-              if (
-                symbols
-                  .findIndex(s =>
-                    s?.startsWith(WRAPPED_PREFIX)
-                  ) !==
-                (pool.tokens || [])
-                  .findIndex(t =>
-                    equals_ignore_case(
-                      t,
-                      next_asset?.contract_address,
-                    ),
-                  )
-              ) {
-                symbols =
-                  _.reverse(
-                    _.cloneDeep(symbols)
-                  )
-              }
-            }
+            let rate
 
             if (pool) {
               console.log(
@@ -914,27 +944,45 @@ export default () => {
                   contract_address,
                 },
               )
+
+              try {
+                rate =
+                  await sdk.nxtpSdkPool
+                    .getVirtualPrice(
+                      domain_id,
+                      contract_address,
+                    )
+
+                rate =
+                  Number(
+                    utils.formatUnits(
+                      BigNumber.from(
+                        rate ||
+                        '0'
+                      ),
+                      18,
+                    )
+                  )
+
+                console.log(
+                  '[VirtualPrice]',
+                  {
+                    domain_id,
+                    contract_address,
+                    rate,
+                  },
+                )
+              } catch (error) {
+                console.log(
+                  '[getVirtualPrice error]',
+                  {
+                    domain_id,
+                    contract_address,
+                  },
+                  error,
+                )
+              }
             }
-
-            let rate =
-              pool &&
-              await sdk.nxtpSdkPool
-                .getVirtualPrice(
-                  domain_id,
-                  contract_address,
-                )
-
-            rate =
-              Number(
-                utils.formatUnits(
-                  BigNumber.from(
-                    rate ||
-                    '0'
-                  ),
-                  // _.last(decimals) ||
-                  18,
-                )
-              )
 
             let tvl
 
@@ -943,7 +991,10 @@ export default () => {
                 'string',
                 'number',
               ].includes(typeof supply) ||
-              Array.isArray(pool.balances)
+              (
+                adopted?.balance &&
+                local?.balance
+              )
             ) {
               const {
                 price,
@@ -961,34 +1012,34 @@ export default () => {
                   (
                     supply ||
                     _.sum(
-                      (Array.isArray(pool.balances) ?
-                        pool.balances :
-                        []
-                      )
-                      .map((b, i) =>
-                        b /
-                        (
-                          i > 0 &&
-                          rate > 0 ?
-                            rate :
-                            1
+                      [
+                        adopted,
+                        local,
+                      ]
+                      .filter(t => t)
+                      .map(t => {
+                        const {
+                          balance,
+                          index,
+                        } = { ...t }
+
+                        return (
+                          Number(
+                            balance ||
+                            '0'
+                          ) /
+                          (
+                            index > 0 &&
+                            rate > 0 ?
+                              rate :
+                              1
+                          )
                         )
-                      )
+                      })
                     )
                   ) *
                   price :
                   0
-            }
-
-            if (pool) {
-              console.log(
-                '[VirtualPrice]',
-                {
-                  domain_id,
-                  contract_address,
-                  rate,
-                },
-              )
             }
 
             if (
@@ -1024,7 +1075,7 @@ export default () => {
             }
           } catch (error) {
             console.log(
-              '[ERROR getPool]',
+              '[getPool error]',
               {
                 domain_id,
                 contract_address,
@@ -1099,7 +1150,7 @@ export default () => {
 
       return () => clearInterval(interval)
     },
-    [pathname, sdk, chains_data, pool_assets_data],
+    [/*pathname, */sdk, chains_data, pool_assets_data],
   )
 
   return (
