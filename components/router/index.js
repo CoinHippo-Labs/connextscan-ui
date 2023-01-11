@@ -5,7 +5,7 @@ import _ from 'lodash'
 import { BigNumber, utils } from 'ethers'
 
 import Metrics from '../metrics'
-import AddRouterLiquidity from '../add-router-liquidity'
+import RouterLiquidity from '../router-liquidity'
 import Assets from '../assets'
 import Transfers from '../transfers'
 import { daily_transfer_metrics, daily_transfer_volume } from '../../lib/api/metrics'
@@ -466,7 +466,7 @@ export default () => {
         <Metrics
           data={metrics}
         />
-        <AddRouterLiquidity />
+        <RouterLiquidity />
       </div>
       <div className="flex items-start justify-between space-x-2">
         <div className="w-full grid grid-flow-row xl:grid-cols-2 gap-6 mb-4">

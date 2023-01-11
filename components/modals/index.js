@@ -4,31 +4,33 @@ import { FiX } from 'react-icons/fi'
 
 import Portal from '../portal'
 
-export default ({
-  id = 'portal',
-  hidden,
-  disabled,
-  onClick,
-  buttonTitle,
-  buttonClassName,
-  buttonStyle = {},
-  title,
-  icon,
-  body,
-  noCancelOnClickOutside = false,
-  cancelDisabled = false,
-  onCancel,
-  cancelButtonTitle,
-  cancelButtonClassName,
-  confirmDisabled = false,
-  onConfirm,
-  onConfirmHide = true,
-  confirmButtonTitle,
-  confirmButtonClassName,
-  onClose,
-  noButtons,
-  modalClassName = '',
-}) => {
+export default (
+  {
+    id = 'portal',
+    hidden,
+    disabled,
+    onClick,
+    buttonTitle,
+    buttonClassName,
+    buttonStyle = {},
+    title,
+    icon,
+    body,
+    noCancelOnClickOutside = false,
+    cancelDisabled = false,
+    onCancel,
+    cancelButtonTitle,
+    cancelButtonClassName,
+    confirmDisabled = false,
+    onConfirm,
+    onConfirmHide = true,
+    confirmButtonTitle,
+    confirmButtonClassName,
+    onClose,
+    noButtons,
+    modalClassName = '',
+  },
+) => {
   const {
     preferences,
   } = useSelector(state =>
@@ -61,49 +63,60 @@ export default ({
     }
   }
 
-  useEffect(() => {
-    const handleClickOutside = e => {
-      if (
-        !modalRef ||
-        !modalRef.current
-      ) {
-        return false
-      }
+  useEffect(
+    () => {
+      const handleClickOutside = e => {
+        if (
+          !modalRef ||
+          !modalRef.current
+        ) {
+          return false
+        }
 
-      if (
-        !open ||
-        modalRef.current.contains(e.target)
-      ) {
-        return false
-      }
+        if (
+          !open ||
+          modalRef.current.contains(e.target)
+        ) {
+          return false
+        }
 
-      if (!cancelDisabled) {
-        setOpen(!open)
+        if (!cancelDisabled) {
+          setOpen(!open)
 
-        if (onClose) {
-          onClose()
+          if (onClose) {
+            onClose()
+          }
         }
       }
-    }
 
-    if (!noCancelOnClickOutside) {
-      document.addEventListener(
-        'mousedown',
-        handleClickOutside,
-      )
+      if (!noCancelOnClickOutside) {
+        document
+          .addEventListener(
+            'mousedown',
+            handleClickOutside,
+          )
 
-      return () => document.removeEventListener(
-        'mousedown',
-        handleClickOutside,
-      )
-    }
-  }, [modalRef, open, cancelDisabled])
+        return (
+          () =>
+            document
+              .removeEventListener(
+                'mousedown',
+                handleClickOutside,
+              )
+        )
+      }
+    },
+    [modalRef, open, cancelDisabled],
+  )
 
-  useEffect(() => {
-    if (typeof hidden === 'boolean') {
-      setOpen(!hidden)
-    }
-  }, [hidden])
+  useEffect(
+    () => {
+      if (typeof hidden === 'boolean') {
+        setOpen(!hidden)
+      }
+    },
+    [hidden],
+  )
 
   return (
     <>
@@ -155,7 +168,10 @@ export default ({
 
                         hide()
                       }}
-                      className={cancelButtonClassName || 'btn btn-default btn-rounded bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800'}
+                      className={
+                        cancelButtonClassName ||
+                        'btn btn-default btn-rounded bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800'
+                      }
                     >
                       {
                         cancelButtonTitle ||
@@ -174,7 +190,10 @@ export default ({
                           hide()
                         }
                       }}
-                      className={confirmButtonClassName || 'btn btn-default btn-rounded bg-blue-500 hover:bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-400 text-white'}
+                      className={
+                        confirmButtonClassName ||
+                        'btn btn-default btn-rounded bg-blue-500 hover:bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-400 text-white'
+                      }
                     >
                       {
                         confirmButtonTitle ||

@@ -80,6 +80,10 @@ export default () => {
   const [addProcessing, setAddProcessing] = useState(null)
   const [addResponse, setAddResponse] = useState(null)
 
+  const [removing, setRemoving] = useState(null)
+  const [removeProcessing, setRemoveProcessing] = useState(null)
+  const [removeResponse, setRemoveResponse] = useState(null)
+
   useEffect(
     () => {
       const {
@@ -225,7 +229,7 @@ export default () => {
 
       getData()
     },
-    [chains_data, assets_data, rpcs, data, wallet_address, adding],
+    [chains_data, assets_data, rpcs, data, wallet_address, adding, removing],
   )
 
   const reset = () => {
@@ -236,9 +240,12 @@ export default () => {
 
     setAdding(null)
     setAddProcessing(null)
+
+    setRemoving(null)
+    setRemoveProcessing(null)
   }
 
-  const addLiquidty = async () => {
+  const addLiquidity = async () => {
     if (
       chains_data &&
       sdk &&
@@ -247,6 +254,7 @@ export default () => {
     ) {
       setApproving(null)
       setAdding(true)
+      setRemoving(null)
 
       const {
         chain,
@@ -298,7 +306,7 @@ export default () => {
         symbol ||
         asset_data?.symbol
 
-      const addParams = {
+      const params = {
         domainId: domain_id,
         amount:
           utils.parseUnits(
@@ -320,9 +328,9 @@ export default () => {
         const approve_request =
           await sdk.nxtpSdkBase
             .approveIfNeeded(
-              addParams.domainId,
-              addParams.tokenAddress,
-              addParams.amount,
+              params.domainId,
+              params.tokenAddress,
+              params.amount,
               false,
             )
 
@@ -342,7 +350,7 @@ export default () => {
           setApproveResponse(
             {
               status: 'pending',
-              message: `Wait for ${symbol} approval`,
+              message: `Waiting for ${symbol} approval`,
               tx_hash: hash,
             }
           )
@@ -397,7 +405,7 @@ export default () => {
           const add_request =
             await sdk.nxtpSdkRouter
               .addLiquidityForRouter(
-                addParams,
+                params,
               )
 
           if (add_request) {
@@ -414,7 +422,7 @@ export default () => {
             setAddResponse(
               {
                 status: 'pending',
-                message: `Wait for adding ${symbol} liquidity`,
+                message: `Waiting for add ${symbol} liquidity`,
                 tx_hash: hash,
               }
             )
@@ -466,6 +474,240 @@ export default () => {
 
       setAddProcessing(false)
       setAdding(false)
+      setRemoving(false)
+    }
+  }
+
+  const removeLiquidity = async () => {
+    if (
+      chains_data &&
+      sdk &&
+      signer &&
+      data
+    ) {
+      setApproving(null)
+      setAdding(null)
+      setRemoving(true)
+
+      const {
+        chain,
+        asset,
+        amount,
+      } = { ...data }
+
+      const chain_data = chains_data
+        .find(c =>
+          c?.id === chain
+        )
+      const {
+        chain_id,
+        domain_id,
+      } = { ...chain_data }
+
+      const asset_data = (assets_data || [])
+        .find(a =>
+          a?.id === asset
+        )
+      const {
+        contracts,
+      } = { ...asset_data }
+
+      const contract_data = (contracts || [])
+        .find(c =>
+          c?.chain_id === chain_id
+        )
+      const {
+        next_asset,
+      } = { ...contract_data }
+      let {
+        contract_address,
+        decimals,
+        symbol,
+      } = { ...contract_data }
+
+      contract_address =
+        next_asset?.contract_address ||
+        contract_address
+
+      decimals =
+        next_asset?.decimals ||
+        decimals ||
+        18
+
+      symbol =
+        next_asset?.symbol ||
+        symbol ||
+        asset_data?.symbol
+
+      const params = {
+        domainId: domain_id,
+        amount:
+          utils.parseUnits(
+            (
+              amount ||
+              0
+            )
+            .toString(),
+            decimals,
+          )
+          .toString(),
+        tokenAddress: contract_address,
+        recipient: wallet_address,
+      }
+
+      let failed = false
+
+      try {
+        const approve_request =
+          await sdk.nxtpSdkBase
+            .approveIfNeeded(
+              params.domainId,
+              params.tokenAddress,
+              params.amount,
+              false,
+            )
+
+        if (approve_request) {
+          setApproving(true)
+
+          const approve_response =
+            await signer
+              .sendTransaction(
+                approve_request,
+              )
+
+          const {
+            hash,
+          } = { ...approve_response }
+
+          setApproveResponse(
+            {
+              status: 'pending',
+              message: `Waiting for ${symbol} approval`,
+              tx_hash: hash,
+            }
+          )
+          setApproveProcessing(true)
+
+          const approve_receipt =
+            await signer.provider
+              .waitForTransaction(
+                hash,
+              )
+
+          const {
+            status,
+          } = { ...approve_receipt }
+
+          setApproveResponse(
+            status ?
+              null :
+              {
+                status: 'failed',
+                message: `Failed to approve ${symbol}`,
+                tx_hash: hash,
+              }
+          )
+
+          failed = !status
+
+          setApproveProcessing(false)
+          setApproving(false)
+        }
+        else {
+          setApproving(false)
+        }
+      } catch (error) {
+        setApproveResponse(
+          {
+            status: 'failed',
+            message:
+              error?.data?.message ||
+              error?.message,
+          }
+        )
+
+        failed = true
+
+        setApproveProcessing(false)
+        setApproving(false)
+      }
+
+      if (!failed) {
+        try {
+          const remove_request =
+            await sdk.nxtpSdkRouter
+              .removeRouterLiquidity(
+                params,
+              )
+
+          if (remove_request) {
+            const remove_response =
+              await signer
+                .sendTransaction(
+                  remove_request,
+                )
+
+            const {
+              hash,
+            } = { ...remove_response }
+
+            setRemoveResponse(
+              {
+                status: 'pending',
+                message: `Waiting for remove ${symbol} liquidity`,
+                tx_hash: hash,
+              }
+            )
+            setRemoveProcessing(true)
+
+            const remove_receipt =
+              await signer.provider
+                .waitForTransaction(
+                  hash,
+                )
+
+            const {
+              status,
+            } = { ...remove_receipt }
+
+            failed = !status
+
+            setRemoveResponse(
+              {
+                status:
+                  failed ?
+                    'failed' :
+                    'success',
+                message:
+                  failed ?
+                    `Failed to remove ${symbol} liquidity` :
+                    `Remove ${symbol} liquidity successful`,
+                tx_hash: hash,
+              }
+            )
+
+            if (!failed) {
+              router.push(`${asPath}?action=refresh`)
+            }
+          }
+        } catch (error) {
+          setRemoveResponse(
+            {
+              status: 'failed',
+              message:
+                error?.data?.message ||
+                error?.message,
+            }
+          )
+
+          failed = true
+        }
+      }
+
+      setAddProcessing(false)
+      setAdding(false)
+      setRemoving(false)
     }
   }
 
@@ -583,6 +825,7 @@ export default () => {
 
   const notificationResponse =
     addResponse ||
+    removeResponse ||
     approveResponse
 
   const {
@@ -605,6 +848,7 @@ export default () => {
 
   const disabled =
     adding ||
+    removing ||
     approving
 
   return (
@@ -671,6 +915,7 @@ export default () => {
             onClose={() => {
               setApproveResponse(null)
               setAddResponse(null)
+              setRemoveResponse(null)
             }}
           />
         )
@@ -696,7 +941,7 @@ export default () => {
         title={
           <div className="flex items-center justify-between">
             <span>
-              Add Router Liquidity
+              Router Liquidity
             </span>
             <div
               onClick={() => setHidden(true)}
@@ -875,8 +1120,41 @@ export default () => {
           notificationResponse ||
           true
         }
-        cancelDisabled={disabled}
-        onCancel={() => reset()}
+        cancelDisabled={
+          disabled ||
+          !(amount > 0)
+        }
+        onCancel={() => removeLiquidity()}
+        cancelButtonTitle={
+          <span className="flex items-center justify-center space-x-1.5">
+            {
+              disabled &&
+              removing &&
+              (
+                <TailSpin
+                  color="white"
+                  width="20"
+                  height="20"
+                />
+              )
+            }
+            <span>
+              {removing ?
+                approving ?
+                  approveProcessing ?
+                    'Approving' :
+                    'Please Approve' :
+                  removeProcessing ?
+                    'Removing' :
+                    typeof approving === 'boolean' ?
+                      'Please Confirm' :
+                      'Checking Approval' :
+                'Remove'
+              }
+            </span>
+          </span>
+        }
+        cancelButtonClassName="btn btn-default btn-rounded bg-red-500 hover:bg-red-600 dark:bg-red-500 dark:hover:bg-red-400 text-white"
         confirmDisabled={
           disabled ||
           !(
@@ -884,12 +1162,13 @@ export default () => {
             amount <= max_amount
           )
         }
-        onConfirm={() => addLiquidty()}
+        onConfirm={() => addLiquidity()}
         onConfirmHide={false}
         confirmButtonTitle={
           <span className="flex items-center justify-center space-x-1.5">
             {
               disabled &&
+              adding &&
               (
                 <TailSpin
                   color="white"
