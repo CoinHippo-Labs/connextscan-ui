@@ -774,7 +774,7 @@ export default () => {
                 )
 
             console.log(
-              '[Pool]',
+              '[pool]',
               {
                 domain_id,
                 contract_address,
@@ -965,7 +965,7 @@ export default () => {
                   )
 
                 console.log(
-                  '[VirtualPrice]',
+                  '[virtualPrice]',
                   {
                     domain_id,
                     contract_address,

@@ -11,13 +11,20 @@ import Modal from '../modals'
 import Wallet from '../wallet'
 import Copy from '../copy'
 import EnsProfile from '../ens-profile'
-import { number_format, ellipse, loader_color } from '../../lib/utils'
+import { number_format, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
+
+const ACTIONS =
+  [
+    'add',
+    'remove',
+  ]
 
 export default () => {
   const {
     preferences,
     chains,
     assets,
+    asset_balances,
     rpc_providers,
     dev,
     wallet,
@@ -26,6 +33,7 @@ export default () => {
       { preferences: state.preferences,
         chains: state.chains,
         assets: state.assets,
+        asset_balances: state.asset_balances,
         rpc_providers: state.rpc_providers,
         dev: state.dev,
         wallet: state.wallet,
@@ -42,6 +50,9 @@ export default () => {
   const {
     assets_data,
   } = { ...assets }
+  const {
+    asset_balances_data,
+  } = { ...asset_balances }
   const {
     rpcs,
   } = { ...rpc_providers }
@@ -71,6 +82,10 @@ export default () => {
   const [hidden, setHidden] = useState(true)
   const [data, setData] = useState(null)
   const [balance, setBalance] = useState(null)
+  const [action, setAction] =
+    useState(
+      _.head(ACTIONS)
+    )
 
   const [approving, setApproving] = useState(null)
   const [approveProcessing, setApproveProcessing] = useState(null)
@@ -138,7 +153,8 @@ export default () => {
           chains_data &&
           assets_data &&
           chain &&
-          data.asset &&
+          asset &&
+          asset_balances_data &&
           wallet_address
         ) {
           const chain_data = chains_data
@@ -177,49 +193,82 @@ export default () => {
             next_asset?.decimals ||
             decimals
 
-          const provider = rpcs?.[chain_id]
+          setBalance(null)
 
-          let balance
+          switch (action) {
+            case 'remove':
+              try {
+                const {
+                  amount,
+                } = {
+                  ...(
+                    (asset_balances_data[chain_id] || [])
+                      .find(a =>
+                        equals_ignore_case(
+                          a?.contract_address,
+                          contract_address,
+                        )
+                      )
+                  ),
+                }
 
-          if (
-            provider &&
-            contract_address
-          ) {
-            if (contract_address === constants.AddressZero) {
-              balance =
-                await provider
-                  .getBalance(
-                    wallet_address,
+                setBalance(amount)
+              } catch (error) {}
+
+              break
+            case 'add':
+            default:
+              try {
+                const provider = rpcs?.[chain_id]
+
+                let balance
+
+                if (
+                  provider &&
+                  contract_address
+                ) {
+                  if (contract_address === constants.AddressZero) {
+                    balance =
+                      await provider
+                        .getBalance(
+                          wallet_address,
+                        )
+                  }
+                  else {
+                    const contract =
+                      new Contract(
+                        contract_address,
+                        [
+                          'function balanceOf(address owner) view returns (uint256)',
+                        ],
+                        provider,
+                      )
+
+                    balance =
+                      await contract
+                        .balanceOf(
+                          wallet_address,
+                        )
+                  }
+                }
+
+                if (balance) {
+                  setBalance(
+                    Number(
+                      utils.formatUnits(
+                        balance,
+                        decimals ||
+                        18,
+                      )
+                    )
                   )
-            }
-            else {
-              const contract =
-                new Contract(
-                  contract_address,
-                  [
-                    'function balanceOf(address owner) view returns (uint256)',
-                  ],
-                  provider,
-                )
+                }
+                else {
+                  setBalance(null)
+                }
+              } catch (error) {}
 
-              balance =
-                await contract
-                  .balanceOf(
-                    wallet_address,
-                  )
-            }
-          }
-
-          if (balance) {
-            setBalance(
-              Number(
-                utils.formatUnits(
-                  balance,
-                  decimals ||
-                  18,
-                )
-              )
-            )
+              break
           }
         }
         else {
@@ -229,7 +278,7 @@ export default () => {
 
       getData()
     },
-    [chains_data, assets_data, rpcs, data, wallet_address, adding, removing],
+    [chains_data, assets_data, asset_balances_data, rpcs, data, wallet_address, action, adding, removing],
   )
 
   const reset = () => {
@@ -859,7 +908,15 @@ export default () => {
           <Notification
             hideButton={true}
             outerClassNames="w-full h-auto z-50 transform fixed top-0 left-0 p-0"
-            innerClassNames={`${status === 'failed' ? 'bg-red-500 dark:bg-red-600' : status === 'success' ? 'bg-green-500 dark:bg-green-600' : 'bg-blue-600 dark:bg-blue-700'} text-white`}
+            innerClassNames={
+              `${
+                status === 'failed' ?
+                  'bg-red-500 dark:bg-red-600' :
+                  status === 'success' ?
+                    'bg-green-500 dark:bg-green-600' :
+                    'bg-blue-600 dark:bg-blue-700'
+              } text-white`
+            }
             animation="animate__animated animate__fadeInDown"
             icon={
               status === 'failed' ?
@@ -941,7 +998,7 @@ export default () => {
         title={
           <div className="flex items-center justify-between">
             <span>
-              Router Liquidity
+              Manage Router Liquidity
             </span>
             <div
               onClick={() => setHidden(true)}
@@ -954,165 +1011,180 @@ export default () => {
           </div>
         }
         body={
-          <div className="form mt-2">
-            {fields
-              .map((f, i) => {
-                const {
-                  label,
-                  name,
-                  type,
-                  placeholder,
-                  options,
-                  className,
-                } = { ...f }
-
-                return (
+          <div className="space-y-4">
+            <div className="w-fit border-b dark:border-slate-800 flex items-center justify-between space-x-4">
+              {ACTIONS
+                .map((a, i) => (
                   <div
                     key={i}
-                    className={`form-element ${className || ''}`}
+                    onClick={() => setAction(a)}
+                    className={`w-fit border-b-2 ${action === a ? 'border-slate-300 dark:border-slate-200 font-semibold' : 'border-transparent text-slate-400 dark:text-slate-500 font-semibold'} cursor-pointer capitalize text-sm text-left py-3 px-0`}
                   >
-                    {
-                      label &&
-                      (
-                        <div className="flex items-center justify-between space-x-2">
-                          <div className="form-label text-slate-600 dark:text-slate-200 font-normal">
-                            {label}
+                    {a}
+                  </div>
+                ))
+              }
+            </div>
+            <div className="form">
+              {fields
+                .map((f, i) => {
+                  const {
+                    label,
+                    name,
+                    type,
+                    placeholder,
+                    options,
+                    className,
+                  } = { ...f }
+
+                  return (
+                    <div
+                      key={i}
+                      className={`form-element ${className || ''}`}
+                    >
+                      {
+                        label &&
+                        (
+                          <div className="flex items-center justify-between space-x-2">
+                            <div className="form-label text-slate-500 dark:text-slate-500 font-normal">
+                              {label}
+                            </div>
+                            {
+                              name === 'amount' &&
+                              wallet_address &&
+                              typeof balance === 'number' &&
+                              (
+                                <div
+                                  onClick={() =>
+                                    setData(
+                                      {
+                                        ...data,
+                                        [`${name}`]: max_amount,
+                                      }
+                                    )
+                                  }
+                                  className="cursor-pointer flex items-center space-x-1.5 mb-2"
+                                >
+                                  <span className="text-slate-500 dark:text-slate-500">
+                                    Balance:
+                                  </span>
+                                  <span className="text-black dark:text-white font-semibold">
+                                    {number_format(
+                                      balance,
+                                      '0,0.000000',
+                                      true,
+                                    )}
+                                  </span>
+                                </div>
+                              )
+                            }
                           </div>
-                          {
-                            name === 'amount' &&
-                            wallet_address &&
-                            typeof balance === 'number' &&
-                            (
-                              <div
-                                onClick={() =>
-                                  setData(
-                                    {
-                                      ...data,
-                                      [`${name}`]: max_amount,
-                                    }
-                                  )
-                                }
-                                className="cursor-pointer flex items-center text-black dark:text-white space-x-1.5 mb-2"
-                              >
-                                <span>
-                                  Balance:
-                                </span>
-                                <span className="font-bold">
-                                  {number_format(
-                                    balance,
-                                    '0,0.000000',
-                                    true,
-                                  )}
-                                </span>
-                              </div>
+                        )
+                      }
+                      {type === 'select' ?
+                        <select
+                          placeholder={placeholder}
+                          value={data?.[name]}
+                          onChange={e =>
+                            setData(
+                              {
+                                ...data,
+                                [`${name}`]: e.target.value,
+                              }
                             )
                           }
-                        </div>
-                      )
-                    }
-                    {type === 'select' ?
-                      <select
-                        placeholder={placeholder}
-                        value={data?.[name]}
-                        onChange={e =>
-                          setData(
-                            {
-                              ...data,
-                              [`${name}`]: e.target.value,
+                          className="form-select bg-slate-50 border-0 focus:ring-0 rounded-lg"
+                        >
+                          {(options || [])
+                            .map((o, j) => {
+                              const {
+                                title,
+                                value,
+                                name,
+                              } = { ...o }
+
+                              return (
+                                <option
+                                  key={j}
+                                  title={title}
+                                  value={value}
+                                >
+                                  {name}
+                                </option>
+                              )
+                            })
+                          }
+                        </select> :
+                        <input
+                          type={type}
+                          placeholder={placeholder}
+                          value={data?.[name]}
+                          onChange={e => {
+                            let value
+
+                            if (type === 'number') {
+                              const regex = /^[0-9.\b]+$/
+
+                              if (
+                                e.target.value === '' ||
+                                regex.test(e.target.value)
+                              ) {
+                                value = e.target.value
+                              }
+
+                              value =
+                                value < 0 ?
+                                  0 :
+                                  value
                             }
-                          )
-                        }
-                        className="form-select bg-slate-50 border-0 focus:ring-0 rounded-lg"
-                      >
-                        {(options || [])
-                          .map((o, j) => {
-                            const {
-                              title,
-                              value,
-                              name,
-                            } = { ...o }
-
-                            return (
-                              <option
-                                key={j}
-                                title={title}
-                                value={value}
-                              >
-                                {name}
-                              </option>
-                            )
-                          })
-                        }
-                      </select> :
-                      <input
-                        type={type}
-                        placeholder={placeholder}
-                        value={data?.[name]}
-                        onChange={e => {
-                          let value
-
-                          if (type === 'number') {
-                            const regex = /^[0-9.\b]+$/
-
-                            if (
-                              e.target.value === '' ||
-                              regex.test(e.target.value)
-                            ) {
+                            else {
                               value = e.target.value
                             }
 
-                            value =
-                              value < 0 ?
-                                0 :
-                                value
-                          }
-                          else {
-                            value = e.target.value
-                          }
-
-                          setData(
-                            {
-                              ...data,
-                              [`${name}`]: value,
-                            }
-                          )
-                        }}
-                        className="form-input border-0 focus:ring-0 rounded-lg"
-                      />
-                    }
-                  </div>
-                )
-              })
-            }
-            <div className="w-full flex items-center justify-end space-x-3 pt-2">
-              <EnsProfile
-                address={wallet_address}
-                fallback={
-                  wallet_address &&
-                  (
-                    <Copy
-                      value={wallet_address}
-                      title={<span className="text-slate-400 dark:text-slate-200 text-sm">
-                        <span className="xl:hidden">
-                          {ellipse(
-                            wallet_address,
-                            8,
-                          )}
-                        </span>
-                        <span className="hidden xl:block">
-                          {ellipse(
-                            wallet_address,
-                            12,
-                          )}
-                        </span>
-                      </span>}
-                    />
+                            setData(
+                              {
+                                ...data,
+                                [`${name}`]: value,
+                              }
+                            )
+                          }}
+                          className="form-input border-0 focus:ring-0 rounded-lg"
+                        />
+                      }
+                    </div>
                   )
-                }
-              />
-              <Wallet
-                connectChainId={chain_data?.chain_id}
-              />
+                })
+              }
+              <div className="w-full flex items-center justify-end space-x-3 pt-2">
+                <EnsProfile
+                  address={wallet_address}
+                  fallback={
+                    wallet_address &&
+                    (
+                      <Copy
+                        value={wallet_address}
+                        title={<span className="text-slate-400 dark:text-slate-200 text-sm">
+                          <span className="xl:hidden">
+                            {ellipse(
+                              wallet_address,
+                              8,
+                            )}
+                          </span>
+                          <span className="hidden xl:block">
+                            {ellipse(
+                              wallet_address,
+                              12,
+                            )}
+                          </span>
+                        </span>}
+                      />
+                    )
+                  }
+                />
+                <Wallet
+                  connectChainId={chain_data?.chain_id}
+                />
+              </div>
             </div>
           </div>
         }
@@ -1120,41 +1192,11 @@ export default () => {
           notificationResponse ||
           true
         }
-        cancelDisabled={
-          disabled ||
-          !(amount > 0)
-        }
-        onCancel={() => removeLiquidity()}
-        cancelButtonTitle={
-          <span className="flex items-center justify-center space-x-1.5">
-            {
-              disabled &&
-              removing &&
-              (
-                <TailSpin
-                  color="white"
-                  width="20"
-                  height="20"
-                />
-              )
-            }
-            <span>
-              {removing ?
-                approving ?
-                  approveProcessing ?
-                    'Approving' :
-                    'Please Approve' :
-                  removeProcessing ?
-                    'Removing' :
-                    typeof approving === 'boolean' ?
-                      'Please Confirm' :
-                      'Checking Approval' :
-                'Remove'
-              }
-            </span>
-          </span>
-        }
-        cancelButtonClassName="btn btn-default btn-rounded bg-red-500 hover:bg-red-600 dark:bg-red-500 dark:hover:bg-red-400 text-white"
+        cancelDisabled={disabled}
+        onCancel={() => {
+          reset()
+          setHidden(true)
+        }}
         confirmDisabled={
           disabled ||
           !(
@@ -1162,13 +1204,19 @@ export default () => {
             amount <= max_amount
           )
         }
-        onConfirm={() => addLiquidity()}
+        onConfirm={() => {
+          if (action === 'remove') {
+            removeLiquidity()
+          }
+          else {
+            addLiquidity()
+          }
+        }}
         onConfirmHide={false}
         confirmButtonTitle={
           <span className="flex items-center justify-center space-x-1.5">
             {
               disabled &&
-              adding &&
               (
                 <TailSpin
                   color="white"
@@ -1178,20 +1226,38 @@ export default () => {
               )
             }
             <span>
-              {adding ?
-                approving ?
-                  approveProcessing ?
-                    'Approving' :
-                    'Please Approve' :
-                  addProcessing ?
-                    'Adding' :
-                    typeof approving === 'boolean' ?
-                      'Please Confirm' :
-                      'Checking Approval' :
-                'Add'
+              {
+                action === 'remove' ?
+                  removing ?
+                    approving ?
+                      approveProcessing ?
+                        'Approving' :
+                        'Please Approve' :
+                      removeProcessing ?
+                        'Removing' :
+                        typeof approving === 'boolean' ?
+                          'Please Confirm' :
+                          'Checking Approval' :
+                    'Remove' :
+                  adding ?
+                    approving ?
+                      approveProcessing ?
+                        'Approving' :
+                        'Please Approve' :
+                      addProcessing ?
+                        'Adding' :
+                        typeof approving === 'boolean' ?
+                          'Please Confirm' :
+                          'Checking Approval' :
+                    'Add'
               }
             </span>
           </span>
+        }
+        confirmButtonClassName={
+          action === 'remove' ?
+            'btn btn-default btn-rounded bg-red-500 hover:bg-red-600 dark:bg-red-500 dark:hover:bg-red-400 text-white' :
+            undefined
         }
         onClose={() => reset()}
         noButtons={
