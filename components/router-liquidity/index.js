@@ -4,14 +4,17 @@ import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import { Contract, constants, utils } from 'ethers'
 import { TailSpin, Watch } from 'react-loader-spinner'
+import { DebounceInput } from 'react-debounce-input'
 import { BiMessageError, BiMessageCheck, BiX } from 'react-icons/bi'
 
 import Notification from '../notifications'
 import Modal from '../modals'
+import SelectChain from '../select-ui/chain'
+import SelectAsset from '../select-ui/asset'
 import Wallet from '../wallet'
 import Copy from '../copy'
 import EnsProfile from '../ens-profile'
-import { number_format, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
+import { number_format, number_to_fixed, capitalize, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
 
 const ACTIONS =
   [
@@ -762,6 +765,7 @@ export default () => {
 
   const {
     chain,
+    asset,
     amount,
   } = { ...data }
 
@@ -777,6 +781,36 @@ export default () => {
     url,
     transaction_path,
   } = { ...explorer }
+
+  const asset_data = (assets_data || [])
+    .find(a =>
+      a?.id === asset
+    )
+  const {
+    contracts,
+  } = { ...asset_data }
+
+  const contract_data = (contracts || [])
+    .find(c =>
+      c?.chain_id === chain_id
+    )
+  const {
+    next_asset,
+  } = { ...contract_data }
+  let {
+    contract_address,
+    decimals,
+    symbol,
+  } = { ...contract_data }
+
+  contract_address =
+    next_asset?.contract_address ||
+    contract_address
+
+  decimals =
+    next_asset?.decimals ||
+    decimals ||
+    18
 
   const fields =
     [
@@ -800,6 +834,7 @@ export default () => {
                 name,
               }
             }),
+        hidden: true,
       },
       {
         label: 'Asset',
@@ -863,12 +898,14 @@ export default () => {
                   }`,
               }
             }),
+        hidden: true,
       },
       {
         label: 'Amount',
         name: 'amount',
         type: 'number',
         placeholder: 'Amount',
+        hidden: true,
       },
     ]
 
@@ -1011,179 +1048,367 @@ export default () => {
           </div>
         }
         body={
-          <div className="space-y-4">
-            <div className="w-fit border-b dark:border-slate-800 flex items-center justify-between space-x-4">
-              {ACTIONS
-                .map((a, i) => (
-                  <div
-                    key={i}
-                    onClick={() => setAction(a)}
-                    className={`w-fit border-b-2 ${action === a ? 'border-slate-300 dark:border-slate-200 font-semibold' : 'border-transparent text-slate-400 dark:text-slate-500 font-semibold'} cursor-pointer capitalize text-sm text-left py-3 px-0`}
-                  >
-                    {a}
-                  </div>
-                ))
-              }
+          <div className="space-y-0">
+            <div className="w-full flex items-center justify-end space-x-3">
+              <EnsProfile
+                address={wallet_address}
+                fallback={
+                  wallet_address &&
+                  (
+                    <Copy
+                      value={wallet_address}
+                      title={<span className="text-slate-400 dark:text-slate-200 text-sm">
+                        <span className="xl:hidden">
+                          {ellipse(
+                            wallet_address,
+                            8,
+                          )}
+                        </span>
+                        <span className="hidden xl:block">
+                          {ellipse(
+                            wallet_address,
+                            12,
+                          )}
+                        </span>
+                      </span>}
+                    />
+                  )
+                }
+              />
+              <Wallet
+                connectChainId={chain_data?.chain_id}
+              />
             </div>
-            <div className="form">
-              {fields
-                .map((f, i) => {
-                  const {
-                    label,
-                    name,
-                    type,
-                    placeholder,
-                    options,
-                    className,
-                  } = { ...f }
-
-                  return (
-                    <div
-                      key={i}
-                      className={`form-element ${className || ''}`}
-                    >
-                      {
-                        label &&
-                        (
-                          <div className="flex items-center justify-between space-x-2">
-                            <div className="form-label text-slate-500 dark:text-slate-500 font-normal">
-                              {label}
-                            </div>
-                            {
-                              name === 'amount' &&
-                              wallet_address &&
-                              typeof balance === 'number' &&
-                              (
-                                <div
-                                  onClick={() =>
-                                    setData(
-                                      {
-                                        ...data,
-                                        [`${name}`]: max_amount,
-                                      }
-                                    )
-                                  }
-                                  className="cursor-pointer flex items-center space-x-1.5 mb-2"
-                                >
-                                  <span className="text-slate-500 dark:text-slate-500">
-                                    Balance:
-                                  </span>
-                                  <span className="text-black dark:text-white font-semibold">
-                                    {number_format(
-                                      balance,
-                                      '0,0.000000',
-                                      true,
-                                    )}
-                                  </span>
-                                </div>
-                              )
-                            }
-                          </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between space-x-4">
+                <div className="w-fit border-b dark:border-slate-800 flex items-center justify-between space-x-4">
+                  {ACTIONS
+                    .map((a, i) => (
+                      <div
+                        key={i}
+                        onClick={() => setAction(a)}
+                        className={`w-fit border-b-2 ${action === a ? 'border-slate-300 dark:border-slate-200 font-semibold' : 'border-transparent text-slate-400 dark:text-slate-500 font-semibold'} cursor-pointer capitalize text-sm text-left py-3 px-0`}
+                      >
+                        {a}
+                      </div>
+                    ))
+                  }
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span className="text-sm">
+                    on
+                  </span>
+                  <SelectChain
+                    value={
+                      chain ||
+                      _.head(
+                        (chains_data || [])
+                          .map(c => c?.id)
+                      )
+                    }
+                    onSelect={c => {
+                      setData(
+                        {
+                          ...data,
+                          chain: c,
+                        }
+                      )
+                    }}
+                    origin=""
+                    className="w-fit flex items-center justify-center space-x-1.5 sm:space-x-2"
+                  />
+                </div>
+              </div>
+              <div className="form">
+                <div className="bg-slate-100 dark:bg-slate-900 rounded border dark:border-slate-700 space-y-0.5 py-3.5 px-3">
+                  <div className="flex items-center justify-between space-x-2">
+                    <SelectAsset
+                      disabled={disabled}
+                      value={asset}
+                      onSelect={(a, c) => {
+                        setData(
+                          {
+                            ...data,
+                            asset: a,
+                            amount: null,
+                          }
                         )
+                      }}
+                      chain={chain}
+                      origin=""
+                      className="flex items-center space-x-1.5 sm:space-x-2 sm:-ml-1"
+                    />
+                    <DebounceInput
+                      debounceTimeout={750}
+                      size="small"
+                      type="number"
+                      placeholder="0.00"
+                      disabled={disabled}
+                      value={
+                        [
+                          'string',
+                          'number',
+                        ].includes(typeof amount) &&
+                        ![
+                          '',
+                        ].includes(amount) &&
+                        !isNaN(amount) ?
+                          amount :
+                          ''
                       }
-                      {type === 'select' ?
-                        <select
-                          placeholder={placeholder}
-                          value={data?.[name]}
-                          onChange={e =>
-                            setData(
-                              {
-                                ...data,
-                                [`${name}`]: e.target.value,
-                              }
+                      onChange={e => {
+                        const regex = /^[0-9.\b]+$/
+
+                        let value
+
+                        if (
+                          e.target.value === '' ||
+                          regex.test(e.target.value)
+                        ) {
+                          value = e.target.value
+                        }
+
+                        if (typeof value === 'string') {
+                          if (value.startsWith('.')) {
+                            value = `0${value}`
+                          }
+
+                          value =
+                            number_to_fixed(
+                              value,
+                              decimals ||
+                              18,
                             )
-                          }
-                          className="form-select bg-slate-50 border-0 focus:ring-0 rounded-lg"
-                        >
-                          {(options || [])
-                            .map((o, j) => {
-                              const {
-                                title,
-                                value,
-                                name,
-                              } = { ...o }
+                        }
 
-                              return (
-                                <option
-                                  key={j}
-                                  title={title}
-                                  value={value}
-                                >
-                                  {name}
-                                </option>
-                              )
-                            })
+                        setData(
+                          {
+                            ...data,
+                            amount: value,
                           }
-                        </select> :
-                        <input
-                          type={type}
-                          placeholder={placeholder}
-                          value={data?.[name]}
-                          onChange={e => {
-                            let value
-
-                            if (type === 'number') {
-                              const regex = /^[0-9.\b]+$/
+                        )
+                      }}
+                      onWheel={e => e.target.blur()}
+                      onKeyDown={e =>
+                        [
+                          'e',
+                          'E',
+                          '-',
+                        ].includes(e.key) &&
+                        e.preventDefault()
+                      }
+                      className={`w-36 sm:w-48 bg-transparent ${disabled ? 'cursor-not-allowed' : ''} rounded border-0 focus:ring-0 sm:text-lg font-semibold text-right py-1.5`}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between space-x-2">
+                    <div className="flex items-center space-x-1">
+                      <div className="text-slate-400 dark:text-slate-500 text-sm font-medium">
+                        Balance:
+                      </div>
+                      {
+                        chain_data &&
+                        asset &&
+                        contract_data &&
+                        (
+                          <button
+                            disabled={disabled}
+                            onClick={() => {
+                              const amount = balance
 
                               if (
-                                e.target.value === '' ||
-                                regex.test(e.target.value)
+                                [
+                                  'string',
+                                  'number',
+                                ].includes(typeof amount) &&
+                                ![
+                                  '',
+                                ].includes(amount)
                               ) {
+                                setData(
+                                  {
+                                    ...data,
+                                    amount,
+                                  }
+                                )
+                              }
+                            }}
+                          >
+                            <span className="text-black dark:text-white font-medium">
+                              {number_format(
+                                balance,
+                                '0,0.000000',
+                                true,
+                              )}
+                            </span>
+                          </button>
+                        )
+                      }
+                    </div>
+                    {
+                      web3_provider &&
+                      (
+                        <button
+                          disabled={disabled}
+                          onClick={() => {
+                            const amount = balance
+
+                            if (
+                              [
+                                'string',
+                                'number',
+                              ].includes(typeof amount) &&
+                              ![
+                                '',
+                              ].includes(amount)
+                            ) {
+                              setData(
+                                {
+                                  ...data,
+                                  amount,
+                                }
+                              )
+                            }
+                          }}
+                          className={`${disabled ? 'cursor-not-allowed text-slate-400 dark:text-slate-500' : 'cursor-pointer text-blue-400 hover:text-blue-500 dark:text-blue-500 dark:hover:text-blue-400'} font-medium`}
+                        >
+                          Select Max
+                        </button>
+                      )
+                    }
+                  </div>
+                </div>
+                {fields
+                  .filter(f =>
+                    !f?.hidden
+                  )
+                  .map((f, i) => {
+                    const {
+                      label,
+                      name,
+                      type,
+                      placeholder,
+                      options,
+                      className,
+                    } = { ...f }
+
+                    return (
+                      <div
+                        key={i}
+                        className={`form-element ${className || ''}`}
+                      >
+                        {
+                          label &&
+                          (
+                            <div className="flex items-center justify-between space-x-2">
+                              <div className="form-label text-slate-500 dark:text-slate-500 font-normal">
+                                {label}
+                              </div>
+                              {
+                                name === 'amount' &&
+                                wallet_address &&
+                                typeof balance === 'number' &&
+                                (
+                                  <div
+                                    onClick={() =>
+                                      setData(
+                                        {
+                                          ...data,
+                                          [`${name}`]: max_amount,
+                                        }
+                                      )
+                                    }
+                                    className="cursor-pointer flex items-center space-x-1.5 mb-2"
+                                  >
+                                    <span className="text-slate-500 dark:text-slate-500">
+                                      Balance:
+                                    </span>
+                                    <span className="text-black dark:text-white font-medium">
+                                      {number_format(
+                                        balance,
+                                        '0,0.000000',
+                                        true,
+                                      )}
+                                    </span>
+                                  </div>
+                                )
+                              }
+                            </div>
+                          )
+                        }
+                        {type === 'select' ?
+                          <select
+                            placeholder={placeholder}
+                            value={data?.[name]}
+                            onChange={e =>
+                              setData(
+                                {
+                                  ...data,
+                                  [`${name}`]: e.target.value,
+                                }
+                              )
+                            }
+                            className="form-select bg-slate-50 border-0 focus:ring-0 rounded-lg"
+                          >
+                            {(options || [])
+                              .map((o, j) => {
+                                const {
+                                  title,
+                                  value,
+                                  name,
+                                } = { ...o }
+
+                                return (
+                                  <option
+                                    key={j}
+                                    title={title}
+                                    value={value}
+                                  >
+                                    {name}
+                                  </option>
+                                )
+                              })
+                            }
+                          </select> :
+                          <input
+                            type={type}
+                            placeholder={placeholder}
+                            value={data?.[name]}
+                            onChange={e => {
+                              let value
+
+                              if (type === 'number') {
+                                const regex = /^[0-9.\b]+$/
+
+                                if (
+                                  e.target.value === '' ||
+                                  regex.test(e.target.value)
+                                ) {
+                                  value = e.target.value
+                                }
+
+                                value =
+                                  value < 0 ?
+                                    0 :
+                                    value
+                              }
+                              else {
                                 value = e.target.value
                               }
 
-                              value =
-                                value < 0 ?
-                                  0 :
-                                  value
-                            }
-                            else {
-                              value = e.target.value
-                            }
-
-                            setData(
-                              {
-                                ...data,
-                                [`${name}`]: value,
-                              }
-                            )
-                          }}
-                          className="form-input border-0 focus:ring-0 rounded-lg"
-                        />
-                      }
-                    </div>
-                  )
-                })
-              }
-              <div className="w-full flex items-center justify-end space-x-3 pt-2">
-                <EnsProfile
-                  address={wallet_address}
-                  fallback={
-                    wallet_address &&
-                    (
-                      <Copy
-                        value={wallet_address}
-                        title={<span className="text-slate-400 dark:text-slate-200 text-sm">
-                          <span className="xl:hidden">
-                            {ellipse(
-                              wallet_address,
-                              8,
-                            )}
-                          </span>
-                          <span className="hidden xl:block">
-                            {ellipse(
-                              wallet_address,
-                              12,
-                            )}
-                          </span>
-                        </span>}
-                      />
+                              setData(
+                                {
+                                  ...data,
+                                  [`${name}`]: value,
+                                }
+                              )
+                            }}
+                            className="form-input border-0 focus:ring-0 rounded-lg"
+                          />
+                        }
+                      </div>
                     )
-                  }
-                />
-                <Wallet
-                  connectChainId={chain_data?.chain_id}
-                />
+                  })
+                }
               </div>
             </div>
           </div>
@@ -1200,8 +1425,8 @@ export default () => {
         confirmDisabled={
           disabled ||
           !(
-            amount > 0 &&
-            amount <= max_amount
+            Number(amount) > 0 &&
+            Number(amount) <= max_amount
           )
         }
         onConfirm={() => {
@@ -1265,6 +1490,7 @@ export default () => {
           !web3_provider ||
           chain_id !== wallet_chain_id
         }
+        modalClassName="max-w-sm lg:max-w-md"
       />
     </>
   )
