@@ -9,9 +9,11 @@ import meta from '../../lib/meta'
 import { equals_ignore_case } from '../../lib/utils'
 import { THEME } from '../../reducers/types'
 
-export default ({
-  children,
-}) => {
+export default (
+  {
+    children,
+  },
+) => {
   const dispatch = useDispatch()
   const {
     preferences,
@@ -32,22 +34,28 @@ export default ({
     asPath,
   } = { ...router }
 
-  useEffect(() => {
-    if (
-      typeof window !== 'undefined' &&
-      localStorage.getItem(THEME) &&
-      localStorage.getItem(THEME) !== theme
-    ) {
-      dispatch({
-        type: THEME,
-        value: localStorage.getItem(THEME),
-      })
-    }
-  }, [theme])
-
-  const headMeta = meta(
-    asPath,
+  useEffect(
+    () => {
+      if (
+        typeof window !== 'undefined' &&
+        localStorage.getItem(THEME) &&
+        localStorage.getItem(THEME) !== theme
+      ) {
+        dispatch(
+          {
+            type: THEME,
+            value: localStorage.getItem(THEME),
+          }
+        )
+      }
+    },
+    [theme],
   )
+
+  const headMeta =
+    meta(
+      asPath,
+    )
 
   const {
     title,
@@ -156,9 +164,11 @@ export default ({
         <div className="wrapper">
           <div
             className="main w-full bg-white dark:bg-black"
-            style={{
-              minHeight: 'calc(100vh - 44px)',
-            }}
+            style={
+              {
+                minHeight: 'calc(100vh - 44px)',
+              }
+            }
           >
             <Navbar />
             <div className="w-full px-2 sm:px-4">
