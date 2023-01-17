@@ -344,7 +344,7 @@ export default (
       {
         preset_assets_data.length > 0 &&
         (
-          <div className="flex flex-wrap items-center mb-2">
+          <div className="flex flex-wrap items-center mt-1 mb-4">
             {
               preset_assets_data
                 .map((a, i) => (
@@ -464,7 +464,7 @@ export default (
                   assets_data_sorted[i - 1]?.group,
                 ) &&
                 (
-                  <div className="text-slate-400 dark:text-slate-500 text-xs my-1 ml-2">
+                  <div className={`text-slate-400 dark:text-slate-500 text-xs mt-${i === 0 ? 0.5 : 3} mb-2 ml-2`}>
                     {name(group)}
                   </div>
                 )

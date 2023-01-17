@@ -157,15 +157,15 @@ export default (
                     <Image
                       src={image}
                       alt=""
-                      width={28}
-                      height={28}
+                      width={24}
+                      height={24}
                       className="rounded-full"
                     />
                   </div>
                 </>
               )
             }
-            <span className={`whitespace-nowrap sm:text-lg font-semibold ${!image ? 'sm:ml-3' : ''}`}>
+            <span className={`whitespace-nowrap sm:text-base font-semibold ${!image ? 'sm:ml-3' : ''}`}>
               {symbol}
             </span>
             {
@@ -190,15 +190,15 @@ export default (
       }
       title={
         <div className="flex items-center justify-between space-x-2">
-          <span className="flex items-center uppercase space-x-1">
-            <span>
+          <span className="flex items-center space-x-1">
+            <span className="capitalize">
               {
                 origin ||
                 'select'
               }
             </span>
-            <span>
-              Token
+            <span className="normal-case">
+              token
             </span>
           </span>
           {
@@ -217,7 +217,7 @@ export default (
                     />
                   )
                 }
-                <span className="font-semibold">
+                <span className="capitalize font-semibold">
                   {chainName(chain_data)}
                 </span>
               </div>

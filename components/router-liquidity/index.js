@@ -5,6 +5,7 @@ import _ from 'lodash'
 import { Contract, constants, utils } from 'ethers'
 import { TailSpin, Watch } from 'react-loader-spinner'
 import { DebounceInput } from 'react-debounce-input'
+import { Tooltip } from '@material-tailwind/react'
 import { BiMessageError, BiMessageCheck, BiX } from 'react-icons/bi'
 
 import Notification from '../notifications'
@@ -937,6 +938,49 @@ export default () => {
     removing ||
     approving
 
+  const confirmButtonTitle =
+    (
+      <span className="flex items-center justify-center space-x-1.5">
+        {
+          disabled &&
+          (
+            <TailSpin
+              color="white"
+              width="20"
+              height="20"
+            />
+          )
+        }
+        <span>
+          {
+            action === 'remove' ?
+              removing ?
+                approving ?
+                  approveProcessing ?
+                    'Approving' :
+                    'Please Approve' :
+                  removeProcessing ?
+                    'Removing' :
+                    typeof approving === 'boolean' ?
+                      'Please Confirm' :
+                      'Checking Approval' :
+                'Remove' :
+              adding ?
+                approving ?
+                  approveProcessing ?
+                    'Approving' :
+                    'Please Approve' :
+                  addProcessing ?
+                    'Adding' :
+                    typeof approving === 'boolean' ?
+                      'Please Confirm' :
+                      'Checking Approval' :
+                'Add'
+          }
+        </span>
+      </span>
+    )
+
   return (
     <>
       {
@@ -1197,12 +1241,12 @@ export default () => {
                         ].includes(e.key) &&
                         e.preventDefault()
                       }
-                      className={`w-36 sm:w-48 bg-transparent ${disabled ? 'cursor-not-allowed' : ''} rounded border-0 focus:ring-0 sm:text-lg font-semibold text-right py-1.5`}
+                      className={`w-36 sm:w-48 bg-transparent ${disabled ? 'cursor-not-allowed' : ''} rounded border-0 focus:ring-0 sm:text-base font-semibold text-right py-1.5`}
                     />
                   </div>
                   <div className="flex items-center justify-between space-x-2">
                     <div className="flex items-center space-x-1">
-                      <div className="text-slate-400 dark:text-slate-500 text-sm font-medium">
+                      <div className="text-slate-400 dark:text-slate-500 text-xs font-medium">
                         Balance:
                       </div>
                       {
@@ -1233,7 +1277,7 @@ export default () => {
                               }
                             }}
                           >
-                            <span className="text-black dark:text-white font-medium">
+                            <span className="text-black dark:text-white text-xs font-medium">
                               {number_format(
                                 balance,
                                 '0,0.000000',
@@ -1269,7 +1313,7 @@ export default () => {
                               )
                             }
                           }}
-                          className={`${disabled ? 'cursor-not-allowed text-slate-400 dark:text-slate-500' : 'cursor-pointer text-blue-400 hover:text-blue-500 dark:text-blue-500 dark:hover:text-blue-400'} font-medium`}
+                          className={`${disabled ? 'cursor-not-allowed text-slate-400 dark:text-slate-500' : 'cursor-pointer text-blue-400 hover:text-blue-500 dark:text-blue-500 dark:hover:text-blue-400'} text-xs font-medium`}
                         >
                           Select Max
                         </button>
@@ -1424,6 +1468,9 @@ export default () => {
         }}
         confirmDisabled={
           disabled ||
+          !web3_provider ||
+          chain_id !== wallet_chain_id ||
+          !hasAllFields ||
           !(
             Number(amount) > 0 &&
             Number(amount) <= max_amount
@@ -1439,45 +1486,35 @@ export default () => {
         }}
         onConfirmHide={false}
         confirmButtonTitle={
-          <span className="flex items-center justify-center space-x-1.5">
-            {
-              disabled &&
-              (
-                <TailSpin
-                  color="white"
-                  width="20"
-                  height="20"
-                />
-              )
-            }
-            <span>
-              {
-                action === 'remove' ?
-                  removing ?
-                    approving ?
-                      approveProcessing ?
-                        'Approving' :
-                        'Please Approve' :
-                      removeProcessing ?
-                        'Removing' :
-                        typeof approving === 'boolean' ?
-                          'Please Confirm' :
-                          'Checking Approval' :
-                    'Remove' :
-                  adding ?
-                    approving ?
-                      approveProcessing ?
-                        'Approving' :
-                        'Please Approve' :
-                      addProcessing ?
-                        'Adding' :
-                        typeof approving === 'boolean' ?
-                          'Please Confirm' :
-                          'Checking Approval' :
-                    'Add'
+          !web3_provider ||
+          chain_id !== wallet_chain_id ||
+          !hasAllFields ||
+          !(
+            Number(amount) > 0 &&
+            Number(amount) <= max_amount
+          ) ?
+            <Tooltip
+              placement="top"
+              content={
+                !web3_provider ?
+                  'Please connect your wallet.' :
+                  chain_id !== wallet_chain_id ?
+                    'Please switch the chain before proceeding.' :
+                    !hasAllFields ||
+                    !(
+                      Number(amount) > 0 &&
+                      Number(amount) <= max_amount
+                    ) ?
+                      !(Number(amount) <= max_amount) ?
+                        'Insufficient Funds.' :
+                        'Please fill in the amount.' :
+                      null
               }
-            </span>
-          </span>
+              className="z-50 bg-black text-white text-xs"
+            >
+              {confirmButtonTitle}
+            </Tooltip> :
+            confirmButtonTitle
         }
         confirmButtonClassName={
           action === 'remove' ?
@@ -1485,11 +1522,6 @@ export default () => {
             undefined
         }
         onClose={() => reset()}
-        noButtons={
-          !hasAllFields ||
-          !web3_provider ||
-          chain_id !== wallet_chain_id
-        }
         modalClassName="max-w-sm lg:max-w-md"
       />
     </>
