@@ -5,10 +5,10 @@ import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import moment from 'moment'
 import { BigNumber, constants, utils } from 'ethers'
-import { XTransferStatus } from '@connext/nxtp-utils'
+import { XTransferStatus, XTransferErrorStatus } from '@connext/nxtp-utils'
 import { TailSpin } from 'react-loader-spinner'
 import { Tooltip } from '@material-tailwind/react'
-import { HiCheckCircle } from 'react-icons/hi'
+import { HiCheckCircle, HiXCircle } from 'react-icons/hi'
 
 import Image from '../image'
 import TimeSpent from '../time-spent'
@@ -363,6 +363,7 @@ export default () => {
 
   const {
     status,
+    error_status,
     source_chain_data,
     source_asset_data,
     origin_transacting_amount,
@@ -472,6 +473,14 @@ export default () => {
       XTransferStatus.CompletedFast,
       XTransferStatus.CompletedSlow,
     ].includes(status)
+
+  const errored =
+    [
+      // XTransferErrorStatus.LowSlippage,
+      // XTransferErrorStatus.InsufficientRelayerFee,
+      'LowSlippage',
+      'InsufficientRelayerFee',
+    ].includes(error_status)
 
   const details =
     _.concat(
@@ -633,25 +642,34 @@ export default () => {
                 </div>
                 <div className="flex flex-col items-center space-y-1.5">
                   {data ?
-                    pending ?
-                      <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-2">
-                        {/*<TailSpin
-                          color={loader_color(theme)}
-                          width="24"
-                          height="24"
-                        />*/}
-                        <span className="text-base font-medium">
-                          Processing...
-                        </span>
-                      </div> :
-                      <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
-                        <HiCheckCircle
+                    errored ?
+                      <div className="flex items-center text-red-500 dark:text-red-300 space-x-1">
+                        <HiXCircle
                           size={24}
                         />
-                        <span className="uppercase text-base font-bold">
-                          Success
+                        <span className="normal-case text-base font-bold">
+                          {error_status}
                         </span>
                       </div> :
+                      pending ?
+                        <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-2">
+                          {/*<TailSpin
+                            color={loader_color(theme)}
+                            width="24"
+                            height="24"
+                          />*/}
+                          <span className="text-base font-medium">
+                            Processing...
+                          </span>
+                        </div> :
+                        <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
+                          <HiCheckCircle
+                            size={24}
+                          />
+                          <span className="uppercase text-base font-bold">
+                            Success
+                          </span>
+                        </div> :
                     <div className="flex items-center justify-center sm:justify-start">
                       <TailSpin
                         color={loader_color(theme)}

@@ -5,9 +5,9 @@ import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import moment from 'moment'
 import { BigNumber, constants, utils } from 'ethers'
-import { XTransferStatus } from '@connext/nxtp-utils'
+import { XTransferStatus, XTransferErrorStatus } from '@connext/nxtp-utils'
 import { TailSpin } from 'react-loader-spinner'
-import { HiCheckCircle } from 'react-icons/hi'
+import { HiCheckCircle, HiXCircle } from 'react-icons/hi'
 
 import Image from '../image'
 import SelectChain from '../select/chain'
@@ -459,6 +459,13 @@ export default () => {
                         XTransferStatus.CompletedFast,
                         XTransferStatus.CompletedSlow,
                       ].includes(t?.status),
+                    errored:
+                      [
+                        // XTransferErrorStatus.LowSlippage,
+                        // XTransferErrorStatus.InsufficientRelayerFee,
+                        'LowSlippage',
+                        'InsufficientRelayerFee',
+                      ].includes(t?.error_status),
                   }
                 })
                 .map(t => {
@@ -668,11 +675,13 @@ export default () => {
                     } = { ...props }
                     const {
                       pending,
+                      errored,
                       xcall_timestamp,
                       reconcile_transaction_hash,
                       execute_transaction_hash,
                       execute_timestamp,
                       status,
+                      error_status,
                     } = { ...props.row.original }
                     let {
                       force_slow,
@@ -724,25 +733,35 @@ export default () => {
                               <div className="flex-col items-start space-y-1">
                                 <Link href={`/tx/${value}`}>
                                   <a>
-                                    {pending ?
-                                      <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-1.5">
-                                        <TailSpin
-                                          color={loader_color(theme)}
-                                          width="16"
-                                          height="16"
-                                        />
-                                        <span className="font-medium">
-                                          Processing...
-                                        </span>
-                                      </div> :
-                                      <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
-                                        <HiCheckCircle
-                                          size={20}
-                                        />
-                                        <span className="uppercase font-bold">
-                                          Success
-                                        </span>
-                                      </div>
+                                    {
+                                      errored ?
+                                        <div className="flex items-center text-red-500 dark:text-red-300 space-x-1">
+                                          <HiXCircle
+                                            size={20}
+                                          />
+                                          <span className="normal-case font-bold">
+                                            {error_status}
+                                          </span>
+                                        </div> :
+                                        pending ?
+                                          <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-1.5">
+                                            <TailSpin
+                                              color={loader_color(theme)}
+                                              width="16"
+                                              height="16"
+                                            />
+                                            <span className="font-medium">
+                                              Processing...
+                                            </span>
+                                          </div> :
+                                          <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
+                                            <HiCheckCircle
+                                              size={20}
+                                            />
+                                            <span className="uppercase font-bold">
+                                              Success
+                                            </span>
+                                          </div>
                                     }
                                   </a>
                                 </Link>
@@ -785,10 +804,12 @@ export default () => {
                     const {
                       transfer_id,
                       pending,
+                      errored,
                       xcall_timestamp,
                       reconcile_transaction_hash,
                       execute_transaction_hash,
                       execute_timestamp,
+                      error_status,
                     } = { ...props.row.original }
                     let {
                       force_slow,
@@ -808,25 +829,35 @@ export default () => {
                       <div className="flex flex-col items-start space-y-1 mt-0.5">
                         <Link href={`/tx/${transfer_id}`}>
                           <a>
-                            {pending ?
-                              <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-1.5">
-                                <TailSpin
-                                  color={loader_color(theme)}
-                                  width="16"
-                                  height="16"
-                                />
-                                <span className="font-medium">
-                                  Processing...
-                                </span>
-                              </div> :
-                              <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
-                                <HiCheckCircle
-                                  size={20}
-                                />
-                                <span className="uppercase font-bold">
-                                  Success
-                                </span>
-                              </div>
+                            {
+                              errored ?
+                                <div className="flex items-center text-red-500 dark:text-red-300 space-x-1">
+                                  <HiXCircle
+                                    size={20}
+                                  />
+                                  <span className="normal-case font-bold">
+                                    {error_status}
+                                  </span>
+                                </div> :
+                                pending ?
+                                  <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-1.5">
+                                    <TailSpin
+                                      color={loader_color(theme)}
+                                      width="16"
+                                      height="16"
+                                    />
+                                    <span className="font-medium">
+                                      Processing...
+                                    </span>
+                                  </div> :
+                                  <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
+                                    <HiCheckCircle
+                                      size={20}
+                                    />
+                                    <span className="uppercase font-bold">
+                                      Success
+                                    </span>
+                                  </div>
                             }
                           </a>
                         </Link>
