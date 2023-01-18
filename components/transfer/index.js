@@ -654,11 +654,13 @@ export default () => {
                       </div> :
                       pending ?
                         <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-2">
-                          {/*<TailSpin
-                            color={loader_color(theme)}
-                            width="24"
-                            height="24"
-                          />*/}
+                          {/*
+                            <TailSpin
+                              color={loader_color(theme)}
+                              width="24"
+                              height="24"
+                            />
+                          */}
                           <span className="text-base font-medium">
                             Processing...
                           </span>
@@ -683,7 +685,15 @@ export default () => {
                     title="Time spent"
                     from_time={xcall_timestamp}
                     to_time={execute_timestamp}
-                    className={`${pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}
+                    className={
+                      `${
+                        errored ?
+                          'text-red-600 dark:text-red-500' :
+                          pending ?
+                            'text-blue-500 dark:text-blue-300' :
+                            'text-yellow-600 dark:text-yellow-400'
+                      } font-semibold`
+                    }
                   />
                 </div>
                 <div className="flex flex-col sm:items-end">
@@ -862,11 +872,26 @@ export default () => {
                               size={32}
                               className="bg-slate-100 dark:bg-slate-200 rounded-full text-green-500 dark:text-green-500"
                             /> :
-                            <TailSpin
-                              color={loader_color(theme)}
-                              width="32"
-                              height="32"
-                            />
+                            errored ?
+                              s === 'receive' ?
+                                <Tooltip
+                                  placement="top"
+                                  content={error_status}
+                                  className="z-50 bg-dark text-white text-xs"
+                                >
+                                  <div>
+                                    <IoWarning
+                                      size={32}
+                                      className="text-red-600 dark:text-red-500"
+                                    />
+                                  </div>
+                                </Tooltip> :
+                                null :
+                                <TailSpin
+                                  color={loader_color(theme)}
+                                  width="32"
+                                  height="32"
+                                />
                           }
                         </div>
                       </div>

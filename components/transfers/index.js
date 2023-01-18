@@ -770,7 +770,15 @@ export default () => {
                                   title="Time spent"
                                   from_time={xcall_timestamp}
                                   to_time={execute_timestamp}
-                                  className={`${pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}
+                                  className={
+                                    `${
+                                      errored ?
+                                        'text-red-600 dark:text-red-500' :
+                                        pending ?
+                                          'text-blue-500 dark:text-blue-300' :
+                                          'text-yellow-600 dark:text-yellow-400'
+                                    } font-semibold`
+                                  }
                                 />
                                 {
                                   force_slow &&
