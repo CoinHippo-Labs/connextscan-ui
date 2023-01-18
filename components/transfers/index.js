@@ -16,6 +16,7 @@ import SelectAsset from '../select/asset'
 import SelectStatus from '../select/status'
 import Datatable from '../datatable'
 import TimeSpent from '../time-spent'
+import ActionRequired from '../action-required'
 import EnsProfile from '../ens-profile'
 import AddToken from '../add-token'
 import Copy from '../copy'
@@ -736,14 +737,19 @@ export default () => {
                                   <a>
                                     {
                                       errored ?
-                                        <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
-                                          <IoWarning
-                                            size={20}
-                                          />
-                                          <span className="normal-case font-bold">
-                                            {error_status}
-                                          </span>
-                                        </div> :
+                                        <ActionRequired
+                                          transferData={props.row.original}
+                                          buttonTitle={
+                                            <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
+                                              <IoWarning
+                                                size={20}
+                                              />
+                                              <span className="normal-case font-bold">
+                                                {error_status}
+                                              </span>
+                                            </div>
+                                          }
+                                        /> :
                                         pending ?
                                           <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-1.5">
                                             <TailSpin

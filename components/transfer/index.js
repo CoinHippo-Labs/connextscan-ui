@@ -13,6 +13,7 @@ import { IoWarning } from 'react-icons/io5'
 
 import Image from '../image'
 import TimeSpent from '../time-spent'
+import ActionRequired from '../action-required'
 import EnsProfile from '../ens-profile'
 import AddToken from '../add-token'
 import Copy from '../copy'
@@ -644,14 +645,25 @@ export default () => {
                 <div className="flex flex-col items-center space-y-1.5">
                   {data ?
                     errored ?
-                      <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
-                        <IoWarning
-                          size={24}
-                        />
-                        <span className="normal-case text-base font-bold">
-                          {error_status}
-                        </span>
-                      </div> :
+                      <ActionRequired
+                        transferData={data}
+                        buttonTitle={
+                          <Tooltip
+                            placement="top"
+                            content={error_status}
+                            className="z-50 bg-dark text-white text-xs"
+                          >
+                            <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
+                              <IoWarning
+                                size={24}
+                              />
+                              <span className="normal-case text-base font-bold">
+                                Action required
+                              </span>
+                            </div>
+                          </Tooltip>
+                        }
+                      /> :
                       pending ?
                         <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-2">
                           {/*
@@ -874,18 +886,23 @@ export default () => {
                             /> :
                             errored ?
                               s === 'receive' ?
-                                <Tooltip
-                                  placement="top"
-                                  content={error_status}
-                                  className="z-50 bg-dark text-white text-xs"
-                                >
-                                  <div>
-                                    <IoWarning
-                                      size={32}
-                                      className="text-red-600 dark:text-red-500"
-                                    />
-                                  </div>
-                                </Tooltip> :
+                                <ActionRequired
+                                  transferData={data}
+                                  buttonTitle={
+                                    <Tooltip
+                                      placement="top"
+                                      content={error_status}
+                                      className="z-50 bg-dark text-white text-xs"
+                                    >
+                                      <div>
+                                        <IoWarning
+                                          size={32}
+                                          className="text-red-600 dark:text-red-500"
+                                        />
+                                      </div>
+                                    </Tooltip>
+                                  }
+                                /> :
                                 null :
                                 <TailSpin
                                   color={loader_color(theme)}
