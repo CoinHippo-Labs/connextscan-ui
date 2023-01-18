@@ -7,7 +7,8 @@ import moment from 'moment'
 import { BigNumber, constants, utils } from 'ethers'
 import { XTransferStatus, XTransferErrorStatus } from '@connext/nxtp-utils'
 import { TailSpin } from 'react-loader-spinner'
-import { HiCheckCircle, HiXCircle } from 'react-icons/hi'
+import { HiCheckCircle } from 'react-icons/hi'
+import { IoWarning } from 'react-icons/io5'
 
 import Image from '../image'
 import SelectChain from '../select/chain'
@@ -735,8 +736,8 @@ export default () => {
                                   <a>
                                     {
                                       errored ?
-                                        <div className="flex items-center text-red-500 dark:text-red-300 space-x-1">
-                                          <HiXCircle
+                                        <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
+                                          <IoWarning
                                             size={20}
                                           />
                                           <span className="normal-case font-bold">
