@@ -1143,6 +1143,7 @@ export default () => {
                     on
                   </span>
                   <SelectChain
+                    disabled={disabled}
                     value={
                       chain ||
                       _.head(
