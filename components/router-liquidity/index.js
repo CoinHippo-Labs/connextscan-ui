@@ -1499,7 +1499,7 @@ export default () => {
                 !web3_provider ?
                   'Please connect your wallet.' :
                   chain_id !== wallet_chain_id ?
-                    'Please switch the chain before proceeding.' :
+                    'Please switch to correct network.' :
                     !hasAllFields ||
                     !(
                       Number(amount) > 0 &&
