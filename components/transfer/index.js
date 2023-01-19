@@ -17,6 +17,7 @@ import ActionRequired from '../action-required'
 import EnsProfile from '../ens-profile'
 import AddToken from '../add-token'
 import Copy from '../copy'
+import DecimalsFormat from '../decimals-format'
 import { number_format, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
 
 const ROUTER_FEE_PERCENT =
@@ -64,304 +65,277 @@ export default () => {
   } = { ...query }
 
   const [data, setData] = useState(null)
-  const [timer, setTimer] = useState(null)
 
-  useEffect(() => {
-    const getData = async is_interval => {
-      const {
-        status,
-      } = { ...data }
+  useEffect(
+    () => {
+      const getData = async is_interval => {
+        const {
+          status,
+        } = { ...data }
 
-      if (
-        sdk &&
-        tx &&
-        (
-          !is_interval ||
-          !data ||
-          ![
-            XTransferStatus.Executed,
-            XTransferStatus.CompletedFast,
-            XTransferStatus.CompletedSlow,
-          ].includes(status)
-        )
-      ) {
-        const response =
-          await sdk.nxtpSdkUtils
-            .getTransferById(
-              tx,
-            )
-
-        const _data = _.head(response)
-
-        if (_data) {
-          const source_chain_data = (chains_data || [])
-            .find(c =>
-              c?.chain_id === Number(_data.origin_chain) ||
-              c?.domain_id === _data.origin_domain
-            )
-
-          const source_asset_data = (assets_data || [])
-            .find(a =>
-              (a?.contracts || [])
-                .findIndex(c =>
-                  c?.chain_id === source_chain_data?.chain_id &&
-                  [
-                    _data?.origin_transacting_asset,
-                    _data?.origin_bridged_asset,
-                  ].findIndex(_a =>
-                    [
-                      c?.next_asset?.contract_address,
-                      c?.contract_address,
-                    ]
-                    .filter(__a => __a)
-                    .findIndex(__a =>
-                      equals_ignore_case(
-                        __a,
-                        _a,
-                      )
-                    ) > -1
-                  ) > -1
-                ) > -1
-            )
-
-          let source_contract_data = (source_asset_data?.contracts || [])
-            .find(c =>
-              c?.chain_id === source_chain_data?.chain_id
-            )
-
-          if (
-            source_contract_data?.next_asset &&
-            equals_ignore_case(
-              source_contract_data.next_asset.contract_address,
-              _data?.origin_transacting_asset,
-            )
-          ) {
-            source_contract_data = {
-              ...source_contract_data,
-              ...source_contract_data.next_asset,
-            }
-
-            delete source_contract_data.next_asset
-          }
-
-          if (
-            !source_contract_data &&
-            equals_ignore_case(
-              _data?.origin_transacting_asset,
-              constants.AddressZero,
-            )
-          ) {
-            const {
-              nativeCurrency,
-            } = {
-              ...(
-                _.head(source_chain_data?.provider_params)
-              ),
-            }
-            const {
-              symbol,
-            } = { ...nativeCurrency }
-
-            const _source_asset_data = (assets_data || [])
-              .find(a =>
-                [
-                  a?.id,
-                  a?.symbol,
-                ].findIndex(s =>
-                  equals_ignore_case(
-                    s,
-                    symbol,
-                  )
-                ) > -1
-              )
-
-            source_contract_data = {
-              ...(
-                (_source_asset_data?.contracts || [])
-                  .find(c =>
-                    c?.chain_id === source_chain_data?.chain_id,
-                  )
-              ),
-              contract_address: _data?.origin_transacting_asset,
-              ...nativeCurrency,
-            }
-          }
-
-          const destination_chain_data = (chains_data || [])
-            .find(c =>
-              c?.chain_id === Number(_data.destination_chain) ||
-              c?.domain_id === _data.destination_domain
-            )
-
-          const destination_asset_data = (assets_data || [])
-            .find(a =>
-              (a?.contracts || [])
-                .findIndex(c =>
-                  c?.chain_id === destination_chain_data?.chain_id &&
-                  [
-                    _data?.destination_transacting_asset,
-                    equals_ignore_case(
-                      source_asset_data?.id,
-                      a?.id,
-                    ) ?
-                      _data?.receive_local ?
-                        c?.next_asset?.contract_address :
-                        c?.contract_address :
-                      _data?.destination_local_asset,
-                  ].findIndex(_a =>
-                    [
-                      c?.next_asset?.contract_address,
-                      c?.contract_address,
-                    ]
-                    .filter(__a => __a)
-                    .findIndex(__a =>
-                      equals_ignore_case(
-                        __a,
-                        _a,
-                      )
-                    ) > -1
-                  ) > -1
-                ) > -1
-            )
-
-          let destination_contract_data = (destination_asset_data?.contracts || [])
-            .find(c =>
-              c?.chain_id === destination_chain_data?.chain_id
-            )
-
-          if (
-            destination_contract_data?.next_asset &&
-            (
-              equals_ignore_case(
-                destination_contract_data.next_asset.contract_address,
-                _data?.destination_transacting_asset,
-              ) ||
-              _data?.receive_local
-            )
-          ) {
-            destination_contract_data = {
-              ...destination_contract_data,
-              ...destination_contract_data.next_asset,
-            }
-
-            delete destination_contract_data.next_asset
-          }
-
-          if (
-            !destination_contract_data &&
-            equals_ignore_case(
-              _data?.destination_transacting_asset,
-              constants.AddressZero,
-            )
-          ) {
-            const {
-              nativeCurrency,
-            } = {
-              ...(
-                _.head(destination_chain_data?.provider_params)
-              ),
-            }
-            const {
-              symbol,
-            } = { ...nativeCurrency }
-
-            const _destination_asset_data = (assets_data || [])
-              .find(a =>
-                [
-                  a?.id,
-                  a?.symbol,
-                ].findIndex(s =>
-                  equals_ignore_case(
-                    s,
-                    symbol,
-                  )
-                ) > -1
-              )
-
-            destination_contract_data = {
-              ...(
-                (_destination_asset_data?.contracts || [])
-                  .find(c =>
-                    c?.chain_id === destination_chain_data?.chain_id,
-                  )
-              ),
-              contract_address: _data?.destination_transacting_asset,
-              ...nativeCurrency,
-            }
-          }
-
-          setData(
-            {
-              ..._data,
-              source_chain_data,
-              destination_chain_data,
-              source_asset_data:
-                (
-                  source_asset_data ||
-                  source_contract_data
-                ) &&
-                {
-                  ...source_asset_data,
-                  ...source_contract_data,
-                },
-              destination_asset_data:
-                (
-                  destination_asset_data ||
-                  destination_contract_data
-                ) &&
-                {
-                  ...destination_asset_data,
-                  ...destination_contract_data,
-                },
-            }
+        if (
+          sdk &&
+          tx &&
+          (
+            !is_interval ||
+            !data ||
+            ![
+              XTransferStatus.Executed,
+              XTransferStatus.CompletedFast,
+              XTransferStatus.CompletedSlow,
+            ].includes(status)
           )
-        }
-        else if (!is_interval) {
-          setData(false)
+        ) {
+          const response =
+            await sdk.nxtpSdkUtils
+              .getTransferById(
+                tx,
+              )
+
+          const _data = _.head(response)
+
+          if (_data) {
+            const source_chain_data = (chains_data || [])
+              .find(c =>
+                c?.chain_id === Number(_data.origin_chain) ||
+                c?.domain_id === _data.origin_domain
+              )
+
+            const source_asset_data = (assets_data || [])
+              .find(a =>
+                (a?.contracts || [])
+                  .findIndex(c =>
+                    c?.chain_id ===
+                    source_chain_data?.chain_id &&
+                    [
+                      _data?.origin_transacting_asset,
+                      _data?.origin_bridged_asset,
+                    ].findIndex(_a =>
+                      [
+                        c?.next_asset?.contract_address,
+                        c?.contract_address,
+                      ]
+                      .filter(__a => __a)
+                      .findIndex(__a =>
+                        equals_ignore_case(
+                          __a,
+                          _a,
+                        )
+                      ) > -1
+                    ) > -1
+                  ) > -1
+              )
+
+            let source_contract_data = (source_asset_data?.contracts || [])
+              .find(c =>
+                c?.chain_id === source_chain_data?.chain_id
+              )
+
+            if (
+              source_contract_data?.next_asset &&
+              equals_ignore_case(
+                source_contract_data.next_asset.contract_address,
+                _data?.origin_transacting_asset,
+              )
+            ) {
+              source_contract_data = {
+                ...source_contract_data,
+                ...source_contract_data.next_asset,
+              }
+
+              delete source_contract_data.next_asset
+            }
+
+            if (
+              !source_contract_data &&
+              equals_ignore_case(
+                _data?.origin_transacting_asset,
+                constants.AddressZero,
+              )
+            ) {
+              const {
+                nativeCurrency,
+              } = {
+                ...(
+                  _.head(source_chain_data?.provider_params)
+                ),
+              }
+              const {
+                symbol,
+              } = { ...nativeCurrency }
+
+              const _source_asset_data = (assets_data || [])
+                .find(a =>
+                  [
+                    a?.id,
+                    a?.symbol,
+                  ].findIndex(s =>
+                    equals_ignore_case(
+                      s,
+                      symbol,
+                    )
+                  ) > -1
+                )
+
+              source_contract_data = {
+                ...(
+                  (_source_asset_data?.contracts || [])
+                    .find(c =>
+                      c?.chain_id === source_chain_data?.chain_id,
+                    )
+                ),
+                contract_address: _data?.origin_transacting_asset,
+                ...nativeCurrency,
+              }
+            }
+
+            const destination_chain_data = (chains_data || [])
+              .find(c =>
+                c?.chain_id === Number(_data.destination_chain) ||
+                c?.domain_id === _data.destination_domain
+              )
+
+            const destination_asset_data = (assets_data || [])
+              .find(a =>
+                (a?.contracts || [])
+                  .findIndex(c =>
+                    c?.chain_id === destination_chain_data?.chain_id &&
+                    [
+                      _data?.destination_transacting_asset,
+                      equals_ignore_case(
+                        source_asset_data?.id,
+                        a?.id,
+                      ) ?
+                        _data?.receive_local ?
+                          c?.next_asset?.contract_address :
+                          c?.contract_address :
+                        _data?.destination_local_asset,
+                    ].findIndex(_a =>
+                      [
+                        c?.next_asset?.contract_address,
+                        c?.contract_address,
+                      ]
+                      .filter(__a => __a)
+                      .findIndex(__a =>
+                        equals_ignore_case(
+                          __a,
+                          _a,
+                        )
+                      ) > -1
+                    ) > -1
+                  ) > -1
+              )
+
+            let destination_contract_data = (destination_asset_data?.contracts || [])
+              .find(c =>
+                c?.chain_id === destination_chain_data?.chain_id
+              )
+
+            if (
+              destination_contract_data?.next_asset &&
+              (
+                equals_ignore_case(
+                  destination_contract_data.next_asset.contract_address,
+                  _data?.destination_transacting_asset,
+                ) ||
+                _data?.receive_local
+              )
+            ) {
+              destination_contract_data = {
+                ...destination_contract_data,
+                ...destination_contract_data.next_asset,
+              }
+
+              delete destination_contract_data.next_asset
+            }
+
+            if (
+              !destination_contract_data &&
+              equals_ignore_case(
+                _data?.destination_transacting_asset,
+                constants.AddressZero,
+              )
+            ) {
+              const {
+                nativeCurrency,
+              } = {
+                ...(
+                  _.head(destination_chain_data?.provider_params)
+                ),
+              }
+              const {
+                symbol,
+              } = { ...nativeCurrency }
+
+              const _destination_asset_data = (assets_data || [])
+                .find(a =>
+                  [
+                    a?.id,
+                    a?.symbol,
+                  ].findIndex(s =>
+                    equals_ignore_case(
+                      s,
+                      symbol,
+                    )
+                  ) > -1
+                )
+
+              destination_contract_data = {
+                ...(
+                  (_destination_asset_data?.contracts || [])
+                    .find(c =>
+                      c?.chain_id === destination_chain_data?.chain_id,
+                    )
+                ),
+                contract_address: _data?.destination_transacting_asset,
+                ...nativeCurrency,
+              }
+            }
+
+            setData(
+              {
+                ..._data,
+                source_chain_data,
+                destination_chain_data,
+                source_asset_data:
+                  (
+                    source_asset_data ||
+                    source_contract_data
+                  ) &&
+                  {
+                    ...source_asset_data,
+                    ...source_contract_data,
+                  },
+                destination_asset_data:
+                  (
+                    destination_asset_data ||
+                    destination_contract_data
+                  ) &&
+                  {
+                    ...destination_asset_data,
+                    ...destination_contract_data,
+                  },
+              }
+            )
+          }
+          else if (!is_interval) {
+            setData(false)
+          }
         }
       }
-    }
 
-    getData()
+      getData()
 
-    const interval =
-      setInterval(() =>
-        getData(true),
-        0.25 * 60 * 1000,
-      )
-
-    return () => clearInterval(interval)
-  }, [sdk, tx])
-
-  useEffect(() => {
-    const run = async () => {
-      const {
-        execute_timestamp,
-      } = { ...data }
-
-      if (
-        data &&
-        !execute_timestamp
-      ) {
-        setTimer(
-          moment()
-            .unix()
+      const interval =
+        setInterval(() =>
+          getData(true),
+          0.25 * 60 * 1000,
         )
-      }
-    }
 
-    if (!timer) {
-      run()
-    }
-
-    const interval =
-      setInterval(() =>
-        run(),
-        1 * 1000,
-      )
-
-    return () => clearInterval(interval)
-  }, [data, timer])
+      return () => clearInterval(interval)
+    },
+    [sdk, tx]
+  )
 
   const {
     status,
@@ -466,8 +440,7 @@ export default () => {
     (
       1 -
       ROUTER_FEE_PERCENT / 100
-    )
-    
+    ) 
 
   const pending =
     ![
@@ -478,10 +451,8 @@ export default () => {
 
   const errored =
     [
-      // XTransferErrorStatus.LowSlippage,
-      // XTransferErrorStatus.InsufficientRelayerFee,
-      'LowSlippage',
-      'InsufficientRelayerFee',
+      XTransferErrorStatus.LowSlippage,
+      XTransferErrorStatus.InsufficientRelayerFee,
     ].includes(error_status)
 
   const details =
@@ -885,7 +856,7 @@ export default () => {
                               className="bg-slate-100 dark:bg-slate-200 rounded-full text-green-500 dark:text-green-500"
                             /> :
                             errored ?
-                              s === 'receive' ?
+                              s === 'execute' ?
                                 <ActionRequired
                                   transferData={data}
                                   buttonTitle={
@@ -970,9 +941,10 @@ export default () => {
                                       ]
                                     ]
                                     .map((v, k) => {
-                                      const chain_data = s === 'xcall' ?
-                                        source_chain_data :
-                                        destination_chain_data
+                                      const chain_data =
+                                        s === 'xcall' ?
+                                          source_chain_data :
+                                          destination_chain_data
                                       const {
                                         provider_params,
                                         explorer,
@@ -1104,22 +1076,32 @@ export default () => {
                                           )
                                           break
                                         case 'relayer_fee':
+                                          _v =
+                                            utils.formatUnits(
+                                              BigNumber.from(
+                                                v ||
+                                                '0'
+                                              ),
+                                              decimals ||
+                                              18,
+                                            ),
+
                                           component = (
                                             <div className="flex items-center space-x-1">
-                                              <span>
-                                                {number_format(
-                                                  utils.formatUnits(
-                                                    BigNumber.from(
-                                                      v ||
-                                                      '0'
-                                                    ),
-                                                    decimals ||
-                                                    18,
-                                                  ),
-                                                  '0,0.000000',
-                                                  true,
-                                                )}
-                                              </span>
+                                              <DecimalsFormat
+                                                value={
+                                                  Number(_v) >= 1000 ?
+                                                    number_format(
+                                                      _v,
+                                                      '0,0.000000000000',
+                                                      true,
+                                                    ) :
+                                                    Number(_v) <= 0 ?
+                                                      '0' :
+                                                      _v
+                                                }
+                                                className="text-base"
+                                              />
                                               <span>
                                                 {symbol}
                                               </span>

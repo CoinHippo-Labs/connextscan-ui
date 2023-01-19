@@ -1242,12 +1242,12 @@ export default () => {
                         ].includes(e.key) &&
                         e.preventDefault()
                       }
-                      className={`w-36 sm:w-48 bg-transparent ${disabled ? 'cursor-not-allowed' : ''} rounded border-0 focus:ring-0 sm:text-base font-semibold text-right py-1.5`}
+                      className={`w-36 sm:w-48 bg-transparent ${disabled ? 'cursor-not-allowed' : ''} rounded border-0 focus:ring-0 sm:text-lg font-semibold text-right py-1.5`}
                     />
                   </div>
                   <div className="flex items-center justify-between space-x-2">
                     <div className="flex items-center space-x-1">
-                      <div className="text-slate-400 dark:text-slate-500 text-xs font-medium">
+                      <div className="text-slate-400 dark:text-slate-500 text-sm font-medium">
                         Balance:
                       </div>
                       {
@@ -1278,7 +1278,7 @@ export default () => {
                               }
                             }}
                           >
-                            <span className="text-black dark:text-white text-xs font-medium">
+                            <span className="text-black dark:text-white text-sm font-medium">
                               {number_format(
                                 balance,
                                 '0,0.000000',
@@ -1314,7 +1314,7 @@ export default () => {
                               )
                             }
                           }}
-                          className={`${disabled ? 'cursor-not-allowed text-slate-400 dark:text-slate-500' : 'cursor-pointer text-blue-400 hover:text-blue-500 dark:text-blue-500 dark:hover:text-blue-400'} text-xs font-medium`}
+                          className={`${disabled ? 'cursor-not-allowed text-slate-400 dark:text-slate-500' : 'cursor-pointer text-blue-400 hover:text-blue-500 dark:text-blue-500 dark:hover:text-blue-400'} text-sm font-medium`}
                         >
                           Select Max
                         </button>

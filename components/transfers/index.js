@@ -7,7 +7,7 @@ import moment from 'moment'
 import { BigNumber, constants, utils } from 'ethers'
 import { XTransferStatus, XTransferErrorStatus } from '@connext/nxtp-utils'
 import { TailSpin } from 'react-loader-spinner'
-import { HiCheckCircle } from 'react-icons/hi'
+import { HiCheckCircle, HiXCircle } from 'react-icons/hi'
 import { IoWarning } from 'react-icons/io5'
 
 import Image from '../image'
@@ -463,10 +463,8 @@ export default () => {
                       ].includes(t?.status),
                     errored:
                       [
-                        // XTransferErrorStatus.LowSlippage,
-                        // XTransferErrorStatus.InsufficientRelayerFee,
-                        'LowSlippage',
-                        'InsufficientRelayerFee',
+                        XTransferErrorStatus.LowSlippage,
+                        XTransferErrorStatus.InsufficientRelayerFee,
                       ].includes(t?.error_status),
                   }
                 })
@@ -846,7 +844,7 @@ export default () => {
                           <a>
                             {
                               errored ?
-                                <div className="flex items-center text-red-500 dark:text-red-300 space-x-1">
+                                <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
                                   <HiXCircle
                                     size={20}
                                   />
@@ -880,7 +878,15 @@ export default () => {
                           title="Time spent"
                           from_time={xcall_timestamp}
                           to_time={execute_timestamp}
-                          className={`${pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}
+                          className={
+                            `${
+                              errored ?
+                                'text-red-600 dark:text-red-500' :
+                                pending ?
+                                  'text-blue-500 dark:text-blue-300' :
+                                  'text-yellow-600 dark:text-yellow-400'
+                            } font-semibold`
+                          }
                         />
                         {
                           force_slow &&

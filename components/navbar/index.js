@@ -16,7 +16,7 @@ import { chains as getChains, assets as getAssets } from '../../lib/api/config'
 import { assets as getAssetsPrice } from '../../lib/api/assets'
 import { ens as getEns } from '../../lib/api/ens'
 import { connext } from '../../lib/object/chain'
-import { equals_ignore_case } from '../../lib/utils'
+import { equals_ignore_case, sleep } from '../../lib/utils'
 import { CHAINS_DATA, ASSETS_DATA, POOL_ASSETS_DATA, ENS_DATA, CHAIN_DATA, ASSET_BALANCES_DATA, POOLS_DATA, SDK, RPCS } from '../../reducers/types'
 
 const WRAPPED_PREFIX =
@@ -890,6 +890,8 @@ export default () => {
             let supply
 
             if (lpTokenAddress) {
+              await sleep(0.5 * 1000)
+
               console.log(
                 '[getLPTokenSupply]',
                 {
@@ -934,9 +936,12 @@ export default () => {
               }
             }
 
-            let rate
+            let rate = 1
 
-            if (pool) {
+            if (
+              pool &&
+              !rate
+            ) {
               console.log(
                 '[getVirtualPrice]',
                 {
