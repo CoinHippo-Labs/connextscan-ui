@@ -1101,20 +1101,22 @@ export default () => {
                   (
                     <Copy
                       value={wallet_address}
-                      title={<span className="text-slate-400 dark:text-slate-200 text-sm">
-                        <span className="xl:hidden">
-                          {ellipse(
-                            wallet_address,
-                            8,
-                          )}
+                      title={
+                        <span className="text-slate-400 dark:text-slate-200 text-sm">
+                          <span className="xl:hidden">
+                            {ellipse(
+                              wallet_address,
+                              8,
+                            )}
+                          </span>
+                          <span className="hidden xl:block">
+                            {ellipse(
+                              wallet_address,
+                              12,
+                            )}
+                          </span>
                         </span>
-                        <span className="hidden xl:block">
-                          {ellipse(
-                            wallet_address,
-                            12,
-                          )}
-                        </span>
-                      </span>}
+                      }
                     />
                   )
                 }

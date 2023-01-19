@@ -934,7 +934,7 @@ export default () => {
                     return (
                       <div className="space-y-1.5 mb-3">
                         {value ?
-                          <div className="flex items-center justify-center sm:justify-start space-x-2">
+                          <div className="h-7 flex items-center justify-start space-x-2">
                             {
                               image &&
                               (
@@ -951,7 +951,7 @@ export default () => {
                               {name}
                             </span>
                           </div> :
-                          <div className="flex items-center justify-center sm:justify-start">
+                          <div className="h-7 flex items-center justify-start">
                             <TailSpin
                               color={loader_color(theme)}
                               width="24"
@@ -1015,7 +1015,7 @@ export default () => {
                         {
                           xcall_caller &&
                           (
-                            <div className="flex items-center justify-center sm:justify-start space-x-1">
+                            <div className="flex items-center justify-start space-x-1">
                               <a
                                 href={
                                   url ?
@@ -1086,7 +1086,7 @@ export default () => {
                     return (
                       <div className="space-y-1.5 mb-3">
                         {value ?
-                          <div className="flex items-center justify-center sm:justify-start space-x-2">
+                          <div className="h-7 flex items-center justify-start space-x-2">
                             {
                               image &&
                               (
@@ -1103,7 +1103,7 @@ export default () => {
                               {name}
                             </span>
                           </div> :
-                          <div className="flex items-center justify-center sm:justify-start">
+                          <div className="h-7 flex items-center justify-start">
                             <TailSpin
                               color={loader_color(theme)}
                               width="24"
@@ -1167,7 +1167,7 @@ export default () => {
                         {
                           to &&
                           (
-                            <div className="flex items-center justify-center sm:justify-start space-x-1">
+                            <div className="flex items-center justify-start space-x-1">
                               <a
                                 href={
                                   url ?

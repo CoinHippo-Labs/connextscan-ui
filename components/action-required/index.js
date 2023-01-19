@@ -83,7 +83,7 @@ export default (
     signer,
   } = { ...wallet_data }
 
-  const [hidden, setHidden] = useState(null)
+  const [hidden, setHidden] = useState(true)
   const [data, setData] = useState(null)
   const [loaded, setLoaded] = useState(false)
   const [newSlippage, setNewSlippage] = useState(null)
@@ -95,24 +95,6 @@ export default (
   const [updating, setUpdating] = useState(null)
   const [updateProcessing, setUpdateProcessing] = useState(null)
   const [updateResponse, setUpdateResponse] = useState(null)
-
-  useEffect(
-    () => {
-      if (hidden) {
-        setHidden(null)
-        setData(null)
-        setLoaded(false)
-        setNewSlippage(null)
-        setSlippageEditing(false)
-        setNewRelayerFee(null)
-        setEstimatedValues(undefined)
-        setUpdating(null)
-        setUpdateProcessing(null)
-        setUpdateResponse(null)
-      }
-    },
-    [hidden],
-  )
 
   useEffect(
     () => {
@@ -149,11 +131,26 @@ export default (
     [transferData, data, loaded],
   )
 
+  const reset = () => {
+    setHidden(true)
+    setData(null)
+    setLoaded(false)
+    setNewSlippage(null)
+    setSlippageEditing(false)
+    setNewRelayerFee(null)
+    setEstimatedValues(undefined)
+    setUpdating(null)
+    setUpdateProcessing(null)
+    setUpdateResponse(null)
+  }
+
   const estimate = async () => {
     if (!updateResponse) {
       if (
-        source_contract_data &&
-        destination_contract_data &&
+        (
+          source_contract_data ||
+          destination_contract_data
+        ) &&
         [
           'string',
           'number',
@@ -516,33 +513,35 @@ export default (
                 )
 
             if (request) {
-              let gasLimit =
-                await signer
-                  .estimateGas(
-                    request,
-                  )
+              try {
+                let gasLimit =
+                  await signer
+                    .estimateGas(
+                      request,
+                    )
 
-              if (gasLimit) {
-                gasLimit =
-                  FixedNumber.fromString(
-                    gasLimit
-                      .toString()
-                  )
-                  .mulUnsafe(
+                if (gasLimit) {
+                  gasLimit =
                     FixedNumber.fromString(
-                      GAS_LIMIT_ADJUSTMENT
+                      gasLimit
                         .toString()
                     )
-                  )
-                  .round(0)
-                  .toString()
-                  .replace(
-                    '.0',
-                    '',
-                  )
+                    .mulUnsafe(
+                      FixedNumber.fromString(
+                        GAS_LIMIT_ADJUSTMENT
+                          .toString()
+                      )
+                    )
+                    .round(0)
+                    .toString()
+                    .replace(
+                      '.0',
+                      '',
+                    )
 
-                request.gasLimit = gasLimit
-              }
+                  request.gasLimit = gasLimit
+                }
+              } catch (error) {}
 
               const response =
                 await signer
@@ -656,33 +655,35 @@ export default (
                 )
 
             if (request) {
-              let gasLimit =
-                await signer
-                  .estimateGas(
-                    request,
-                  )
+              try {
+                let gasLimit =
+                  await signer
+                    .estimateGas(
+                      request,
+                    )
 
-              if (gasLimit) {
-                gasLimit =
-                  FixedNumber.fromString(
-                    gasLimit
-                      .toString()
-                  )
-                  .mulUnsafe(
+                if (gasLimit) {
+                  gasLimit =
                     FixedNumber.fromString(
-                      GAS_LIMIT_ADJUSTMENT
+                      gasLimit
                         .toString()
                     )
-                  )
-                  .round(0)
-                  .toString()
-                  .replace(
-                    '.0',
-                    '',
-                  )
+                    .mulUnsafe(
+                      FixedNumber.fromString(
+                        GAS_LIMIT_ADJUSTMENT
+                          .toString()
+                      )
+                    )
+                    .round(0)
+                    .toString()
+                    .replace(
+                      '.0',
+                      '',
+                    )
 
-                request.gasLimit = gasLimit
-              }
+                  request.gasLimit = gasLimit
+                }
+              } catch (error) {}
 
               const response =
                 await signer
@@ -1142,6 +1143,7 @@ export default (
       <Modal
         hidden={hidden}
         disabled={disabled}
+        onClick={() => setHidden(false)}
         buttonTitle={buttonTitle}
         buttonClassName={`min-w-max ${disabled ? 'cursor-not-allowed' : ''} rounded flex items-center justify-center`}
         title={
@@ -1156,7 +1158,7 @@ export default (
               }
             </span>
             <div
-              onClick={() => setHidden(true)}
+              onClick={() => reset()}
               className="hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer rounded-full p-2"
             >
               <BiX
@@ -1679,7 +1681,7 @@ export default (
                                         className="cursor-pointer text-slate-200 hover:text-white"
                                       />
                                       <button
-                                        onClick={() => setHidden(true)}
+                                        onClick={() => reset()}
                                         className="bg-red-500 dark:bg-red-400 rounded-full flex items-center justify-center text-white p-1"
                                       >
                                         <MdClose
@@ -1689,7 +1691,7 @@ export default (
                                     </> :
                                     status === 'success' ?
                                       <button
-                                        onClick={() => setHidden(true)}
+                                        onClick={() => reset()}
                                         className="bg-green-500 dark:bg-green-400 rounded-full flex items-center justify-center text-white p-1"
                                       >
                                         <MdClose
@@ -1725,6 +1727,7 @@ export default (
         }
         noCancelOnClickOutside={true}
         noButtons={true}
+        onClose={() => reset()}
         modalClassName="max-w-md"
       />
     )

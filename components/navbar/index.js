@@ -9,6 +9,7 @@ import Logo from './logo'
 import DropdownNavigations from './navigations/dropdown'
 import Navigations from './navigations'
 import Search from './search'
+import Wallet from '../wallet'
 import Chains from './chains'
 import Theme from './theme'
 import SubNavbar from './sub-navbar'
@@ -79,6 +80,7 @@ export default () => {
     wallet_data,
   } = { ...wallet }
   const {
+    default_chain_id,
     chain_id,
     provider,
     web3_provider,
@@ -1172,6 +1174,11 @@ export default () => {
           <div className="flex items-center justify-end">
             <Search />
             <Chains />
+            <Wallet
+              hidden={true}
+              mainController={true}
+              connectChainId={default_chain_id}
+            />
             <Theme />
           </div>
         </div>
