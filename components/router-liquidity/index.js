@@ -610,6 +610,7 @@ export default () => {
 
       let failed = false
 
+      /*
       try {
         const approve_request =
           await sdk.nxtpSdkBase
@@ -685,6 +686,7 @@ export default () => {
         setApproveProcessing(false)
         setApproving(false)
       }
+      */
 
       if (!failed) {
         try {

@@ -7,8 +7,11 @@ import moment from 'moment'
 import { BigNumber, constants, utils } from 'ethers'
 import { XTransferStatus, XTransferErrorStatus } from '@connext/nxtp-utils'
 import { TailSpin } from 'react-loader-spinner'
+import { Tooltip } from '@material-tailwind/react'
 import { HiCheckCircle, HiXCircle } from 'react-icons/hi'
 import { IoWarning } from 'react-icons/io5'
+import { BsLightningCharge } from 'react-icons/bs'
+import { BiInfoCircle } from 'react-icons/bi'
 
 import Image from '../image'
 import SelectChain from '../select/chain'
@@ -785,16 +788,24 @@ export default () => {
                                   }
                                 />
                                 {
-                                  force_slow &&
+                                  !force_slow &&
                                   (
-                                    <div className="flex items-center space-x-1">
-                                      <span className="text-slate-600 dark:text-slate-200 text-xs font-semibold">
-                                        Path:
-                                      </span>
-                                      <span className="text-slate-600 dark:text-slate-200 uppercase text-xs font-bold">
-                                        Slow
-                                      </span>
-                                    </div>
+                                    <Tooltip
+                                      placement="bottom"
+                                      content="Boosted by router liquidity."
+                                      className="z-50 bg-dark text-white text-xs"
+                                    >
+                                      <div className="flex items-center">
+                                        <BsLightningCharge
+                                          size={16}
+                                          className="text-yellow-600 dark:text-yellow-400"
+                                        />
+                                        <BiInfoCircle
+                                          size={14}
+                                          className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
+                                        />
+                                      </div>
+                                    </Tooltip>
                                   )
                                 }
                               </div>

@@ -10,6 +10,8 @@ import { TailSpin } from 'react-loader-spinner'
 import { Tooltip } from '@material-tailwind/react'
 import { HiCheckCircle } from 'react-icons/hi'
 import { IoWarning } from 'react-icons/io5'
+import { BsLightningCharge } from 'react-icons/bs'
+import { BiInfoCircle } from 'react-icons/bi'
 
 import Image from '../image'
 import TimeSpent from '../time-spent'
@@ -841,13 +843,24 @@ export default () => {
                         <div className="flex items-center space-x-4">
                           {
                             s === 'xcall' &&
-                            force_slow &&
+                            !force_slow &&
                             (
-                              <div className={`rounded-xl border-2 ${status === XTransferStatus.CompletedSlow ? 'border-green-500 dark:border-green-300 text-green-500 dark:text-green-300' : 'border-blue-500 dark:border-blue-300 text-blue-500 dark:text-blue-300'} flex items-center space-x-2 py-1 px-2.5`}>
-                                <span className="uppercase text-base font-semibold">
-                                  Slow
-                                </span>
-                              </div>
+                              <Tooltip
+                                placement="bottom"
+                                content="Boosted by router liquidity."
+                                className="z-50 bg-dark text-white text-xs"
+                              >
+                                <div className="flex items-center">
+                                  <BsLightningCharge
+                                    size={16}
+                                    className="text-yellow-600 dark:text-yellow-400"
+                                  />
+                                  <BiInfoCircle
+                                    size={14}
+                                    className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
+                                  />
+                                </div>
+                              </Tooltip>
                             )
                           }
                           {data[`${s}_transaction_hash`] ?
