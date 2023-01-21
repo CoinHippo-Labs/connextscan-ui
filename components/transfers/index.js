@@ -171,7 +171,7 @@ export default () => {
                 if (address) {
                   response =
                     await sdk.nxtpSdkUtils
-                      .getTransfersByUser(
+                      .getTransfers(
                         {
                           userAddress: address,
                           status,
@@ -189,7 +189,7 @@ export default () => {
                 if (address) {
                   response =
                     await sdk.nxtpSdkUtils
-                      .getTransfersByRouter(
+                      .getTransfers(
                         {
                           routerAddress: address,
                           status,
@@ -207,7 +207,7 @@ export default () => {
                 if (status) {
                   response =
                     await sdk.nxtpSdkUtils
-                      .getTransfersByStatus(
+                      .getTransfers(
                         {
                           status,
                           range: {

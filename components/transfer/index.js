@@ -90,8 +90,10 @@ export default () => {
         ) {
           const response =
             await sdk.nxtpSdkUtils
-              .getTransferById(
-                tx,
+              .getTransfers(
+                {
+                  transferId: tx,
+                }
               )
 
           const _data = _.head(response)
