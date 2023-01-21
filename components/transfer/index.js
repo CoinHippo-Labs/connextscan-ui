@@ -93,7 +93,7 @@ export default () => {
               .getTransfers(
                 {
                   transferId: tx,
-                }
+                },
               )
 
           const _data = _.head(response)
