@@ -606,6 +606,7 @@ export default () => {
           .toString(),
         tokenAddress: contract_address,
         recipient: wallet_address,
+        router: address,
       }
 
       let failed = false
@@ -692,7 +693,7 @@ export default () => {
         try {
           const remove_request =
             await sdk.nxtpSdkRouter
-              .removeRouterLiquidity(
+              .removeRouterLiquidityFor(
                 params,
               )
 
