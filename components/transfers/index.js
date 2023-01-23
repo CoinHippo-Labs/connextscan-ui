@@ -773,41 +773,46 @@ export default () => {
                                     }
                                   </a>
                                 </Link>
-                                <TimeSpent
-                                  title="Time spent"
-                                  from_time={xcall_timestamp}
-                                  to_time={execute_timestamp}
-                                  className={
-                                    `${
-                                      errored ?
-                                        'text-red-600 dark:text-red-500' :
-                                        pending ?
-                                          'text-blue-500 dark:text-blue-300' :
-                                          'text-yellow-600 dark:text-yellow-400'
-                                    } font-semibold`
+                                <div className="flex items-center space-x-2">
+                                  {
+                                    !force_slow &&
+                                    (
+                                      <Tooltip
+                                        placement="bottom"
+                                        content="Boosted by router liquidity."
+                                        className="z-50 bg-dark text-white text-xs"
+                                      >
+                                        <div className="flex items-center">
+                                          <BsLightningCharge
+                                            size={16}
+                                            className="text-yellow-600 dark:text-yellow-400"
+                                          />
+                                          <BiInfoCircle
+                                            size={14}
+                                            className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
+                                          />
+                                        </div>
+                                      </Tooltip>
+                                    )
                                   }
-                                />
-                                {
-                                  !force_slow &&
-                                  (
-                                    <Tooltip
-                                      placement="bottom"
-                                      content="Boosted by router liquidity."
-                                      className="z-50 bg-dark text-white text-xs"
-                                    >
-                                      <div className="flex items-center">
-                                        <BsLightningCharge
-                                          size={16}
-                                          className="text-yellow-600 dark:text-yellow-400"
-                                        />
-                                        <BiInfoCircle
-                                          size={14}
-                                          className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
-                                        />
-                                      </div>
-                                    </Tooltip>
-                                  )
-                                }
+                                  <TimeSpent
+                                    title="Time spent"
+                                    from_time={xcall_timestamp}
+                                    to_time={execute_timestamp}
+                                    className={
+                                      `${
+                                        errored ?
+                                          'text-red-600 dark:text-red-500' :
+                                          pending ?
+                                            'text-blue-500 dark:text-blue-300' :
+                                            'text-yellow-600 dark:text-yellow-400'
+                                      } font-semibold`
+                                    }
+                                  />
+                                </div>
+                                <div className="normal-case font-bold">
+                                  {status}
+                                </div>
                               </div>
                             )
                           }
@@ -885,41 +890,43 @@ export default () => {
                             }
                           </a>
                         </Link>
-                        <TimeSpent
-                          title="Time spent"
-                          from_time={xcall_timestamp}
-                          to_time={execute_timestamp}
-                          className={
-                            `${
-                              errored ?
-                                'text-red-600 dark:text-red-500' :
-                                pending ?
-                                  'text-blue-500 dark:text-blue-300' :
-                                  'text-yellow-600 dark:text-yellow-400'
-                            } font-semibold`
+                        <div className="flex items-center space-x-2">
+                          {
+                            !force_slow &&
+                            (
+                              <Tooltip
+                                placement="bottom"
+                                content="Boosted by router liquidity."
+                                className="z-50 bg-dark text-white text-xs"
+                              >
+                                <div className="flex items-center">
+                                  <BsLightningCharge
+                                    size={16}
+                                    className="text-yellow-600 dark:text-yellow-400"
+                                  />
+                                  <BiInfoCircle
+                                    size={14}
+                                    className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
+                                  />
+                                </div>
+                              </Tooltip>
+                            )
                           }
-                        />
-                        {
-                          !force_slow &&
-                          (
-                            <Tooltip
-                              placement="bottom"
-                              content="Boosted by router liquidity."
-                              className="z-50 bg-dark text-white text-xs"
-                            >
-                              <div className="flex items-center">
-                                <BsLightningCharge
-                                  size={16}
-                                  className="text-yellow-600 dark:text-yellow-400"
-                                />
-                                <BiInfoCircle
-                                  size={14}
-                                  className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
-                                />
-                              </div>
-                            </Tooltip>
-                          )
-                        }
+                          <TimeSpent
+                            title="Time spent"
+                            from_time={xcall_timestamp}
+                            to_time={execute_timestamp}
+                            className={
+                              `${
+                                errored ?
+                                  'text-red-600 dark:text-red-500' :
+                                  pending ?
+                                    'text-blue-500 dark:text-blue-300' :
+                                    'text-yellow-600 dark:text-yellow-400'
+                              } font-semibold`
+                            }
+                          />
+                        </div>
                       </div>
                     )
                   },
@@ -1228,12 +1235,39 @@ export default () => {
                     )
                   },
                 },
+                {
+                  Header: 'Xcall Status',
+                  accessor: 'xcall_status',
+                  disableSortBy: true,
+                  Cell: props => {
+                    const {
+                      transfer_id,
+                      status,
+                    } = { ...props.row.original }
+
+                    return (
+                      <div className="flex flex-col items-start space-y-1 mt-0.5">
+                        <Link href={`/tx/${transfer_id}`}>
+                          <a>
+                            <div className="normal-case font-bold">
+                              {status}
+                            </div>
+                          </a>
+                        </Link>
+                      </div>
+                    )
+                  },
+                  headerClassName: 'whitespace-nowrap',
+                },
               ]
               .filter(c =>
                 !address ||
                 ![
                   'status',
-                ].includes(c.accessor))
+                  'xcall_status',
+                ]
+                .includes(c.accessor)
+              )
             }
             data={data_filtered}
             noPagination={data_filtered.length <= 10}

@@ -53,7 +53,7 @@ export default ({
         <span className="whitespace-nowrap text-sm sm:text-base font-semibold">
           {
             value ||
-            'All Status'
+            'Xcall Status'
           }
         </span>
       </button>
