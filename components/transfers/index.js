@@ -463,12 +463,19 @@ export default () => {
                         XTransferStatus.Executed,
                         XTransferStatus.CompletedFast,
                         XTransferStatus.CompletedSlow,
-                      ].includes(t?.status),
+                      ]
+                      .includes(t?.status),
                     errored:
                       [
                         XTransferErrorStatus.LowSlippage,
                         XTransferErrorStatus.InsufficientRelayerFee,
-                      ].includes(t?.error_status),
+                      ]
+                      .includes(t?.error_status) &&
+                      ![
+                        XTransferStatus.CompletedFast,
+                        XTransferStatus.CompletedSlow,
+                      ]
+                      .includes(t?.status),
                   }
                 })
                 .map(t => {
