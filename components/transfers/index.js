@@ -741,45 +741,47 @@ export default () => {
                             address &&
                             (
                               <div className="flex-col items-start space-y-1">
-                                <Link href={`/tx/${value}`}>
-                                  <a>
-                                    {
-                                      errored ?
-                                        <ActionRequired
-                                          transferData={props.row.original}
-                                          buttonTitle={
-                                            <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
-                                              <IoWarning
+                                {
+                                  errored ?
+                                    <ActionRequired
+                                      transferData={props.row.original}
+                                      buttonTitle={
+                                        <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
+                                          <IoWarning
+                                            size={20}
+                                          />
+                                          <span className="normal-case font-bold">
+                                            {error_status}
+                                          </span>
+                                        </div>
+                                      }
+                                    /> :
+                                    <Link href={`/tx/${value}`}>
+                                      <a>
+                                        {
+                                          pending ?
+                                            <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-1.5">
+                                              <TailSpin
+                                                color={loader_color(theme)}
+                                                width="16"
+                                                height="16"
+                                              />
+                                              <span className="font-medium">
+                                                Processing...
+                                              </span>
+                                            </div> :
+                                            <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
+                                              <HiCheckCircle
                                                 size={20}
                                               />
-                                              <span className="normal-case font-bold">
-                                                {error_status}
+                                              <span className="uppercase font-bold">
+                                                Success
                                               </span>
                                             </div>
-                                          }
-                                        /> :
-                                        pending ?
-                                          <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-1.5">
-                                            <TailSpin
-                                              color={loader_color(theme)}
-                                              width="16"
-                                              height="16"
-                                            />
-                                            <span className="font-medium">
-                                              Processing...
-                                            </span>
-                                          </div> :
-                                          <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
-                                            <HiCheckCircle
-                                              size={20}
-                                            />
-                                            <span className="uppercase font-bold">
-                                              Success
-                                            </span>
-                                          </div>
-                                    }
-                                  </a>
-                                </Link>
+                                        }
+                                      </a>
+                                    </Link>
+                                }
                                 <div className="flex items-center space-x-2">
                                   {
                                     !force_slow &&
@@ -863,40 +865,47 @@ export default () => {
 
                     return (
                       <div className="flex flex-col items-start space-y-1 mt-0.5">
-                        <Link href={`/tx/${transfer_id}`}>
-                          <a>
-                            {
-                              errored ?
+                        {
+                          errored ?
+                            <ActionRequired
+                              transferData={props.row.original}
+                              buttonTitle={
                                 <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
-                                  <HiXCircle
+                                  <IoWarning
                                     size={20}
                                   />
                                   <span className="normal-case font-bold">
                                     {error_status}
                                   </span>
-                                </div> :
-                                pending ?
-                                  <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-1.5">
-                                    <TailSpin
-                                      color={loader_color(theme)}
-                                      width="16"
-                                      height="16"
-                                    />
-                                    <span className="font-medium">
-                                      Processing...
-                                    </span>
-                                  </div> :
-                                  <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
-                                    <HiCheckCircle
-                                      size={20}
-                                    />
-                                    <span className="uppercase font-bold">
-                                      Success
-                                    </span>
-                                  </div>
-                            }
-                          </a>
-                        </Link>
+                                </div>
+                              }
+                            /> :
+                            <Link href={`/tx/${transfer_id}`}>
+                              <a>
+                                {
+                                  pending ?
+                                    <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-1.5">
+                                      <TailSpin
+                                        color={loader_color(theme)}
+                                        width="16"
+                                        height="16"
+                                      />
+                                      <span className="font-medium">
+                                        Processing...
+                                      </span>
+                                    </div> :
+                                    <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
+                                      <HiCheckCircle
+                                        size={20}
+                                      />
+                                      <span className="uppercase font-bold">
+                                        Success
+                                      </span>
+                                    </div>
+                                }
+                              </a>
+                            </Link>
+                        }
                         <div className="flex items-center space-x-2">
                           {
                             !force_slow &&

@@ -645,6 +645,18 @@ export default () => {
                             </div>
                           </Tooltip>
                         }
+                        onTransferBumped={
+                          relayer_fee => {
+                            if (data) {
+                              setData(
+                                {
+                                  ...data,
+                                  relayer_fee,
+                                }
+                              )
+                            }
+                          }
+                        }
                       /> :
                       pending ?
                         <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-2">
@@ -855,13 +867,13 @@ export default () => {
                             !force_slow &&
                             (
                               <Tooltip
-                                placement="bottom"
+                                placement="top"
                                 content="Boosted by router liquidity."
                                 className="z-50 bg-dark text-white text-xs"
                               >
                                 <div className="flex items-center">
                                   <BsLightningCharge
-                                    size={16}
+                                    size={24}
                                     className="text-yellow-600 dark:text-yellow-400"
                                   />
                                   <BiInfoCircle
@@ -894,6 +906,18 @@ export default () => {
                                         />
                                       </div>
                                     </Tooltip>
+                                  }
+                                  onTransferBumped={
+                                    relayer_fee => {
+                                      if (data) {
+                                        setData(
+                                          {
+                                            ...data,
+                                            relayer_fee,
+                                          }
+                                        )
+                                      }
+                                    }
                                   }
                                 /> :
                                 null :
