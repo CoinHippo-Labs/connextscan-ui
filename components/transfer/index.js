@@ -628,6 +628,7 @@ export default () => {
                   {data ?
                     errored ?
                       <ActionRequired
+                        initialHidden={false}
                         transferData={data}
                         buttonTitle={
                           <Tooltip
