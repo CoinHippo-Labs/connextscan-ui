@@ -755,6 +755,14 @@ export default () => {
                                           </span>
                                         </div>
                                       }
+                                      onTransferBumped={
+                                        relayer_fee => {
+                                          setFetchTrigger(
+                                            moment()
+                                              .valueOf()
+                                          )
+                                        }
+                                      }
                                     /> :
                                     <Link href={`/tx/${value}`}>
                                       <a>
@@ -878,6 +886,14 @@ export default () => {
                                     {error_status}
                                   </span>
                                 </div>
+                              }
+                              onTransferBumped={
+                                relayer_fee => {
+                                  setFetchTrigger(
+                                    moment()
+                                      .valueOf()
+                                  )
+                                }
                               }
                             /> :
                             <Link href={`/tx/${transfer_id}`}>

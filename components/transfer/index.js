@@ -20,7 +20,7 @@ import EnsProfile from '../ens-profile'
 import AddToken from '../add-token'
 import Copy from '../copy'
 import DecimalsFormat from '../decimals-format'
-import { number_format, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
+import { number_format, ellipse, equals_ignore_case, loader_color, sleep } from '../../lib/utils'
 
 const ROUTER_FEE_PERCENT =
   Number(
@@ -67,6 +67,7 @@ export default () => {
   } = { ...query }
 
   const [data, setData] = useState(null)
+  const [trigger, setTrigger] = useState(null)
 
   useEffect(
     () => {
@@ -82,10 +83,11 @@ export default () => {
             !is_interval ||
             !data ||
             ![
-              XTransferStatus.Executed,
               XTransferStatus.CompletedFast,
               XTransferStatus.CompletedSlow,
-            ].includes(status)
+            ]
+            .includes(status) ||
+            trigger
           )
         ) {
           const response =
@@ -338,7 +340,7 @@ export default () => {
 
       return () => clearInterval(interval)
     },
-    [sdk, tx]
+    [sdk, tx, trigger]
   )
 
   const {
@@ -647,13 +649,21 @@ export default () => {
                           </Tooltip>
                         }
                         onTransferBumped={
-                          relayer_fee => {
+                          async relayer_fee => {
                             if (data) {
                               setData(
                                 {
                                   ...data,
                                   relayer_fee,
+                                  error_status: null,
                                 }
+                              )
+
+                              await sleep(5 * 1000)
+
+                              setTrigger(
+                                moment()
+                                  .valueOf()
                               )
                             }
                           }
@@ -909,13 +919,21 @@ export default () => {
                                     </Tooltip>
                                   }
                                   onTransferBumped={
-                                    relayer_fee => {
+                                    async relayer_fee => {
                                       if (data) {
                                         setData(
                                           {
                                             ...data,
                                             relayer_fee,
+                                            error_status: null,
                                           }
+                                        )
+
+                                        await sleep(5 * 1000)
+
+                                        setTrigger(
+                                          moment()
+                                            .valueOf()
                                         )
                                       }
                                     }
