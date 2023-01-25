@@ -88,7 +88,7 @@ export default () => {
             .includes(status)
           )
         ) {
-          const response =
+          let response =
             await sdk.nxtpSdkUtils
               .getTransfers(
                 {
@@ -96,7 +96,25 @@ export default () => {
                 },
               )
 
-          const _data = _.head(response)
+          let _data =
+            _.head(
+              response
+            )
+
+          if (!_data) {
+            response =
+              await sdk.nxtpSdkUtils
+                .getTransfers(
+                  {
+                    transactionHash: tx,
+                  },
+                )
+
+            _data =
+              _.head(
+                response
+              )
+          }
 
           if (_data) {
             const source_chain_data = (chains_data || [])
