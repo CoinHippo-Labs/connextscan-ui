@@ -647,7 +647,7 @@ export default () => {
                           </Tooltip>
                         }
                         onTransferBumped={
-                          async relayer_fee => {
+                          relayer_fee => {
                             if (data) {
                               setData(
                                 {
@@ -910,7 +910,7 @@ export default () => {
                                     </Tooltip>
                                   }
                                   onTransferBumped={
-                                    async relayer_fee => {
+                                    relayer_fee => {
                                       if (data) {
                                         setData(
                                           {
