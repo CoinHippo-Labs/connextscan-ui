@@ -22,8 +22,7 @@
   },
   "homepage": "https://github.com/CoinHippo-Labs/connextscan-ui#readme",
   "dependencies": {
-    "@connext/nxtp-sdk": "^0.2.1-rc.16",
-    "@eth-optimism/sdk": "^1.10.0",
+    "@connext/sdk": "^0.2.1-rc.18",
     "@material-tailwind/react": "^1.2.4",
     "@popperjs/core": "^2.11.6",
     "@redux-devtools/extension": "^3.2.3",
