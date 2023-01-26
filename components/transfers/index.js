@@ -173,7 +173,7 @@ export default () => {
                     await sdk.nxtpSdkUtils
                       .getTransfers(
                         {
-                          userAddress: address,
+                          xcallCaller: address,
                           status,
                           range: {
                             limit,
@@ -181,6 +181,23 @@ export default () => {
                           },
                         },
                       )
+
+                  response =
+                    _.concat(
+                      response,
+                      await sdk.nxtpSdkUtils
+                        .getTransfers(
+                          {
+                            userAddress: address,
+                            status,
+                            range: {
+                              limit,
+                              offset,
+                            },
+                          },
+                        ),
+                    )
+                    .filter(d => d)
                 }
               } catch (error) {}
               break
@@ -241,7 +258,7 @@ export default () => {
                     _data,
                     response,
                   ),
-                  'transfer_id'
+                  'transfer_id',
                 ),
                 ['xcall_timestamp'],
                 ['desc'],

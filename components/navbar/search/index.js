@@ -215,7 +215,7 @@ export default () => {
           <input
             ref={inputSearchRef}
             type="search"
-            placeholder="Search by Transfer ID / Address / ENS"
+            placeholder="Search by Transfer ID / Tx Hash / Address"
             value={inputSearch}
             onChange={
               e =>
