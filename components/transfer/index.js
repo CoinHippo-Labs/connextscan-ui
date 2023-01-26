@@ -89,7 +89,7 @@ export default () => {
           )
         ) {
           let response =
-            await sdk.nxtpSdkUtils
+            await sdk.sdkUtils
               .getTransfers(
                 {
                   transferId: tx,
@@ -103,7 +103,7 @@ export default () => {
 
           if (!_data) {
             response =
-              await sdk.nxtpSdkUtils
+              await sdk.sdkUtils
                 .getTransfers(
                   {
                     transactionHash: tx,

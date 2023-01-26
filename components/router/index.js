@@ -94,7 +94,7 @@ export default () => {
           assets_data
         ) {
           const response =
-            await sdk.nxtpSdkUtils
+            await sdk.sdkUtils
               .getRoutersData()
 
           if (

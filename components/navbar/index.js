@@ -475,22 +475,22 @@ export default () => {
             currentAddress,
           )
         ) {
-          if (sdk.nxtpSdkBase) {
-            await sdk.nxtpSdkBase
+          if (sdk.sdkBase) {
+            await sdk.sdkBase
               .changeSignerAddress(
                 address,
               )
           }
 
-          if (sdk.nxtpSdkRouter) {
-            await sdk.nxtpSdkRouter
+          if (sdk.sdkRouter) {
+            await sdk.sdkRouter
               .changeSignerAddress(
                 address,
               )
           }
 
-          if (sdk.nxtpSdkPool) {
-            await sdk.nxtpSdkPool
+          if (sdk.sdkPool) {
+            await sdk.sdkPool
               .changeSignerAddress(
                 address,
               )
@@ -538,7 +538,7 @@ export default () => {
           )
         ) {
           const response =
-            await sdk.nxtpSdkUtils
+            await sdk.sdkUtils
               .getRoutersData()
 
           if (
@@ -769,7 +769,7 @@ export default () => {
             )
 
             const pool =
-              await sdk.nxtpSdkPool
+              await sdk.sdkPool
                 .getPool(
                   domain_id,
                   contract_address,
@@ -904,7 +904,7 @@ export default () => {
 
               try {
                 supply =
-                  await sdk.nxtpSdkPool
+                  await sdk.sdkPool
                     .getTokenSupply(
                       domain_id,
                       lpTokenAddress,
@@ -954,7 +954,7 @@ export default () => {
 
               try {
                 rate =
-                  await sdk.nxtpSdkPool
+                  await sdk.sdkPool
                     .getVirtualPrice(
                       domain_id,
                       contract_address,

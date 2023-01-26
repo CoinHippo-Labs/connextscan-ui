@@ -170,7 +170,7 @@ export default () => {
               try {
                 if (address) {
                   response =
-                    await sdk.nxtpSdkUtils
+                    await sdk.sdkUtils
                       .getTransfers(
                         {
                           xcallCaller: address,
@@ -185,7 +185,7 @@ export default () => {
                   response =
                     _.concat(
                       response,
-                      await sdk.nxtpSdkUtils
+                      await sdk.sdkUtils
                         .getTransfers(
                           {
                             userAddress: address,
@@ -205,7 +205,7 @@ export default () => {
               try {
                 if (address) {
                   response =
-                    await sdk.nxtpSdkUtils
+                    await sdk.sdkUtils
                       .getTransfers(
                         {
                           routerAddress: address,
@@ -223,7 +223,7 @@ export default () => {
               try {
                 if (status) {
                   response =
-                    await sdk.nxtpSdkUtils
+                    await sdk.sdkUtils
                       .getTransfers(
                         {
                           status,
@@ -236,7 +236,7 @@ export default () => {
                 }
                 else {
                   response =
-                    await sdk.nxtpSdkUtils
+                    await sdk.sdkUtils
                       .getTransfers(
                         {
                           range: {

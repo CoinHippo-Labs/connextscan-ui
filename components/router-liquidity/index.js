@@ -379,7 +379,7 @@ export default () => {
 
       try {
         const approve_request =
-          await sdk.nxtpSdkBase
+          await sdk.sdkBase
             .approveIfNeeded(
               params.domainId,
               params.tokenAddress,
@@ -456,7 +456,7 @@ export default () => {
       if (!failed) {
         try {
           const add_request =
-            await sdk.nxtpSdkRouter
+            await sdk.sdkRouter
               .addLiquidityForRouter(
                 params,
               )
@@ -614,7 +614,7 @@ export default () => {
       /*
       try {
         const approve_request =
-          await sdk.nxtpSdkBase
+          await sdk.sdkBase
             .approveIfNeeded(
               params.domainId,
               params.tokenAddress,
@@ -692,7 +692,7 @@ export default () => {
       if (!failed) {
         try {
           const remove_request =
-            await sdk.nxtpSdkRouter
+            await sdk.sdkRouter
               .removeRouterLiquidityFor(
                 params,
               )
