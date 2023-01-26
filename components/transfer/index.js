@@ -677,6 +677,19 @@ export default () => {
                             }
                           }
                         }
+                        onSlippageUpdated={
+                          slippage => {
+                            if (data) {
+                              setData(
+                                {
+                                  ...data,
+                                  slippage,
+                                  error_status: null,
+                                }
+                              )
+                            }
+                          }
+                        }
                       /> :
                       pending ?
                         <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-2">
@@ -934,6 +947,19 @@ export default () => {
                                           {
                                             ...data,
                                             relayer_fee,
+                                            error_status: null,
+                                          }
+                                        )
+                                      }
+                                    }
+                                  }
+                                  onSlippageUpdated={
+                                    slippage => {
+                                      if (data) {
+                                        setData(
+                                          {
+                                            ...data,
+                                            slippage,
                                             error_status: null,
                                           }
                                         )

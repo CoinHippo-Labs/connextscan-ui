@@ -763,6 +763,14 @@ export default () => {
                                           )
                                         }
                                       }
+                                      onSlippageUpdated={
+                                        slippage => {
+                                          setFetchTrigger(
+                                            moment()
+                                              .valueOf()
+                                          )
+                                        }
+                                      }
                                     /> :
                                     <Link href={`/tx/${value}`}>
                                       <a>
@@ -889,6 +897,14 @@ export default () => {
                               }
                               onTransferBumped={
                                 relayer_fee => {
+                                  setFetchTrigger(
+                                    moment()
+                                      .valueOf()
+                                  )
+                                }
+                              }
+                              onSlippageUpdated={
+                                slippage => {
                                   setFetchTrigger(
                                     moment()
                                       .valueOf()
