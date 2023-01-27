@@ -41,33 +41,43 @@ export default () => {
   const buttonRef = useRef(null)
   const dropdownRef = useRef(null)
 
-  useEffect(() => {
-    const handleClickOutside = e => {
-      if (
-        hidden ||
-        buttonRef.current.contains(e.target) ||
-        dropdownRef.current.contains(e.target)
-      ) {
-        return false
+  useEffect(
+    () => {
+      const handleClickOutside = e => {
+        if (
+          hidden ||
+          buttonRef.current.contains(e.target) ||
+          dropdownRef.current.contains(e.target)
+        ) {
+          return false
+        }
+
+        setHidden(!hidden)
       }
 
-      setHidden(!hidden)
-    }
+      document
+        .addEventListener(
+          'mousedown',
+          handleClickOutside,
+        )
 
-    document.addEventListener(
-      'mousedown',
-      handleClickOutside,
-    )
-
-    return () => document.removeEventListener(
-      'mousedown',
-      handleClickOutside,
-    )
-  }, [hidden, buttonRef, dropdownRef])
+      return () =>
+        document
+          .removeEventListener(
+            'mousedown',
+            handleClickOutside,
+          )
+    },
+    [hidden, buttonRef, dropdownRef],
+  )
 
   const onClick = () => setHidden(!hidden)
 
-  const chain_data = chains_data?.find(c => c?.id === chain)
+  const chain_data = (chains_data || [])
+    .find(c =>
+      c?.id === chain
+    )
+
   const {
     short_name,
     image,
@@ -80,30 +90,29 @@ export default () => {
         onClick={onClick}
         className="w-10 sm:w-12 h-16 flex items-center justify-center"
       >
-        {chain_data ?
-          image ?
-            <Image
-              src={image}
-              alt=""
-              width={24}
-              height={24}
-              className="rounded-full"
-            /> :
-            <span className="font-semibold">
-              {short_name}
-            </span> :
-          chains_data ?
-            <Image
-              src={connext.image}
-              alt=""
-              width={24}
-              height={24}
-            /> :
-            <Puff
-              color={loader_color(theme)}
-              width="24"
-              height="24"
-            />
+        {
+          chain_data ?
+            image ?
+              <Image
+                src={image}
+                width={24}
+                height={24}
+                className="rounded-full"
+              /> :
+              <span className="font-semibold">
+                {short_name}
+              </span> :
+            chains_data ?
+              <Image
+                src={connext.image}
+                width={24}
+                height={24}
+              /> :
+              <Puff
+                color={loader_color(theme)}
+                width="24"
+                height="24"
+              />
         }
       </button>
       <div

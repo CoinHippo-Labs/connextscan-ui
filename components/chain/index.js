@@ -508,7 +508,10 @@ export default () => {
         <div className="lg:col-span-4 flex items-center justify-end">
           <SelectTimeframe
             value={timeframe}
-            onSelect={t => setTimeframe(t)}
+            onSelect={
+              t =>
+                setTimeframe(t)
+            }
           />
         </div>
         <div className="lg:col-span-4">
@@ -523,12 +526,14 @@ export default () => {
             transfers={transfers}
           />
         </div>
-        {/*<div className="lg:col-span-4">
-          <Fee
-            timeframe={timeframe}
-            fees={fees}
-          />
-        </div>*/}
+        {/*
+          <div className="lg:col-span-4">
+            <Fee
+              timeframe={timeframe}
+              fees={fees}
+            />
+          </div>
+        */}
       </div>
       <div className="flex items-start justify-between space-x-2">
         <div className="w-full grid grid-flow-row lg:grid-cols-2 gap-4 mb-4">

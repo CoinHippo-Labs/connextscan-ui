@@ -3,10 +3,12 @@ import { FiSearch } from 'react-icons/fi'
 
 import Chains from './chains'
 
-export default ({
-  value,
-  onSelect,
-}) => {
+export default (
+  {
+    value,
+    onSelect,
+  },
+) => {
   const [inputSearch, setInputSearch] = useState('')
 
   return (
@@ -14,7 +16,10 @@ export default ({
       <div className="relative">
         <input
           value={inputSearch}
-          onChange={e => setInputSearch(e.target.value)}
+          onChange={
+            e =>
+              setInputSearch(e.target.value)
+          }
           type="search"
           placeholder="Search"
           className="w-full h-10 bg-transparent appearance-none border border-slate-200 dark:border-slate-800 rounded-xl text-sm pl-10 pr-5"

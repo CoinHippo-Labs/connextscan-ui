@@ -39,38 +39,39 @@ const CustomTooltip = (
       values?.length > 0 &&
       (
         <div className="bg-slate-100 dark:bg-slate-800 dark:bg-opacity-75 border border-slate-200 dark:border-slate-800 flex flex-col space-y-1 p-2">
-          {values
-            .filter(v =>
-              v?.value
-            )
-            .map((v, i) => {
-              const {
-                id,
-                value,
-              } = { ...v }
+          {
+            values
+              .filter(v =>
+                v?.value
+              )
+              .map((v, i) => {
+                const {
+                  id,
+                  value,
+                } = { ...v }
 
-              return (
-                <div
-                  key={i}
-                  className="flex items-center justify-between space-x-4"
-                >
-                  <div className="flex items-center space-x-1.5">
-                    <span className="text-xs font-semibold">
-                      {id}
+                return (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between space-x-4"
+                  >
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-xs font-semibold">
+                        {id}
+                      </span>
+                    </div>
+                    <span className=" text-xs font-semibold">
+                      {currency_symbol}
+                      {number_format(
+                        value,
+                        value > 10000 ?
+                          '0,0' :
+                          '0,0.000000',
+                      )}
                     </span>
                   </div>
-                  <span className=" text-xs font-semibold">
-                    {currency_symbol}
-                    {number_format(
-                      value,
-                      value > 10000 ?
-                        '0,0' :
-                        '0,0.000000',
-                    )}
-                  </span>
-                </div>
-              )
-            })
+                )
+              })
           }
         </div>
       )
@@ -190,10 +191,12 @@ export default (
     [asset_balances_data, pools_data],
   )
 
-  const d = (data || [])
+  const d =
+  (data || [])
     .find(d =>
       d.id === xFocus
     )
+
   const {
     id,
     name,
@@ -229,7 +232,6 @@ export default (
                   (
                     <Image
                       src={image}
-                      alt=""
                       width={18}
                       height={18}
                       className="rounded-full"

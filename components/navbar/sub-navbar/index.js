@@ -74,118 +74,144 @@ export default () => {
       break
     case '/tx/[tx]':
       title = 'Transfer'
-      subtitle = (
-        <div className="flex items-center text-sm space-x-2">
-          <div>
-            <span className="xl:hidden">
-              {ellipse(
-                tx,
-                16,
-              )}
-            </span>
-            <span className="hidden xl:block">
-              {ellipse(
-                tx,
-                24,
-              )}
-            </span>
+      subtitle =
+        (
+          <div className="flex items-center text-sm space-x-2">
+            <div>
+              <span className="xl:hidden">
+                {ellipse(
+                  tx,
+                  16,
+                )}
+              </span>
+              <span className="hidden xl:block">
+                {ellipse(
+                  tx,
+                  24,
+                )}
+              </span>
+            </div>
+            <Copy
+              value={tx}
+            />
           </div>
-          <Copy
-            value={tx}
-          />
-        </div>
-      )
+        )
       break
     case '/address/[address]':
-      title = (
-        <EnsProfile
-          address={address}
-          fallback={<span>
-            Address
-          </span>}
-        />
-      )
-      subtitle = (
-        <Copy
-          value={address}
-          title={<div className="text-slate-400 dark:text-slate-600 text-sm">
-            <span className="xl:hidden">
-              {ellipse(
-                address,
-                12,
-              )}
-            </span>
-            <span className="hidden xl:block">
-              {ellipse(
-                address,
-                16,
-              )}
-            </span>
-          </div>}
-        />
-      )
+      title =
+        (
+          <EnsProfile
+            address={address}
+            fallback={
+              <span>
+                Address
+              </span>
+            }
+          />
+        )
+
+      subtitle =
+        (
+          <Copy
+            value={address}
+            title={
+              <div className="text-slate-400 dark:text-slate-600 text-sm">
+                <span className="xl:hidden">
+                  {ellipse(
+                    address,
+                    12,
+                  )}
+                </span>
+                <span className="hidden xl:block">
+                  {ellipse(
+                    address,
+                    16,
+                  )}
+                </span>
+              </div>
+            }
+          />
+        )
       break
     case '/router/[address]':
-      title = (
-        <EnsProfile
-          address={address}
-          fallback={<span>
-            Router
-          </span>}
-        />
-      )
+      title =
+        (
+          <EnsProfile
+            address={address}
+            fallback={
+              <span>
+                Router
+              </span>
+            }
+          />
+        )
+
       subtitle = (
         <Copy
           value={address}
-          title={<div className="text-slate-400 dark:text-slate-600 text-sm">
-            <span className="xl:hidden">
-              {ellipse(
-                address,
-                12,
-              )}
-            </span>
-            <span className="hidden xl:block">
-              {ellipse(
-                address,
-                16,
-              )}
-            </span>
-          </div>}
+          title={
+            <div className="text-slate-400 dark:text-slate-600 text-sm">
+              <span className="xl:hidden">
+                {ellipse(
+                  address,
+                  12,
+                )}
+              </span>
+              <span className="hidden xl:block">
+                {ellipse(
+                  address,
+                  16,
+                )}
+              </span>
+            </div>
+          }
         />
       )
       break
     case '/[chain]':
-      const _chain_data = chains_data?.find(c => equals_ignore_case(c?.id, chain))
+      const _chain_data = (chains_data || [])
+        .find(c =>
+          equals_ignore_case(
+            c?.id,
+            chain,
+          )
+        )
+
       const {
         name,
         short_name,
         image,
       } = { ..._chain_data }
 
-      title = (
-        <div className="flex items-center space-x-3">
-          {image && (
-            <Image
-              src={image}
-              alt=""
-              width={24}
-              height={24}
-              className="rounded-full"
-            />
-          )}
-          <span>
+      title =
+        (
+          <div className="flex items-center space-x-3">
             {
-              short_name ||
-              chain
+              image &&
+              (
+                <Image
+                  src={image}
+                  width={24}
+                  height={24}
+                  className="rounded-full"
+                />
+              )
             }
+            <span>
+              {
+                short_name ||
+                chain
+              }
+            </span>
+          </div>
+        )
+
+      subtitle =
+        (
+          <span className={`${image ? 'ml-9' : ''}`}>
+            {name}
           </span>
-        </div>
-      )
-      subtitle = (
-        <span className={`${image ? 'ml-9' : ''}`}>
-          {name}
-        </span>
-      )
+        )
       break
     default:
       break
@@ -194,16 +220,22 @@ export default () => {
   return (
     <div className="w-full overflow-x-auto flex items-center py-2 sm:pt-4 px-2 sm:px-4">
       <div className="flex flex-col space-y-1">
-        {title && (
-          <h1 className="uppercase tracking-widest text-black dark:text-white text-sm sm:text-base font-medium">
-            {title}
-          </h1>
-        )}
-        {subtitle && (
-          <h2 className="text-slate-400 dark:text-slate-600 text-sm">
-            {subtitle}
-          </h2>
-        )}
+        {
+          title &&
+          (
+            <h1 className="uppercase tracking-widest text-black dark:text-white text-sm sm:text-base font-medium">
+              {title}
+            </h1>
+          )
+        }
+        {
+          subtitle &&
+          (
+            <h2 className="text-slate-400 dark:text-slate-600 text-sm">
+              {subtitle}
+            </h2>
+          )
+        }
       </div>
       <span className="sm:ml-auto" />
       {
@@ -247,7 +279,9 @@ export default () => {
                                 .flatMap(v =>
                                   v?.map(_v => _v)
                                 )
-                                .map(a => a?./*router_*/address?.toLowerCase())
+                                .map(a =>
+                                  a?.address?.toLowerCase()
+                                )
                                 .filter(a => a)
                             )
                             .length,
@@ -273,7 +307,9 @@ export default () => {
                                 .flatMap(v =>
                                   v?.map(_v => _v)
                                 )
-                                .map(a => a?.asset_data?.id)
+                                .map(a =>
+                                  a?.asset_data?.id
+                                )
                                 .filter(a => a)
                             )
                             .length,

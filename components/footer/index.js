@@ -1,4 +1,3 @@
-// import Link from 'next/link'
 import { useSelector, shallowEqual } from 'react-redux'
 import moment from 'moment'
 import { FaHeart, FaDiscord } from 'react-icons/fa'
@@ -10,12 +9,10 @@ import _package from '../../package.json'
 export default () => {
   const {
     preferences,
-    // chains,
   } = useSelector(state =>
     (
       {
         preferences: state.preferences,
-        // chains: state.chains,
       }
     ),
     shallowEqual,
@@ -23,9 +20,6 @@ export default () => {
   const {
     theme,
   } = { ...preferences }
-  // const {
-  //   chains_data,
-  // } = { ...chains }
 
   const {
     dependencies,
@@ -48,7 +42,6 @@ export default () => {
             <div className="flex dark:hidden items-center">
               <Image
                 src="/logos/logo.png"
-                alt=""
                 width={20}
                 height={20}
               />
@@ -56,7 +49,6 @@ export default () => {
             <div className="hidden dark:flex items-center">
               <Image
                 src="/logos/logo_white.png"
-                alt=""
                 width={20}
                 height={20}
               />
@@ -86,82 +78,66 @@ export default () => {
           )
         }
       </div>
-      {/*<div className="hidden lg:flex w-full lg:w-2/4 flex-wrap items-center justify-center">
-        {(chains_data || [])
-          .map((c, i) => {
-            const {
-              id,
-              image,
-            } = { ...c }
-
-            return (
-              <Link
-                key={i}
-                href={`/${id}`}
-              >
-                <a className="mr-1.5 sm:mr-2">
-                  <Image
-                    src={image}
-                    alt=""
-                    width={16}
-                    height={16}
-                    className="w-4 sm:w-5 h-4 sm:h-5 rounded-full"
-                  />
-                </a>
-              </Link>
-            )
-          })
-        }
-      </div>*/}
       <div className="hidden lg:flex w-full lg:w-1/3 flex-wrap items-center justify-center space-x-2">
-        {process.env.NEXT_PUBLIC_TWITTER_USERNAME && (
-          <a
-            href={`https://twitter.com/${process.env.NEXT_PUBLIC_TWITTER_USERNAME}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <BsTwitter
-              size={20}
-              className="text-blue-400 dark:text-white"
-            />
-          </a>
-        )}
-        {process.env.NEXT_PUBLIC_TELEGRAM_USERNAME && (
-          <a
-            href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_USERNAME}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <BsTelegram
-              size={20}
-              className="text-blue-500 dark:text-white"
-            />
-          </a>
-        )}
-        {process.env.NEXT_PUBLIC_DISCORD_URL && (
-          <a
-            href={process.env.NEXT_PUBLIC_DISCORD_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <FaDiscord
-              size={20}
-              className="text-blue-600 dark:text-white"
-            />
-          </a>
-        )}
-        {process.env.NEXT_PUBLIC_GITHUB_URL && (
-          <a
-            href={process.env.NEXT_PUBLIC_GITHUB_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <BsGithub
-              size={20}
-              className="text-black dark:text-white"
-            />
-          </a>
-        )}
+        {
+          process.env.NEXT_PUBLIC_TWITTER_USERNAME &&
+          (
+            <a
+              href={`https://twitter.com/${process.env.NEXT_PUBLIC_TWITTER_USERNAME}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <BsTwitter
+                size={20}
+                className="text-blue-400 dark:text-white"
+              />
+            </a>
+          )
+        }
+        {
+          process.env.NEXT_PUBLIC_TELEGRAM_USERNAME &&
+          (
+            <a
+              href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_USERNAME}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <BsTelegram
+                size={20}
+                className="text-blue-500 dark:text-white"
+              />
+            </a>
+          )
+        }
+        {
+          process.env.NEXT_PUBLIC_DISCORD_URL &&
+          (
+            <a
+              href={process.env.NEXT_PUBLIC_DISCORD_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <FaDiscord
+                size={20}
+                className="text-blue-600 dark:text-white"
+              />
+            </a>
+          )
+        }
+        {
+          process.env.NEXT_PUBLIC_GITHUB_URL && (
+            <a
+              href={process.env.NEXT_PUBLIC_GITHUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <BsGithub
+                size={20}
+                className="text-black dark:text-white"
+              />
+            </a>
+          )
+        }
         {
           process.env.NEXT_PUBLIC_ENS_NAME &&
           (
@@ -174,7 +150,6 @@ export default () => {
                 <div className="flex dark:hidden items-center">
                   <Image
                     src="/logos/externals/ens/logo.png"
-                    alt=""
                     width={20}
                     height={20}
                   />
@@ -182,7 +157,6 @@ export default () => {
                 <div className="hidden dark:flex items-center">
                   <Image
                     src="/logos/externals/ens/logo_white.png"
-                    alt=""
                     width={20}
                     height={20}
                   />

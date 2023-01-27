@@ -331,58 +331,59 @@ export default (
     !hidden &&
     (
       <>
-        {web3_provider ?
-          !mainController &&
-          connectChainId &&
-          connectChainId !== chain_id ?
-            <button
-              disabled={disabled}
-              onClick={() => {
-                switchChain()
+        {
+          web3_provider ?
+            !mainController &&
+            connectChainId &&
+            connectChainId !== chain_id ?
+              <button
+                disabled={disabled}
+                onClick={() => {
+                  switchChain()
 
-                if (onSwitch) {
-                  onSwitch()
+                  if (onSwitch) {
+                    onSwitch()
+                  }
+                }}
+                className={className}
+              >
+                {
+                  children ||
+                  (
+                    <div className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded whitespace-nowrap py-1 px-2">
+                      Switch Network
+                    </div>
+                  )
                 }
-              }}
-              className={className}
-            >
-              {
-                children ||
-                (
-                  <div className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded whitespace-nowrap py-1 px-2">
-                    Switch Network
-                  </div>
-                )
-              }
-            </button> :
+              </button> :
+              <button
+                disabled={disabled}
+                onClick={disconnect}
+                className={className}
+              >
+                {
+                  children ||
+                  (
+                    <div className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500 rounded whitespace-nowrap text-white py-1 px-2">
+                      Disconnect
+                    </div>
+                  )
+                }
+              </button> :
             <button
               disabled={disabled}
-              onClick={disconnect}
+              onClick={connect}
               className={className}
             >
               {
                 children ||
                 (
-                  <div className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500 rounded whitespace-nowrap text-white py-1 px-2">
-                    Disconnect
+                  <div className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500 rounded whitespace-nowrap text-white py-1 px-2">
+                    Connect
                   </div>
                 )
               }
-            </button> :
-          <button
-            disabled={disabled}
-            onClick={connect}
-            className={className}
-          >
-            {
-              children ||
-              (
-                <div className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500 rounded whitespace-nowrap text-white py-1 px-2">
-                  Connect
-                </div>
-              )
-            }
-          </button>
+            </button>
         }
       </>
     )

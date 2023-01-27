@@ -260,7 +260,6 @@ export default (
                         (
                           <Image
                             src={image}
-                            alt=""
                             width={24}
                             height={24}
                             className="rounded-full"
@@ -337,7 +336,6 @@ export default (
                               {icon ?
                                 <Image
                                   src={icon}
-                                  alt=""
                                   width={20}
                                   height={20}
                                   className="rounded-full opacity-60 hover:opacity-100"
@@ -385,7 +383,6 @@ export default (
                           (
                             <Image
                               src={image}
-                              alt=""
                               width={20}
                               height={20}
                               className="rounded-full"
@@ -473,7 +470,8 @@ export default (
               !chain ||
               ![
                 'chain_data.name',
-              ].includes(c.accessor)
+              ]
+              .includes(c.accessor)
             )
           }
           data={_assets_data}

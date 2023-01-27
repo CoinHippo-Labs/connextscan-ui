@@ -6,9 +6,11 @@ import { TailSpin } from 'react-loader-spinner'
 import Image from '../../image'
 import { number_format, loader_color } from '../../../lib/utils'
 
-export default ({
-  data,
-}) => {
+export default (
+  {
+    data,
+  },
+) => {
   const {
     preferences,
   } = useSelector(state =>
@@ -89,7 +91,6 @@ export default ({
                               (
                                 <Image
                                   src={image}
-                                  alt=""
                                   title={name}
                                   width={20}
                                   height={20}

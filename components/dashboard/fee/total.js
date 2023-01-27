@@ -7,9 +7,11 @@ import Image from '../../image'
 import { currency_symbol } from '../../../lib/object/currency'
 import { number_format, loader_color } from '../../../lib/utils'
 
-export default ({
-  data,
-}) => {
+export default (
+  {
+    data,
+  },
+) => {
   const {
     preferences,
   } = useSelector(state =>
@@ -93,7 +95,6 @@ export default ({
                               (
                                 <Image
                                   src={image}
-                                  alt=""
                                   title={name}
                                   width={20}
                                   height={20}

@@ -611,84 +611,6 @@ export default () => {
 
       let failed = false
 
-      /*
-      try {
-        const approve_request =
-          await sdk.sdkBase
-            .approveIfNeeded(
-              params.domainId,
-              params.tokenAddress,
-              params.amount,
-              false,
-            )
-
-        if (approve_request) {
-          setApproving(true)
-
-          const approve_response =
-            await signer
-              .sendTransaction(
-                approve_request,
-              )
-
-          const {
-            hash,
-          } = { ...approve_response }
-
-          setApproveResponse(
-            {
-              status: 'pending',
-              message: `Waiting for ${symbol} approval`,
-              tx_hash: hash,
-            }
-          )
-          setApproveProcessing(true)
-
-          const approve_receipt =
-            await signer.provider
-              .waitForTransaction(
-                hash,
-              )
-
-          const {
-            status,
-          } = { ...approve_receipt }
-
-          setApproveResponse(
-            status ?
-              null :
-              {
-                status: 'failed',
-                message: `Failed to approve ${symbol}`,
-                tx_hash: hash,
-              }
-          )
-
-          failed = !status
-
-          setApproveProcessing(false)
-          setApproving(false)
-        }
-        else {
-          setApproving(false)
-        }
-      } catch (error) {
-        setApproveResponse(
-          {
-            status: 'failed',
-            message:
-              error?.data?.message ||
-              error?.message,
-          }
-        )
-
-        failed = true
-
-        setApproveProcessing(false)
-        setApproving(false)
-      }
-      */
-
       if (!failed) {
         try {
           const remove_request =
@@ -1064,7 +986,10 @@ export default () => {
       <Modal
         hidden={hidden}
         disabled={disabled}
-        onClick={() => setHidden(false)}
+        onClick={
+          () =>
+            setHidden(false)
+        }
         buttonTitle={
           address ?
             <div className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-400 rounded-lg shadow flex items-center justify-center text-white space-x-1.5 py-1.5 px-2">

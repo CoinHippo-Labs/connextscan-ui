@@ -54,213 +54,216 @@ export default () => {
 
   const [data, setData] = useState(null)
 
-  useEffect(() => {
-    const getData = async () => {
-      if (
-        sdk &&
-        chains_data &&
-        assets_data
-      ) {
-        let volumes = await daily_transfer_volume()
+  useEffect(
+    () => {
+      const getData = async () => {
+        if (
+          sdk &&
+          chains_data &&
+          assets_data
+        ) {
+          let volumes = await daily_transfer_volume()
 
-        volumes =
-          (Array.isArray(volumes) ?
-            volumes :
-            []
-          )
-          .map(v => {
-            const {
-              transfer_date,
-              origin_chain,
-              destination_chain,
-              asset,
-              volume,
-            } = { ...v }
-
-            const origin_chain_data = chains_data
-              .find(c =>
-                c?.domain_id === origin_chain
-              )
-            const destination_chain_data = chains_data
-              .find(c =>
-                c?.domain_id === destination_chain
-              )
-
-            let asset_data = assets_data
-              .find(a =>
-                (a?.contracts || [])
-                  .findIndex(c =>
-                    c?.chain_id === origin_chain_data?.chain_id &&
-                    [
-                      c?.next_asset?.contract_address,
-                      c?.contract_address,
-                    ]
-                    .filter(_a => _a)
-                    .findIndex(_a =>
-                      equals_ignore_case(
-                        _a,
-                        asset,
-                      )
-                    ) > -1
-                  ) > -1
-              )
-
-            asset_data = {
-              ...asset_data,
-              ...(
-                (asset_data?.contracts || [])
-                  .find(c =>
-                    c?.chain_id === origin_chain_data?.chain_id &&
-                    [
-                      c?.next_asset?.contract_address,
-                      c?.contract_address,
-                    ]
-                    .filter(_a => _a)
-                    .findIndex(_a =>
-                      equals_ignore_case(
-                        _a,
-                        asset,
-                      )
-                    ) > -1
-                  )
-              ),
-            }
-
-            if (asset_data.contracts) {
-              delete asset_data.contracts
-            }
-
-            if (
-              asset_data.next_asset &&
-              equals_ignore_case(
-                asset_data.next_asset.contract_address,
+          volumes =
+            (Array.isArray(volumes) ?
+              volumes :
+              []
+            )
+            .map(v => {
+              const {
+                transfer_date,
+                origin_chain,
+                destination_chain,
                 asset,
-              )
-            ) {
+                volume,
+              } = { ...v }
+
+              const origin_chain_data = chains_data
+                .find(c =>
+                  c?.domain_id === origin_chain
+                )
+              const destination_chain_data = chains_data
+                .find(c =>
+                  c?.domain_id === destination_chain
+                )
+
+              let asset_data = assets_data
+                .find(a =>
+                  (a?.contracts || [])
+                    .findIndex(c =>
+                      c?.chain_id === origin_chain_data?.chain_id &&
+                      [
+                        c?.next_asset?.contract_address,
+                        c?.contract_address,
+                      ]
+                      .filter(_a => _a)
+                      .findIndex(_a =>
+                        equals_ignore_case(
+                          _a,
+                          asset,
+                        )
+                      ) > -1
+                    ) > -1
+                )
+
               asset_data = {
                 ...asset_data,
-                ...asset_data.next_asset,
+                ...(
+                  (asset_data?.contracts || [])
+                    .find(c =>
+                      c?.chain_id === origin_chain_data?.chain_id &&
+                      [
+                        c?.next_asset?.contract_address,
+                        c?.contract_address,
+                      ]
+                      .filter(_a => _a)
+                      .findIndex(_a =>
+                        equals_ignore_case(
+                          _a,
+                          asset,
+                        )
+                      ) > -1
+                    )
+                ),
               }
 
-              delete asset_data.next_asset
-            }
+              if (asset_data.contracts) {
+                delete asset_data.contracts
+              }
 
-            const {
-              decimals,
-              price,
-            } = { ...asset_data }
-
-            const amount =
-              Number(
-                utils.formatUnits(
-                  BigNumber.from(
-                    BigInt(
-                      volume ||
-                      0
-                    )
-                    .toString()
-                  ),
-                  decimals ||
-                  18,
+              if (
+                asset_data.next_asset &&
+                equals_ignore_case(
+                  asset_data.next_asset.contract_address,
+                  asset,
                 )
-              )
+              ) {
+                asset_data = {
+                  ...asset_data,
+                  ...asset_data.next_asset,
+                }
 
-            return {
-              ...v,
-              origin_chain_data,
-              destination_chain_data,
-              asset_data,
-              amount,
-              volume:
-                amount *
-                (
-                  price ||
-                  0
+                delete asset_data.next_asset
+              }
+
+              const {
+                decimals,
+                price,
+              } = { ...asset_data }
+
+              const amount =
+                Number(
+                  utils.formatUnits(
+                    BigNumber.from(
+                      BigInt(
+                        volume ||
+                        0
+                      )
+                      .toString()
+                    ),
+                    decimals ||
+                    18,
+                  )
+                )
+
+              return {
+                ...v,
+                origin_chain_data,
+                destination_chain_data,
+                asset_data,
+                amount,
+                volume:
+                  amount *
+                  (
+                    price ||
+                    0
+                  ),
+              }
+            })
+
+          let transfers = await daily_transfer_metrics()
+
+          transfers =
+            (Array.isArray(transfers) ?
+              transfers :
+              []
+            )
+            .map(t => {
+              const {
+                transfer_date,
+                origin_chain,
+                destination_chain,
+              } = { ...t }
+
+              const origin_chain_data = chains_data
+                .find(c =>
+                  c?.domain_id === origin_chain
+                )
+              const destination_chain_data = chains_data
+                .find(c =>
+                  c?.domain_id === destination_chain
+                )
+
+              return {
+                ...t,
+                origin_chain_data,
+                destination_chain_data,
+              }
+            })
+
+          setData(
+            {
+              volumes:
+                _.orderBy(
+                  Object.entries(
+                    _.groupBy(
+                      volumes,
+                      'router',
+                    )
+                  )
+                  .map(([k, v]) => {
+                    return {
+                      router: k,
+                      volume:
+                        _.sumBy(
+                          v,
+                          'volume',
+                        ),
+                    }
+                  }),
+                  ['volume'],
+                  ['desc'],
+                ),
+              transfers:
+                _.orderBy(
+                  Object.entries(
+                    _.groupBy(
+                      transfers,
+                      'router',
+                    )
+                  )
+                  .map(([k, v]) => {
+                    return {
+                      router: k,
+                      transfers:
+                        _.sumBy(
+                          v,
+                          'transfer_count',
+                        ),
+                    }
+                  }),
+                  ['transfers'],
+                  ['desc'],
                 ),
             }
-          })
-
-        let transfers = await daily_transfer_metrics()
-
-        transfers =
-          (Array.isArray(transfers) ?
-            transfers :
-            []
           )
-          .map(t => {
-            const {
-              transfer_date,
-              origin_chain,
-              destination_chain,
-            } = { ...t }
-
-            const origin_chain_data = chains_data
-              .find(c =>
-                c?.domain_id === origin_chain
-              )
-            const destination_chain_data = chains_data
-              .find(c =>
-                c?.domain_id === destination_chain
-              )
-
-            return {
-              ...t,
-              origin_chain_data,
-              destination_chain_data,
-            }
-          })
-
-        setData(
-          {
-            volumes:
-              _.orderBy(
-                Object.entries(
-                  _.groupBy(
-                    volumes,
-                    'router',
-                  )
-                )
-                .map(([k, v]) => {
-                  return {
-                    router: k,
-                    volume:
-                      _.sumBy(
-                        v,
-                        'volume',
-                      ),
-                  }
-                }),
-                ['volume'],
-                ['desc'],
-              ),
-            transfers:
-              _.orderBy(
-                Object.entries(
-                  _.groupBy(
-                    transfers,
-                    'router',
-                  )
-                )
-                .map(([k, v]) => {
-                  return {
-                    router: k,
-                    transfers:
-                      _.sumBy(
-                        v,
-                        'transfer_count',
-                      ),
-                  }
-                }),
-                ['transfers'],
-                ['desc'],
-              ),
-          }
-        )
+        }
       }
-    }
 
-    getData()
-  }, [sdk, chains_data, assets_data])
+      getData()
+    },
+    [sdk, chains_data, assets_data],
+  )
 
   const routers =
     _.orderBy(
@@ -268,7 +271,6 @@ export default () => {
         _.groupBy(
           Object.values({ ...asset_balances_data })
             .flatMap(a => a),
-          // 'router_address',
           'address',
         )
       )
@@ -411,7 +413,8 @@ export default () => {
                       value,
                     } = { ...props }
 
-                    return value &&
+                    return (
+                      value &&
                       (
                         <div className="flex items-center space-x-1">
                           <Link href={`/router/${value}`}>
@@ -420,23 +423,20 @@ export default () => {
                                 address={value}
                                 no_copy={true}
                                 fallback={
-                                  value &&
-                                  (
-                                    <span className="text-slate-400 dark:text-slate-200 text-sm font-semibold">
-                                      <span className="xl:hidden">
-                                        {ellipse(
-                                          value,
-                                          8,
-                                        )}
-                                      </span>
-                                      <span className="hidden xl:block">
-                                        {ellipse(
-                                          value,
-                                          12,
-                                        )}
-                                      </span>
+                                  <span className="text-slate-400 dark:text-slate-200 text-sm font-semibold">
+                                    <span className="xl:hidden">
+                                      {ellipse(
+                                        value,
+                                        8,
+                                      )}
                                     </span>
-                                  )
+                                    <span className="hidden xl:block">
+                                      {ellipse(
+                                        value,
+                                        12,
+                                      )}
+                                    </span>
+                                  </span>
                                 }
                               />
                             </a>
@@ -446,6 +446,7 @@ export default () => {
                           />
                         </div>
                       )
+                    )
                   },
                 },
                 {
@@ -462,21 +463,22 @@ export default () => {
 
                     return (
                       <div className="text-base font-bold text-right">
-                        {typeof value === 'number' ?
-                          <span className="uppercase">
-                            {currency_symbol}
-                            {number_format(
-                              value,
-                              value > 1000000 ?
-                                '0,0.00a' :
-                                value > 1000 ?
-                                  '0,0' :
-                                  '0,0.00',
-                            )}
-                          </span> :
-                          <span className="text-slate-400 dark:text-slate-500">
-                            -
-                          </span>
+                        {
+                          typeof value === 'number' ?
+                            <span className="uppercase">
+                              {currency_symbol}
+                              {number_format(
+                                value,
+                                value > 1000000 ?
+                                  '0,0.00a' :
+                                  value > 1000 ?
+                                    '0,0' :
+                                    '0,0.00',
+                              )}
+                            </span> :
+                            <span className="text-slate-400 dark:text-slate-500">
+                              -
+                            </span>
                         }
                       </div>
                     )
@@ -497,18 +499,19 @@ export default () => {
 
                     return (
                       <div className="text-base font-bold text-right">
-                        {typeof value === 'number' ?
-                          <span className="uppercase">
-                            {number_format(
-                              value,
-                              value > 100000 ?
-                                '0,0.00a' :
-                                '0,0',
-                              )}
-                          </span> :
-                          <span className="text-slate-400 dark:text-slate-500">
-                            -
-                          </span>
+                        {
+                          typeof value === 'number' ?
+                            <span className="uppercase">
+                              {number_format(
+                                value,
+                                value > 100000 ?
+                                  '0,0.00a' :
+                                  '0,0',
+                                )}
+                            </span> :
+                            <span className="text-slate-400 dark:text-slate-500">
+                              -
+                            </span>
                         }
                       </div>
                     )
@@ -529,21 +532,22 @@ export default () => {
 
                     return (
                       <div className="text-base font-bold text-right">
-                        {typeof value === 'number' ?
-                          <span className="uppercase">
-                            {currency_symbol}
-                            {number_format(
-                              value,
-                              value > 10000000 ?
-                                '0,0.00a' :
-                                value > 1000 ?
-                                  '0,0' :
-                                  '0,0.00',
-                            )}
-                          </span> :
-                          <span className="text-slate-400 dark:text-slate-500">
-                            -
-                          </span>
+                        {
+                          typeof value === 'number' ?
+                            <span className="uppercase">
+                              {currency_symbol}
+                              {number_format(
+                                value,
+                                value > 10000000 ?
+                                  '0,0.00a' :
+                                  value > 1000 ?
+                                    '0,0' :
+                                    '0,0.00',
+                              )}
+                            </span> :
+                            <span className="text-slate-400 dark:text-slate-500">
+                              -
+                            </span>
                         }
                       </div>
                     )
@@ -564,21 +568,22 @@ export default () => {
 
                     return (
                       <div className="text-base font-semibold text-right">
-                        {typeof value === 'number' ?
-                          <span className="uppercase">
-                            {currency_symbol}
-                            {number_format(
-                              value,
-                              value > 100000 ?
-                                '0,0.00a' :
-                                value > 1000 ?
-                                  '0,0' :
-                                  '0,0.00',
-                            )}
-                          </span> :
-                          <span className="text-slate-400 dark:text-slate-500">
-                            -
-                          </span>
+                        {
+                          typeof value === 'number' ?
+                            <span className="uppercase">
+                              {currency_symbol}
+                              {number_format(
+                                value,
+                                value > 100000 ?
+                                  '0,0.00a' :
+                                  value > 1000 ?
+                                    '0,0' :
+                                    '0,0.00',
+                              )}
+                            </span> :
+                            <span className="text-slate-400 dark:text-slate-500">
+                              -
+                            </span>
                         }
                       </div>
                     )
@@ -599,42 +604,44 @@ export default () => {
 
                     return (
                       <div className={`xl:w-${value?.length > 5 ? '56' : '32'} flex flex-wrap items-center justify-end ml-auto`}>
-                        {value?.length > 0 ?
-                          value
-                            .map((id, i) => {
-                              const {
-                                name,
-                                image,
-                              } = {
-                                ...(
-                                  (chains_data || [])
-                                    .find(c =>
-                                      c?.chain_id === id
-                                    )
-                                ),
-                              }
+                        {
+                          value?.length > 0 ?
+                            value
+                              .map((id, i) => {
+                                const {
+                                  name,
+                                  image,
+                                } = {
+                                  ...(
+                                    (chains_data || [])
+                                      .find(c =>
+                                        c?.chain_id === id
+                                      )
+                                  ),
+                                }
 
-                              return image &&
-                                (
-                                  <div
-                                    key={i}
-                                    title={name}
-                                    className="mr-1"
-                                  >
-                                    <Image
-                                      src={image}
-                                      alt=""
-                                      width={24}
-                                      height={24}
-                                      className="rounded-full"
-                                    />
-                                  </div>
+                                return (
+                                  image &&
+                                  (
+                                    <div
+                                      key={i}
+                                      title={name}
+                                      className="mr-1"
+                                    >
+                                      <Image
+                                        src={image}
+                                        width={24}
+                                        height={24}
+                                        className="rounded-full"
+                                      />
+                                    </div>
+                                  )
                                 )
-                            })
-                            .filter(c => c) :
-                          <span className="text-slate-400 dark:text-slate-500">
-                            No chains supported
-                          </span>
+                              })
+                              .filter(c => c) :
+                            <span className="text-slate-400 dark:text-slate-500">
+                              No chains supported
+                            </span>
                         }
                       </div>
                     )
@@ -643,7 +650,10 @@ export default () => {
                 },
               ]
               .filter(c =>
-                !['total_fee'].includes(c.accessor)
+                ![
+                  'total_fee',
+                ]
+                .includes(c.accessor)
               )
             }
             data={routers}

@@ -397,7 +397,6 @@ export default (
                       (
                         <Image
                           src={a.image}
-                          alt=""
                           width={20}
                           height={20}
                           className="rounded-full"
@@ -476,7 +475,6 @@ export default (
                     (
                       <Image
                         src={image}
-                        alt=""
                         width={32}
                         height={32}
                         className="rounded-full"

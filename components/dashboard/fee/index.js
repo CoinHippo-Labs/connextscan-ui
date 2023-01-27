@@ -41,50 +41,50 @@ const CustomTooltip = (
       values?.length > 0 &&
       (
         <div className="bg-slate-100 dark:bg-slate-800 dark:bg-opacity-75 border border-slate-200 dark:border-slate-800 rounded-lg flex flex-col space-y-1 p-2">
-          {values
-            .map((v, i) => {
-              const {
-                chain_data,
-                fee,
-              } = { ...v }
-              const {
-                image,
-              } = { ...chain_data }
+          {
+            values
+              .map((v, i) => {
+                const {
+                  chain_data,
+                  fee,
+                } = { ...v }
+                const {
+                  image,
+                } = { ...chain_data }
 
-              return (
-                <div
-                  key={i}
-                  className="flex items-center justify-between space-x-4"
-                >
-                  <div className="flex items-center space-x-1.5">
-                    {
-                      image &&
-                      (
-                        <Image
-                          src={image}
-                          alt=""
-                          width={18}
-                          height={18}
-                          className="rounded-full"
-                        />
-                      )
-                    }
-                    <span className="text-xs font-semibold">
-                      {chainName(chain_data)}
+                return (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between space-x-4"
+                  >
+                    <div className="flex items-center space-x-1.5">
+                      {
+                        image &&
+                        (
+                          <Image
+                            src={image}
+                            width={18}
+                            height={18}
+                            className="rounded-full"
+                          />
+                        )
+                      }
+                      <span className="text-xs font-semibold">
+                        {chainName(chain_data)}
+                      </span>
+                    </div>
+                    <span className=" text-xs font-semibold">
+                      {currency_symbol}
+                      {number_format(
+                        fee,
+                        fee > 10000 ?
+                          '0,0' :
+                          '0,0.000000',
+                      )}
                     </span>
                   </div>
-                  <span className=" text-xs font-semibold">
-                    {currency_symbol}
-                    {number_format(
-                      fee,
-                      fee > 10000 ?
-                        '0,0' :
-                        '0,0.000000',
-                    )}
-                  </span>
-                </div>
-              )
-            })
+                )
+              })
           }
         </div>
       )

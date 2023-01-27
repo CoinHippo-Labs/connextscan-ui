@@ -41,50 +41,50 @@ const CustomTooltip = (
       values?.length > 0 &&
       (
         <div className="bg-slate-100 dark:bg-slate-800 dark:bg-opacity-75 border border-slate-200 dark:border-slate-800 flex flex-col space-y-1 p-2">
-          {values
-            .map((v, i) => {
-              const {
-                chain_data,
-                volume,
-              } = { ...v }
-              const {
-                image,
-              } = { ...chain_data }
+          {
+            values
+              .map((v, i) => {
+                const {
+                  chain_data,
+                  volume,
+                } = { ...v }
+                const {
+                  image,
+                } = { ...chain_data }
 
-              return (
-                <div
-                  key={i}
-                  className="flex items-center justify-between space-x-4"
-                >
-                  <div className="flex items-center space-x-1.5">
-                    {
-                      image &&
-                      (
-                        <Image
-                          src={image}
-                          alt=""
-                          width={18}
-                          height={18}
-                          className="rounded-full"
-                        />
-                      )
-                    }
-                    <span className="text-xs font-semibold">
-                      {chainName(chain_data)}
+                return (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between space-x-4"
+                  >
+                    <div className="flex items-center space-x-1.5">
+                      {
+                        image &&
+                        (
+                          <Image
+                            src={image}
+                            width={18}
+                            height={18}
+                            className="rounded-full"
+                          />
+                        )
+                      }
+                      <span className="text-xs font-semibold">
+                        {chainName(chain_data)}
+                      </span>
+                    </div>
+                    <span className=" text-xs font-semibold">
+                      {currency_symbol}
+                      {number_format(
+                        volume,
+                        volume > 10000 ?
+                          '0,0' :
+                          '0,0.000000',
+                      )}
                     </span>
                   </div>
-                  <span className=" text-xs font-semibold">
-                    {currency_symbol}
-                    {number_format(
-                      volume,
-                      volume > 10000 ?
-                        '0,0' :
-                        '0,0.000000',
-                    )}
-                  </span>
-                </div>
-              )
-            })
+                )
+              })
           }
         </div>
       )
@@ -122,76 +122,79 @@ export default (
   const [data, setData] = useState(null)
   const [xFocus, setXFocus] = useState(null)
 
-  useEffect(() => {
-    if (volumes) {
-      const _timeframe = timeframes
-        .find(t =>
-          t?.day === timeframe
-        )
+  useEffect(
+    () => {
+      if (volumes) {
+        const _timeframe = timeframes
+          .find(t =>
+            t?.day === timeframe
+          )
 
-      setData(
-        volumes
-          .map(d => {
-            const {
-              timestamp,
-              volume,
-              volume_by_chains,
-            } = { ...d }
+        setData(
+          volumes
+            .map(d => {
+              const {
+                timestamp,
+                volume,
+                volume_by_chains,
+              } = { ...d }
 
-            return {
-              ...d,
-              id: timestamp,
-              time_string:
-                `${
+              return {
+                ...d,
+                id: timestamp,
+                time_string:
+                  `${
+                    moment(timestamp)
+                      .startOf(_timeframe?.timeframe)
+                      .format('MMM D, YYYY')
+                  }${
+                    _timeframe?.timeframe === 'week' ?
+                      ` - ${
+                        moment(timestamp)
+                          .endOf(_timeframe?.timeframe)
+                          .format('MMM D, YYYY')
+                      }` :
+                      ''
+                  }`,
+                short_name:
                   moment(timestamp)
                     .startOf(_timeframe?.timeframe)
-                    .format('MMM D, YYYY')
-                }${
-                  _timeframe?.timeframe === 'week' ?
-                    ` - ${
-                      moment(timestamp)
-                        .endOf(_timeframe?.timeframe)
-                        .format('MMM D, YYYY')
-                    }` :
-                    ''
-                }`,
-              short_name:
-                moment(timestamp)
-                  .startOf(_timeframe?.timeframe)
-                  .format('D MMM'),
-              value: volume,
-              value_string:
-                number_format(
-                  volume,
-                  volume > 1000000 ?
-                    '0,0.00a' :
-                    volume > 1000 ?
-                      '0,0' :
-                      '0,0.00',
-                ),
-              values: volume_by_chains,
-              ...Object.fromEntries(
-                (Array.isArray(volume_by_chains) ?
-                  volume_by_chains :
-                  []
-                )
-                .map(v => {
-                  const {
-                    id,
+                    .format('D MMM'),
+                value: volume,
+                value_string:
+                  number_format(
                     volume,
-                  } = { ...v }
+                    volume > 1000000 ?
+                      '0,0.00a' :
+                      volume > 1000 ?
+                        '0,0' :
+                        '0,0.00',
+                  ),
+                values: volume_by_chains,
+                ...Object.fromEntries(
+                  (Array.isArray(volume_by_chains) ?
+                    volume_by_chains :
+                    []
+                  )
+                  .map(v => {
+                    const {
+                      id,
+                      volume,
+                    } = { ...v }
 
-                  return [
-                    id,
-                    volume,
-                  ]
-                })
-              ),
-            }
-          })
-      )
-    }
-  }, [volumes])
+                    return [
+                      id,
+                      volume,
+                    ]
+                  })
+                ),
+              }
+            })
+        )
+      }
+    },
+    [volumes],
+  )
 
   const d =
     (data || [])

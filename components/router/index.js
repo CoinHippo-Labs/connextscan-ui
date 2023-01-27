@@ -108,7 +108,7 @@ export default () => {
               )
               .filter(l =>
                 equals_ignore_case(
-                  l?./*router_*/address,
+                  l?.address,
                   address,
                 ) &&
                 chains_data

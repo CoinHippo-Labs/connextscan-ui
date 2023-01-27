@@ -30,14 +30,15 @@ export default (
           .map((s, i) => {
             const selected = s === value
 
-            const item = (
-              <span className={`whitespace-nowrap leading-4 ${selected ? 'font-bold': ''}`}>
-                {
-                  s ||
-                  'Any'
-                }
-              </span>
-            )
+            const item =
+              (
+                <span className={`whitespace-nowrap leading-4 ${selected ? 'font-bold': ''}`}>
+                  {
+                    s ||
+                    'Any'
+                  }
+                </span>
+              )
 
             return (
               <div

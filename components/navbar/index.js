@@ -14,7 +14,7 @@ import Chains from './chains'
 import Theme from './theme'
 import SubNavbar from './sub-navbar'
 import { chains as getChains, assets as getAssets } from '../../lib/api/config'
-import { assets as getAssetsPrice } from '../../lib/api/assets'
+import { assets_price } from '../../lib/api/assets'
 import { ens as getEns } from '../../lib/api/ens'
 import { connext } from '../../lib/object/chain'
 import { equals_ignore_case, sleep } from '../../lib/utils'
@@ -214,7 +214,7 @@ export default () => {
 
                 if (addresses.length > 0) {
                   const response =
-                    await getAssetsPrice(
+                    await assets_price(
                       {
                         chain_id,
                         addresses,
@@ -380,7 +380,11 @@ export default () => {
             if (!disabled) {
               const {
                 rpcUrls,
-              } = { ..._.head(provider_params) }
+              } = {
+                ...(
+                  _.head(provider_params)
+                ),
+              }
    
               const rpc_urls =
                 (rpcUrls || [])
@@ -550,7 +554,7 @@ export default () => {
                 (Array.isArray(response) ?
                   response
                     .filter(r =>
-                      r?./*router_*/address
+                      r?.address
                     ) :
                   []
                 )
@@ -708,8 +712,13 @@ export default () => {
             _.uniq(
               Object.values(asset_balances_data)
                 .flatMap(a => a)
-                .map(a => a?./*router_*/address)
-                .filter(a => a && !ens_data?.[a])
+                .map(a =>
+                  a?.address
+                )
+                .filter(a =>
+                  a &&
+                  !ens_data?.[a]
+                )
             )
 
           const ens_data = await getEns(addresses)
@@ -1157,7 +1166,7 @@ export default () => {
 
       return () => clearInterval(interval)
     },
-    [/*pathname, */sdk, chains_data, pool_assets_data],
+    [sdk, chains_data, pool_assets_data],
   )
 
   return (

@@ -94,8 +94,8 @@ export default (
       ) => (
         action.type.startsWith('reset') ?
           prevState :
-          newState
-      ),
+          newState,
+      )
     },
     useSortBy,
     usePagination,
@@ -108,26 +108,24 @@ export default (
               rowSelectEnable ?
                 {
                   id: 'selection',
-                  Header:
-                    (
-                      {
-                        getToggleAllRowsSelectedProps,
-                      },
-                    ) => (
-                      <IndeterminateCheckbox
-                        { ...getToggleAllRowsSelectedProps() }
-                      />
-                    ),
-                  Cell:
-                    (
-                      {
-                        row,
-                      },
-                    ) => (
-                      <IndeterminateCheckbox
-                        { ...row.getToggleRowSelectedProps() }
-                      />
-                    )
+                  Header: (
+                    {
+                      getToggleAllRowsSelectedProps,
+                    }
+                  ) => (
+                    <IndeterminateCheckbox
+                      { ...getToggleAllRowsSelectedProps() }
+                    />
+                  ),
+                  Cell: (
+                    {
+                      row,
+                    }
+                  ) => (
+                    <IndeterminateCheckbox
+                      { ...row.getToggleRowSelectedProps() }
+                    />
+                  )
                 } :
                 undefined,
               ...columns,
@@ -170,8 +168,24 @@ export default (
                   .map((c, i) => (
                     <th
                       { ...c.getHeaderProps(c.getSortByToggleProps()) }
-                      className={`${c.className} ${i === 0 ? 'rounded-tl' : i === hg.headers.length - 1 ? 'rounded-tr' : ''}`}>
-                      <div className={`flex flex-row items-center ${c.headerClassName?.includes('justify-') ? '' : 'justify-start'} ${c.headerClassName || ''}`}>
+                      className={`${c.className} ${i === 0 ? 'rounded-tl' : i === hg.headers.length - 1 ? 'rounded-tr' : ''}`}
+                    >
+                      <div
+                        className={
+                          `flex flex-row items-center ${
+                            c.headerClassName?.includes('justify-') ?
+                              '' :
+                              'justify-start'
+                          } ${
+                            c.headerClassName?.includes('text-slate-') ?
+                              '' :
+                              'text-slate-600 dark:text-slate-200'
+                          } ${
+                            c.headerClassName ||
+                            ''
+                          }`
+                        }
+                      >
                         <span>
                           {c.render('Header')}
                         </span>
@@ -234,26 +248,29 @@ export default (
         data?.length > 0 &&
         (
           <div className={`flex flex-col items-center ${noRecordPerPage || pageCount > 4 ? 'sm:flex-row justify-center' : 'sm:grid sm:grid-cols-3 justify-between'} gap-4 my-0.5`}>
-            {!noRecordPerPage && (
-              <select
-                disabled={loading}
-                value={pageSize}
-                onChange={e => setPageSize(Number(e.target.value))}
-                className="w-24 form-select bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 outline-none border-zinc-100 dark:border-zinc-900 appearance-none shadow rounded cursor-pointer text-center py-2 px-3"
-              >
-                {pageSizes
-                  .map((s, i) => (
-                    <option
-                      key={i}
-                      value={s}
-                      className="text-xs font-medium"
-                    >
-                      Show {s}
-                    </option>
-                  ))
-                }
-              </select>
-            )}
+            {
+              !noRecordPerPage &&
+              (
+                <select
+                  disabled={loading}
+                  value={pageSize}
+                  onChange={e => setPageSize(Number(e.target.value))}
+                  className="w-24 form-select bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 outline-none border-slate-100 dark:border-slate-900 appearance-none shadow rounded cursor-pointer text-center py-2 px-3"
+                >
+                  {pageSizes
+                    .map((s, i) => (
+                      <option
+                        key={i}
+                        value={s}
+                        className="text-xs font-medium"
+                      >
+                        Show {s}
+                      </option>
+                    ))
+                  }
+                </select>
+              )
+            }
             {
               pageCount > 1 &&
               pageCount <= 4 &&
@@ -274,23 +291,23 @@ export default (
                 </div>
               )
             }
-            <div className="pagination flex items-center justify-end space-x-2">
+            <div className="pagination flex flex-wrap items-center justify-end space-x-2">
               {pageCount > 4 ?
                 <div className="flex flex-col sm:flex-row items-center justify-center mt-2.5 sm:mt-0">
                   <Pagination
                     items={[...Array(pageCount).keys()]}
                     disabled={loading}
                     active={pageIndex + 1}
-                    previous={
+                    previous={(
                       <BiLeftArrowAlt
                         size={16}
                       />
-                    }
-                    next={
+                    )}
+                    next={(
                       <BiRightArrowAlt
                         size={16}
                       />
-                    }
+                    )}
                     onClick={p => {
                       gotoPage(p - 1)
 
@@ -337,7 +354,10 @@ export default (
                     canNextPage &&
                     (
                       <PageWithText
-                        disabled={!canNextPage || loading}
+                        disabled={
+                          !canNextPage ||
+                          loading
+                        }
                         onClick={() => {
                           nextPage()
 
@@ -352,7 +372,10 @@ export default (
                     pageIndex !== pageCount - 1 &&
                     (
                       <PageWithText
-                        disabled={!canNextPage || loading}
+                        disabled={
+                          !canNextPage ||
+                          loading
+                        }
                         onClick={() => {
                           gotoPage(pageCount - 1)
 

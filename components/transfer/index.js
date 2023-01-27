@@ -403,7 +403,6 @@ export default () => {
     _.head(
       [
         origin_transacting_amount,
-        // origin_bridged_amount,
       ]
       .map(a =>
         [
@@ -437,7 +436,6 @@ export default () => {
     _.head(
       [
         destination_transacting_amount,
-        // destination_local_amount,
       ]
       .map(a =>
         [
@@ -529,7 +527,6 @@ export default () => {
                         (
                           <Image
                             src={source_chain_data.image}
-                            alt=""
                             width={32}
                             height={32}
                             className="rounded-full"
@@ -597,7 +594,6 @@ export default () => {
                       (
                         <Image
                           src={source_asset_image}
-                          alt=""
                           width={24}
                           height={24}
                           className="rounded-full"
@@ -693,13 +689,6 @@ export default () => {
                       /> :
                       pending ?
                         <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-2">
-                          {/*
-                            <TailSpin
-                              color={loader_color(theme)}
-                              width="24"
-                              height="24"
-                            />
-                          */}
                           <span className="text-base font-medium">
                             Processing...
                           </span>
@@ -742,7 +731,6 @@ export default () => {
                       (
                         <Image
                           src={destination_asset_image}
-                          alt=""
                           width={24}
                           height={24}
                           className="rounded-full"
@@ -795,7 +783,6 @@ export default () => {
                         (
                           <Image
                             src={destination_chain_data.image}
-                            alt=""
                             width={32}
                             height={32}
                             className="rounded-full"
@@ -991,8 +978,8 @@ export default () => {
                                 undefined,
                             [
                               'xcall',
-                              // 'execute',
-                            ].includes(s) ?
+                            ]
+                            .includes(s) ?
                               'relayer_fee' :
                               undefined,
                             'gas_price',

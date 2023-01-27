@@ -56,7 +56,7 @@ export default () => {
             Object.values(asset_balances_data)
               .flatMap(a => a)
               .map(a =>
-                a?./*router_*/address
+                a?.address
               )
               .filter(a => a)
           )
@@ -230,7 +230,10 @@ export default () => {
             canSearch &&
             (
               <button
-                onClick={() => onSubmit()}
+                onClick={
+                  () =>
+                    onSubmit()
+                }
                 className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 absolute rounded-lg text-white right-0 p-1.5 mt-1.5 mr-2"
               >
                 <FiSearch

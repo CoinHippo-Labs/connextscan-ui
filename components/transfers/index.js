@@ -509,7 +509,6 @@ export default () => {
                     _.head(
                       [
                         origin_transacting_amount,
-                        // origin_bridged_amount,
                       ]
                       .map(a =>
                         [
@@ -536,7 +535,6 @@ export default () => {
                     _.head(
                       [
                         destination_transacting_amount,
-                        // destination_local_amount,
                       ]
                       .map(a =>
                         [
@@ -1031,7 +1029,6 @@ export default () => {
                               (
                                 <Image
                                   src={image}
-                                  alt=""
                                   width={24}
                                   height={24}
                                   className="rounded-full"
@@ -1056,7 +1053,6 @@ export default () => {
                             (
                               <Image
                                 src={source_asset_data.image}
-                                alt=""
                                 width={20}
                                 height={20}
                                 className="rounded-full"
@@ -1183,7 +1179,6 @@ export default () => {
                               (
                                 <Image
                                   src={image}
-                                  alt=""
                                   width={24}
                                   height={24}
                                   className="rounded-full"
@@ -1208,7 +1203,6 @@ export default () => {
                             (
                               <Image
                                 src={destination_asset_data.image}
-                                alt=""
                                 width={20}
                                 height={20}
                                 className="rounded-full"

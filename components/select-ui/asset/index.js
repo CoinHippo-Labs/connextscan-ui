@@ -147,7 +147,6 @@ export default (
                   <div className="flex sm:hidden">
                     <Image
                       src={image}
-                      alt=""
                       width={20}
                       height={20}
                       className="rounded-full"
@@ -156,7 +155,6 @@ export default (
                   <div className="hidden sm:flex">
                     <Image
                       src={image}
-                      alt=""
                       width={24}
                       height={24}
                       className="rounded-full"
@@ -210,7 +208,6 @@ export default (
                   (
                     <Image
                       src={chain_data.image}
-                      alt=""
                       width={24}
                       height={24}
                       className="rounded-full"

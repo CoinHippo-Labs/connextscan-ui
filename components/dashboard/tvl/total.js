@@ -182,7 +182,6 @@ export default () => {
                   <div className="flex dark:hidden items-center">
                     <Image
                       src="/logos/logo.png"
-                      alt=""
                       width={32}
                       height={32}
                     />
@@ -190,7 +189,6 @@ export default () => {
                   <div className="hidden dark:flex items-center">
                     <Image
                       src="/logos/logo_white.png"
-                      alt=""
                       width={32}
                       height={32}
                     />
@@ -229,7 +227,6 @@ export default () => {
                         <a className="flex items-center">
                           <Image
                             src={image}
-                            alt=""
                             title={name}
                             width={20}
                             height={20}
@@ -266,7 +263,6 @@ export default () => {
                       >
                         <Image
                           src={image}
-                          alt=""
                           title={symbol}
                           width={16}
                           height={16}
