@@ -241,7 +241,7 @@ export default (
                   '0,0.00',
                 )}
               </span>
-              <span className="text-slate-400 dark:text-slate-200">
+              <span className="whitespace-nowrap text-slate-400 dark:text-slate-200 text-xs sm:text-sm text-right">
                 {time_string}
               </span>
             </div>
