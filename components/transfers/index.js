@@ -182,9 +182,8 @@ export default () => {
                         },
                       )
 
-                  response =
-                    _.concat(
-                      response,
+                  if (!(response?.length > 0)) {
+                    response =
                       await sdk.sdkUtils
                         .getTransfers(
                           {
@@ -195,9 +194,8 @@ export default () => {
                               offset,
                             },
                           },
-                        ),
-                    )
-                    .filter(d => d)
+                        )
+                  }
                 }
               } catch (error) {}
               break
