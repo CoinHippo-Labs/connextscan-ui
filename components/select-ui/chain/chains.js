@@ -153,36 +153,6 @@ export default (
                     {c.name}
                   </span>
                 </div>
-                {/*
-                  [
-                    source,
-                    destination,
-                  ].includes(id) &&
-                  (
-                    <div className="flex items-center space-x-2 ml-auto">
-                      {
-                        _.uniq(
-                          [
-                            c.id === source ?
-                              'o' :
-                              'd',
-                            id === destination ?
-                              'd' :
-                              'o',
-                          ]
-                        )
-                        .map((o, i) => (
-                          <div
-                            key={i}
-                            className="bg-blue-600 rounded uppercase text-white text-lg font-semibold px-2"
-                          >
-                            {o}
-                          </div>
-                        ))
-                      }
-                    </div>
-                  )
-                */}
               </>
             )
 
