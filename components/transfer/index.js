@@ -1086,24 +1086,28 @@ export default () => {
                                           )
                                           break
                                         case 'block_number':
-                                          _v = number_format(
-                                            v,
-                                            '0,0',
-                                          )
+                                          _v =
+                                            number_format(
+                                              v,
+                                              '0,0',
+                                            )
 
-                                          component = url ?
-                                            <a
-                                              href={`${explorer.url}${block_path?.replace('{block}', v)}`}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="text-blue-500 dark:text-blue-600"
-                                            >
-                                              {_v}
-                                            </a> :
-                                            _v
+                                          component =
+                                            url ?
+                                              <a
+                                                href={`${explorer.url}${block_path?.replace('{block}', v)}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-500 dark:text-blue-600"
+                                              >
+                                                {_v}
+                                              </a> :
+                                              _v
                                           break
                                         case 'timestamp':
-                                          component = moment(v * 1000).format('MMM D, YYYY H:mm:ss A')
+                                          component =
+                                            moment(v * 1000)
+                                              .format('MMM D, YYYY H:mm:ss A')
                                           break
                                         case 'caller':
                                         case 'origin_sender':
@@ -1112,7 +1116,7 @@ export default () => {
                                             <EnsProfile
                                               address={v}
                                               no_copy={true}
-                                              fallback={(
+                                              fallback={
                                                 <>
                                                   <span className="lg:hidden">
                                                     {ellipse(
@@ -1127,7 +1131,7 @@ export default () => {
                                                     )}
                                                   </span>
                                                 </>
-                                              )}
+                                              }
                                             />
                                           )
 
@@ -1204,13 +1208,14 @@ export default () => {
                                           )
                                           break
                                         default:
-                                          component = !isNaN(v) ?
-                                            number_format(
-                                              v,
-                                              '0,0.00',
-                                              true,
-                                            ) :
-                                            v
+                                          component =
+                                            !isNaN(v) ?
+                                              number_format(
+                                                v,
+                                                '0,0.00',
+                                                true,
+                                              ) :
+                                              v
                                           break
                                       }
 

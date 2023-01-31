@@ -652,10 +652,12 @@ export default () => {
             <SelectAsset
               value={assetSelect}
               onSelect={a => setAssetSelect(a)}
-              chain={[
-                fromChainSelect,
-                toChainSelect,
-              ]}
+              chain={
+                [
+                  fromChainSelect,
+                  toChainSelect,
+                ]
+              }
             />
             <SelectStatus
               value={statusSelect}
@@ -677,7 +679,7 @@ export default () => {
                       1 :
                       -1,
                   Cell: props => (
-                    <span className="font-semibold">
+                    <div className="font-semibold mt-0.5">
                       {number_format(
                         (props.flatRows?.indexOf(props.row) > -1 ?
                           props.flatRows.indexOf(props.row) :
@@ -685,7 +687,7 @@ export default () => {
                         ) + 1,
                         '0,0',
                       )}
-                    </span>
+                    </div>
                   ),
                 },
                 {
@@ -723,7 +725,7 @@ export default () => {
                     return (
                       value &&
                       (
-                        <div className="flex flex-col items-start space-y-2">
+                        <div className="flex flex-col items-start space-y-2 mt-0.5">
                           <div className="flex items-center space-x-1">
                             <Link href={`/tx/${value}`}>
                               <a className="text-blue-500 dark:text-white font-semibold">
@@ -747,7 +749,7 @@ export default () => {
                             </Link>
                             <Copy
                               size={20}
-                              value={props.value}
+                              value={value}
                             />
                           </div>
                           {
@@ -854,6 +856,37 @@ export default () => {
                               </div>
                             )
                           }
+                        </div>
+                      )
+                    )
+                  },
+                  headerClassName: 'whitespace-nowrap',
+                },
+                {
+                  Header: 'Timestamp',
+                  accessor: 'xcall_timestamp',
+                  disableSortBy: true,
+                  Cell: props => {
+                    const {
+                      value,
+                    } = { ...props }
+
+                    return (
+                      value &&
+                      (
+                        <div className="flex flex-col space-y-1 mt-0.5">
+                          <span className="text-slate-400 dark:text-slate-500 text-sm font-medium">
+                            {
+                              moment(value * 1000)
+                                .format('MMM D, YYYY')
+                            }
+                          </span>
+                          <span className="text-slate-700 dark:text-slate-200 text-sm font-medium">
+                            {
+                              moment(value * 1000)
+                                .format('HH:mm:ss A')
+                            }
+                          </span>
                         </div>
                       )
                     )
@@ -1320,6 +1353,7 @@ export default () => {
               .filter(c =>
                 !address ||
                 ![
+                  'xcall_timestamp',
                   'status',
                   'xcall_status',
                 ]
