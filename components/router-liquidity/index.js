@@ -211,6 +211,10 @@ export default () => {
                         equals_ignore_case(
                           a?.contract_address,
                           contract_address,
+                        ) &&
+                        equals_ignore_case(
+                          a?.router_address,
+                          address,
                         )
                       )
                   ),
@@ -1194,7 +1198,8 @@ export default () => {
                                 [
                                   'string',
                                   'number',
-                                ].includes(typeof amount) &&
+                                ]
+                                .includes(typeof amount) &&
                                 ![
                                   '',
                                 ].includes(amount)
