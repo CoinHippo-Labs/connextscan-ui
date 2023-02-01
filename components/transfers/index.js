@@ -483,7 +483,7 @@ export default () => {
                     errored:
                       [
                         XTransferErrorStatus.LowSlippage,
-                        XTransferErrorStatus.InsufficientRelayerFee,
+                        XTransferErrorStatus.LowRelayerFee,
                       ]
                       .includes(t?.error_status) &&
                       ![
