@@ -798,11 +798,13 @@ export default () => {
             )
 
             const pool =
-              await sdk.sdkPool
-                .getPool(
-                  domain_id,
-                  contract_address,
-                )
+              _.cloneDeep(
+                await sdk.sdkPool
+                  .getPool(
+                    domain_id,
+                    contract_address,
+                  )
+              )
 
             console.log(
               '[pool]',
