@@ -5,7 +5,7 @@ import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import moment from 'moment'
 import { BigNumber, constants, utils } from 'ethers'
-import { XTransferStatus, XTransferErrorStatus } from '@connext/nxtp-utils'
+import { XTransferStatus } from '@connext/nxtp-utils'
 import { TailSpin } from 'react-loader-spinner'
 import { Tooltip } from '@material-tailwind/react'
 import { HiCheckCircle } from 'react-icons/hi'
@@ -471,11 +471,7 @@ export default () => {
     .includes(status)
 
   const errored =
-    [
-      XTransferErrorStatus.LowSlippage,
-      XTransferErrorStatus.LowRelayerFee,
-    ]
-    .includes(error_status) &&
+    error_status &&
     ![
       XTransferStatus.CompletedFast,
       XTransferStatus.CompletedSlow,
