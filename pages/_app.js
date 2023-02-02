@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Provider } from 'react-redux'
 import NProgress from 'nprogress'
 import TagManager from 'react-gtm-module'
@@ -48,6 +48,8 @@ export default (
   const router = useRouter()
   const store = useStore(pageProps.initialReduxState)
 
+  const [initiated, setInitiated] = useState(null)
+
   useEffect(
     () => {
       const handleRouteChange = url =>
@@ -69,15 +71,20 @@ export default (
 
   useEffect(
     () => {
-      if (process.env.NEXT_PUBLIC_GTM_ID) {
+      if (
+        process.env.NEXT_PUBLIC_GTM_ID &&
+        !initiated
+      ) {
         TagManager.initialize(
           {
             gtmId: process.env.NEXT_PUBLIC_GTM_ID,
           },
         )
+
+        setInitiated(true)
       }
     },
-    [],
+    [initiated],
   )
 
   return (
