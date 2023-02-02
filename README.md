@@ -1,10 +1,9 @@
 # Connextscan UI
-This is the frontend part of the [Connextscan](https://amarok.connextscan.io).
-The project is implemented based on [Next.js](https://nextjs.org) platform and connect to the [Connextscan API](https://github.com/CoinHippo-Labs/connextscan-api).
+This is the frontend part of the [Connextscan](https://connextscan.io). The project is connect to the [Connextscan API](https://github.com/CoinHippo-Labs/connextscan-api) and implemented based on [Next.js](https://nextjs.org).
 
 ## URLs
-- mainnet: [https://amarok.connextscan.io](https://connextscan.io)
-- testnet: [https://testnet.amarok.connextscan.io](https://testnet.connextscan.io)
+- mainnet: [https://connextscan.io](https://connextscan.io)
+- testnet: [https://testnet.connextscan.io](https://testnet.connextscan.io)
 
 ### Prerequisites
 node >= 16.0.0
