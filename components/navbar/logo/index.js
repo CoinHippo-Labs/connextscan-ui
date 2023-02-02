@@ -1,63 +1,26 @@
 import Link from 'next/link'
+import { useSelector, shallowEqual } from 'react-redux'
 
 import Image from '../../image'
 
-export default () => {
-  const is_testnet =
-    [
-      'testnet',
-    ]
-    .includes(
-      process.env.NEXT_PUBLIC_NETWORK
-    )
+export default function Logo() {
+  const { preferences } = useSelector(state => ({ preferences: state.preferences }), shallowEqual)
+  const { theme } = { ...preferences }
 
   return (
-    <div className="logo ml-3 mr-0.5 sm:mr-3">
+    <div className="logo ml-2.5 mr-1 sm:mx-3">
       <Link href="/">
-        <a className="w-full flex flex-col items-start">
+         <a className="w-full flex items-center">
           <div className="min-w-max sm:mr-3">
-            <div className="flex dark:hidden items-center">
-              <div className="flex sm:hidden">
-                <Image
-                  src="/logos/logo.png"
-                  width={32}
-                  height={32}
-                />
-              </div>
-              <div className="hidden sm:flex">
-                <Image
-                  src="/logos/logo_with_name.png"
-                  width={128}
-                  height={32}
-                />
-              </div>
-            </div>
-            <div className="hidden dark:flex items-center">
-              <div className="flex sm:hidden">
-                <Image
-                  src="/logos/logo_white.png"
-                  width={32}
-                  height={32}
-                />
-              </div>
-              <div className="hidden sm:flex">
-                <Image
-                  src="/logos/logo_with_name_white.png"
-                  width={128}
-                  height={32}
-                />
-              </div>
-            </div>
+            <Image
+              src={`/logos/logo${theme === 'dark' ? '_white' : ''}.png`}
+              alt=""
+              className="w-8 h-8"
+            />
           </div>
-          <div className="hidden sm:block">
-            {
-              is_testnet &&
-              (
-                <div className="max-w-min whitespace-nowrap lowercase tracking-wider text-slate-400 dark:text-slate-500 text-sm ml-10">
-                  {process.env.NEXT_PUBLIC_NETWORK}
-                </div>
-              )
-            }
+          <div className="hidden sm:block lg:block xl:block">
+            <div className="normal-case text-base font-semibold">{process.env.NEXT_PUBLIC_APP_NAME}</div>
+            <div className="whitespace-nowrap font-mono text-gray-400 dark:text-gray-500 text-xs">{process.env.NEXT_PUBLIC_NETWORK}</div>
           </div>
         </a>
       </Link>

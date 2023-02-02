@@ -6,27 +6,35 @@ export const CHAINS_DATA = 'chains_data'
 
 // assets
 export const ASSETS_DATA = 'assets_data'
-export const POOL_ASSETS_DATA = 'pool_assets_data'
+
+// tokens
+export const TOKENS_DATA = 'tokens_data'
 
 // ens
 export const ENS_DATA = 'ens_data'
 
 // status
-export const CHAIN_DATA = 'chain_data'
+export const STATUS_DATA = 'status_data'
+export const CHAINS_STATUS_DATA = 'chains_status_data'
+export const ROUTERS_STATUS_DATA = 'routers_status_data'
+export const ROUTERS_STATUS_TRIGGER = 'routers_status_trigger'
 
-// asset balances
+// asset-balances
 export const ASSET_BALANCES_DATA = 'asset_balances_data'
+export const ROUTERS_ASSETS_DATA = 'routers_assets_data'
 
-// pools
-export const POOLS_DATA = 'pools_data'
+// analytics
+export const STATS_DATA = 'stats_data'
 
-// rpc
-export const RPCS = 'rpcs'
+// transactions
+export const TRANSACTIONS_DATA = 'transactions_data'
 
 // sdk
-export const SDK = 'sdk'
+export const SDK_DATA = 'sdk_data'
+
+// rpc
+export const RPCS_DATA = 'rpcs_data'
 
 // wallet
 export const WALLET_DATA = 'wallet_data'
 export const WALLET_RESET = 'wallet_reset'
-export const CHAIN_ID = 'chain_id'

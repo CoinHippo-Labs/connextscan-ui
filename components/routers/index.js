@@ -1,674 +1,334 @@
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
+
 import _ from 'lodash'
-import { BigNumber, utils } from 'ethers'
-import { TailSpin } from 'react-loader-spinner'
+import moment from 'moment'
+import Web3 from 'web3'
+import { constants, utils } from 'ethers'
+import { Triangle } from 'react-loader-spinner'
+import StackGrid from 'react-stack-grid'
+import { MdOutlineRouter } from 'react-icons/md'
 import { TiArrowRight } from 'react-icons/ti'
 
-import Metrics from '../metrics'
-import Image from '../image'
-import Datatable from '../datatable'
+import Popover from '../popover'
 import Copy from '../copy'
-import EnsProfile from '../ens-profile'
-
-import { daily_transfer_metrics, daily_transfer_volume } from '../../lib/api/metrics'
+import Widget from '../widget'
+import Image from '../image'
 import { currency_symbol } from '../../lib/object/currency'
-import { number_format, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
+import { numberFormat, ellipseAddress } from '../../lib/utils'
 
-export default () => {
-  const {
-    preferences,
-    chains,
-    assets,
-    asset_balances,
-    dev,
-  } = useSelector(state =>
-    (
-      {
-        preferences: state.preferences,
-        chains: state.chains,
-        assets: state.assets,
-        asset_balances:
-        state.asset_balances,
-        dev: state.dev,
-      }
-    ),
-    shallowEqual,
-  )
-  const {
-    theme,
-  } = { ...preferences }
-  const {
-    chains_data,
-  } = { ...chains }
-  const {
-    assets_data,
-  } = { ...assets }
-  const {
-    sdk,
-  } = { ...dev }
-  const {
-    asset_balances_data,
-  } = { ...asset_balances }
+export default function Routers() {
+  const { preferences, chains, ens, routers_assets } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, ens: state.ens, routers_assets: state.routers_assets }), shallowEqual)
+  const { theme } = { ...preferences }
+  const { chains_data } = { ...chains }
+  const { ens_data } = { ...ens }
+  const { routers_assets_data } = { ...routers_assets }
 
-  const [data, setData] = useState(null)
+  const router = useRouter()
+  const { query } = { ...router }
+  const { all } = { ...query }
 
-  useEffect(
-    () => {
-      const getData = async () => {
-        if (
-          sdk &&
-          chains_data &&
-          assets_data
-        ) {
-          let volumes = await daily_transfer_volume()
+  const [routers, setRouters] = useState(null)
+  const [web3, setWeb3] = useState(null)
+  const [chainId, setChainId] = useState(null)
+  const [addTokenData, setAddTokenData] = useState(null)
+  const [timer, setTimer] = useState(null)
 
-          volumes =
-            (Array.isArray(volumes) ?
-              volumes :
-              []
-            )
-            .map(v => {
-              const {
-                transfer_date,
-                origin_chain,
-                destination_chain,
-                asset,
-                volume,
-              } = { ...v }
-
-              const origin_chain_data = chains_data
-                .find(c =>
-                  c?.domain_id === origin_chain
-                )
-              const destination_chain_data = chains_data
-                .find(c =>
-                  c?.domain_id === destination_chain
-                )
-
-              let asset_data = assets_data
-                .find(a =>
-                  (a?.contracts || [])
-                    .findIndex(c =>
-                      c?.chain_id === origin_chain_data?.chain_id &&
-                      [
-                        c?.next_asset?.contract_address,
-                        c?.contract_address,
-                      ]
-                      .filter(_a => _a)
-                      .findIndex(_a =>
-                        equals_ignore_case(
-                          _a,
-                          asset,
-                        )
-                      ) > -1
-                    ) > -1
-                )
-
-              asset_data = {
-                ...asset_data,
-                ...(
-                  (asset_data?.contracts || [])
-                    .find(c =>
-                      c?.chain_id === origin_chain_data?.chain_id &&
-                      [
-                        c?.next_asset?.contract_address,
-                        c?.contract_address,
-                      ]
-                      .filter(_a => _a)
-                      .findIndex(_a =>
-                        equals_ignore_case(
-                          _a,
-                          asset,
-                        )
-                      ) > -1
-                    )
-                ),
-              }
-
-              if (asset_data.contracts) {
-                delete asset_data.contracts
-              }
-
-              if (
-                asset_data.next_asset &&
-                equals_ignore_case(
-                  asset_data.next_asset.contract_address,
-                  asset,
-                )
-              ) {
-                asset_data = {
-                  ...asset_data,
-                  ...asset_data.next_asset,
-                }
-
-                delete asset_data.next_asset
-              }
-
-              const {
-                decimals,
-                price,
-              } = { ...asset_data }
-
-              const amount =
-                Number(
-                  utils.formatUnits(
-                    BigNumber.from(
-                      BigInt(
-                        volume ||
-                        0
-                      )
-                      .toString()
-                    ),
-                    decimals ||
-                    18,
-                  )
-                )
-
-              return {
-                ...v,
-                origin_chain_data,
-                destination_chain_data,
-                asset_data,
-                amount,
-                volume:
-                  amount *
-                  (
-                    price ||
-                    0
-                  ),
-              }
-            })
-
-          let transfers = await daily_transfer_metrics()
-
-          transfers =
-            (Array.isArray(transfers) ?
-              transfers :
-              []
-            )
-            .map(t => {
-              const {
-                transfer_date,
-                origin_chain,
-                destination_chain,
-              } = { ...t }
-
-              const origin_chain_data = chains_data
-                .find(c =>
-                  c?.domain_id === origin_chain
-                )
-              const destination_chain_data = chains_data
-                .find(c =>
-                  c?.domain_id === destination_chain
-                )
-
-              return {
-                ...t,
-                origin_chain_data,
-                destination_chain_data,
-              }
-            })
-
-          setData(
-            {
-              volumes:
-                _.orderBy(
-                  Object.entries(
-                    _.groupBy(
-                      volumes,
-                      'router',
-                    )
-                  )
-                  .map(([k, v]) => {
-                    return {
-                      router: k,
-                      volume:
-                        _.sumBy(
-                          v,
-                          'volume',
-                        ),
-                    }
-                  }),
-                  ['volume'],
-                  ['desc'],
-                ),
-              transfers:
-                _.orderBy(
-                  Object.entries(
-                    _.groupBy(
-                      transfers,
-                      'router',
-                    )
-                  )
-                  .map(([k, v]) => {
-                    return {
-                      router: k,
-                      transfers:
-                        _.sumBy(
-                          v,
-                          'transfer_count',
-                        ),
-                    }
-                  }),
-                  ['transfers'],
-                  ['desc'],
-                ),
-            }
-          )
-        }
-      }
-
-      getData()
-    },
-    [sdk, chains_data, assets_data],
-  )
-
-  const routers =
-    _.orderBy(
-      Object.entries(
-        _.groupBy(
-          Object.values({ ...asset_balances_data })
-            .flatMap(a => a),
-          'address',
-        )
-      )
-      .map(([k, v]) => {
-        return {
-          router_address: k,
-          assets:
-            _.orderBy(
-              v,
-              ['value'],
-              ['desc'],
-            ),
-        }
-      })
-      .map(r => {
-        const {
-          router_address,
-          assets,
-        } = { ...r }
-
-        const {
-          volumes,
-          transfers,
-        } = { ...data }
-
-        return {
-          ...r,
-          total_value:
-            _.sumBy(
-              assets,
-              'value',
-            ),
-          total_volume:
-            _.sumBy(
-              (Array.isArray(volumes) ?
-                volumes :
-                []
-              )
-              .filter(d =>
-                equals_ignore_case(
-                  d?.router,
-                  router_address,
-                )
-              ),
-              'volume',
-            ),
-          total_transfers:
-            _.sumBy(
-              (Array.isArray(transfers) ?
-                transfers :
-                []
-              )
-              .filter(d =>
-                equals_ignore_case(
-                  d?.router,
-                  router_address,
-                )
-              ),
-              'transfers',
-            ),
-          // total_fee: 33.33,
-          supported_chains:
-            _.uniq(
-              (assets || [])
-                .map(a =>
-                  a?.chain_id
-                )
-            ),
-        }
-      }),
-      ['total_value'],
-      ['desc'],
-    )
-
-  const metrics =
-    asset_balances_data &&
-    {
-      liquidity:
-        _.sumBy(
-          routers,
-          'total_value',
-        ),
-      volume:
-        _.sumBy(
-          routers,
-          'total_volume',
-        ),
-      transfers:
-        _.sumBy(
-          routers,
-          'total_transfers',
-        ),
-      // fee: 33.33,
-      supported_chains:
-        _.uniq(
-          routers
-            .flatMap(r =>
-              r?.supported_chains
-            )
-        ),
+  useEffect(() => {
+    if (!web3) {
+      setWeb3(new Web3(Web3.givenProvider))
     }
+    else {
+      try {
+        web3.currentProvider._handleChainChanged = e => {
+          try {
+            setChainId(Web3.utils.hexToNumber(e?.chainId))
+          } catch (error) {}
+        }
+      } catch (error) {}
+    }
+  }, [web3])
+
+  useEffect(() => {
+    if (addTokenData?.chain_id === chainId && addTokenData?.contract) {
+      addTokenToMetaMask(addTokenData.chain_id, addTokenData.contract)
+    }
+  }, [chainId, addTokenData])
+
+  useEffect(() => {
+    if (routers_assets_data) {
+      const data = routers_assets_data.map(ra => {
+        const assetBalances = ra?.asset_balances || []
+
+        return {
+          ...ra,
+          amount_value: _.sumBy(assetBalances, 'amount_value'),
+          locked_value: _.sumBy(assetBalances, 'locked_value'),
+          lockedIn_value: _.sumBy(assetBalances, 'lockedIn_value'),
+          supplied_value: _.sumBy(assetBalances, 'supplied_value'),
+          removed_value: _.sumBy(assetBalances, 'removed_value'),
+          volume_value: _.sumBy(assetBalances, 'volume_value'),
+          volumeIn_value: _.sumBy(assetBalances, 'volumeIn_value'),
+          receivingFulfillTxCount: _.sumBy(assetBalances, 'receivingFulfillTxCount'),
+        }
+      }).filter(ra => ['true'].includes(all) || ra?.amount_value > 1)
+
+      setRouters(_.orderBy(data, ['amount_value'], ['desc']))
+    }
+  }, [routers_assets_data])
+
+  useEffect(() => {
+    const run = async () => setTimer(moment().unix())
+    if (!timer) {
+      run()
+    }
+    const interval = setInterval(() => run(), 0.5 * 1000)
+    return () => clearInterval(interval)
+  }, [timer])
+
+  const addTokenToMetaMask = async (chain_id, contract) => {
+    if (web3 && contract) {
+      if (chain_id === chainId) {
+        try {
+          const response = await web3.currentProvider.request({
+            method: 'wallet_watchAsset',
+            params: {
+              type: 'ERC20',
+              options: {
+                address: contract.contract_address,
+                symbol: contract.symbol,
+                decimals: contract.contract_decimals,
+                image: `${contract.image?.startsWith('/') ? process.env.NEXT_PUBLIC_SITE_URL : ''}${contract.image}`,
+              },
+            },
+          })
+        } catch (error) {}
+
+        setAddTokenData(null)
+      }
+      else {
+        switchNetwork(chain_id, contract)
+      }
+    }
+  }
+
+  const switchNetwork = async (chain_id, contract) => {
+    try {
+      await web3.currentProvider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: utils.hexValue(chain_id) }],
+      })
+    } catch (error) {
+      if (error.code === 4902) {
+        try {
+          await web3.currentProvider.request({
+            method: 'wallet_addEthereumChain',
+            params: chains_data?.find(c => c.chain_id === chain_id)?.provider_params,
+          })
+        } catch (error) {}
+      }
+    }
+
+    if (contract) {
+      setAddTokenData({ chain_id, contract })
+    }
+  }
+
+  const routersComponent = routers?.map((r, i) => (
+    <Widget
+      key={i}
+      title={<div className={`flex items-${ens_data?.[r?.router_id.toLowerCase()]?.name ? 'start' : 'center'} space-x-1.5`}>
+        <MdOutlineRouter size={20} className="text-gray-400 dark:text-gray-600 mb-0.5" />
+        {r?.router_id && (
+          <div className="space-y-0.5">
+            {ens_data?.[r.router_id.toLowerCase()]?.name && (
+              <div className="flex items-center">
+                <Image
+                  src={`${process.env.NEXT_PUBLIC_ENS_AVATAR_URL}/${ens_data[r.router_id.toLowerCase()].name}`}
+                  alt=""
+                  className="w-6 h-6 rounded-full mr-2"
+                />
+                <Link href={`/router/${r.router_id}`}>
+                  <a className="text-blue-600 dark:text-white sm:text-base font-semibold">
+                    {ellipseAddress(ens_data[r.router_id.toLowerCase()].name, 16)}
+                  </a>
+                </Link>
+              </div>
+            )}
+            <div className="flex items-center space-x-1">
+              {ens_data?.[r.router_id.toLowerCase()]?.name ?
+                <Copy
+                  text={r.router_id}
+                  copyTitle={<span className="text-gray-400 dark:text-gray-600 text-xs font-normal">
+                    {ellipseAddress(r.router_id, 8)}
+                  </span>}
+                />
+                :
+                <>
+                  <Link href={`/router/${r.router_id}`}>
+                    <a className="text-blue-600 dark:text-white text-xs font-normal">
+                      {ellipseAddress(r.router_id, 8)}
+                    </a>
+                  </Link>
+                  <Copy text={r.router_id} />
+                </>
+              }
+            </div>
+          </div>
+        )}
+      </div>}
+      right={r?.amount_value > 0 && (
+        <div className="block sm:flex items-center ml-2">
+          <div className="flex flex-col justify-end space-y-1 mr-0 sm:mr-6">
+            <div className="uppercase text-gray-400 dark:text-gray-600 text-2xs font-medium text-right">Available</div>
+            <div className="font-mono uppercase sm:text-sm font-semibold text-right">
+              {currency_symbol}{numberFormat(r.amount_value, '0,0.00a')}
+            </div>
+          </div>
+          <div className="hidden sm:flex flex-col justify-end space-y-1 mt-2 sm:mt-0 ">
+            <div className="uppercase text-gray-400 dark:text-gray-600 text-2xs font-medium text-right">Total</div>
+            <div className="font-mono uppercase sm:text-sm font-semibold text-right">
+              {currency_symbol}{numberFormat(r.amount_value + (r.locked_value || 0) + (r.lockedIn_value || 0), '0,0.00a')}
+            </div>
+          </div>
+        </div>
+      )}
+      className="border-0 shadow-md rounded-2xl"
+    >
+      <div className="grid grid-flow-row grid-cols-2 sm:grid-cols-3 gap-0 mt-4 mb-2">
+        {_.orderBy(r?.asset_balances?.flatMap(abs => abs) || [], ['amount_value', 'amount'], ['desc', 'desc']).map((ab, j) => {
+          const addToMetaMaskButton = ab?.assetId !== constants.AddressZero && (
+            <button
+              onClick={() => addTokenToMetaMask(ab?.chain?.chain_id, { ...ab?.asset })}
+              className="w-auto bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded flex items-center justify-center py-1 px-1.5"
+            >
+              <Image
+                src="/logos/wallets/metamask.png"
+                alt=""
+                className="w-3 h-3"
+              />
+            </button>
+          )
+
+          return (
+            <div key={j}>
+              {ab?.asset ?
+                <div className="min-h-full border pt-2.5 pb-3 px-2" style={{ borderColor: ab?.chain?.color }}>
+                  <div className="space-y-0.5">
+                    <div className="flex items-start">
+                      <Image
+                        src={ab.asset?.image}
+                        alt=""
+                        className="w-4 h-4 rounded-full mr-1"
+                      />
+                      <div className="flex flex-col">
+                        <span className="leading-4 text-2xs font-semibold">{ab.asset.name}</span>
+                        {ab.assetId && (
+                          <span className="min-w-max flex items-center space-x-0.5">
+                            <Copy
+                              size={14}
+                              text={ab.assetId}
+                              copyTitle={<span className="text-gray-400 dark:text-gray-600 text-3xs font-medium">
+                                {ellipseAddress(ab.assetId, 4)}
+                              </span>}
+                            />
+                            {ab?.chain?.explorer?.url && (
+                              <a
+                                href={`${ab.chain.explorer.url}${ab.chain.explorer[`contract${ab.assetId === constants.AddressZero ? '_0' : ''}_path`]?.replace('{address}', ab.assetId)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 dark:text-white"
+                              >
+                                {ab.chain.explorer.icon ?
+                                  <Image
+                                    src={ab.chain.explorer.icon}
+                                    alt=""
+                                    className="w-3.5 h-3.5 rounded-full opacity-60 hover:opacity-100"
+                                  />
+                                  :
+                                  <TiArrowRight size={16} className="transform -rotate-45" />
+                                }
+                              </a>
+                            )}
+                          </span>
+                        )}
+                      </div>
+                      {ab?.chain?.image && (
+                        <Link href={`/${ab.chain.id}`}>
+                          <a className="hidden sm:block min-w-max w-3 h-3 relative -top-1 -right-1 ml-auto">
+                            <Image
+                              src={ab.chain.image}
+                              alt=""
+                              className="w-3 h-3 rounded-full"
+                            />
+                          </a>
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center mt-1.5">
+                    <div className="w-full text-center space-y-1">
+                      <div className="font-mono text-xs">
+                        {typeof ab?.amount === 'number' ?
+                          <>
+                            <span className={`uppercase ${ab?.amount_value > 100000 ? 'font-semibold' : 'text-gray-700 dark:text-gray-300 font-medium'} mr-1.5`}>
+                              {numberFormat(ab.amount, ab.amount > 10000 ? '0,0.00a' : ab.amount > 10 ? '0,0' : '0,0.000')}
+                            </span>
+                            <span className="text-gray-400 dark:text-gray-600 text-3xs font-medium">{ab?.asset?.symbol}</span>
+                          </>
+                          :
+                          <span className="text-gray-400 dark:text-gray-600">n/a</span>
+                        }
+                      </div>
+                      <div className="max-w-min bg-gray-100 dark:bg-gray-800 rounded-lg font-mono text-3xs mx-auto py-1 px-2">
+                        {typeof ab?.amount_value === 'number' ?
+                          <span className={`uppercase ${ab?.amount_value > 100000 ? 'text-gray-800 dark:text-gray-200 font-semibold' : 'text-gray-600 dark:text-gray-400'}`}>
+                            {currency_symbol}{numberFormat(ab.amount_value, ab.amount_value > 100000 ? '0,0.00a' : ab.amount_value > 1000 ? '0,0' : '0,0.000')}
+                          </span>
+                          :
+                          <span className="text-gray-400 dark:text-gray-600">n/a</span>
+                        }
+                      </div>
+                    </div>
+                    <div className="min-w-max relative -bottom-2.5 -right-2 mb-0.5 ml-auto">
+                      <Popover
+                        placement="left"
+                        title={<span className="normal-case text-3xs">Add token</span>}
+                        content={<div className="w-32 text-3xs">Add <span className="font-semibold">{ab.asset.symbol}</span> to MetaMask</div>}
+                        titleClassName="py-0.5"
+                        contentClassName="py-1.5"
+                      >
+                        {addToMetaMaskButton}
+                      </Popover>
+                    </div>
+                  </div>
+                </div>
+                :
+                <div className="w-full h-24 shadow flex items-center justify-center">
+                  <Triangle color={theme === 'dark' ? 'white' : '#3B82F6'} width="16" height="16" />
+                </div>
+              }
+            </div>
+          )
+        })}
+      </div>
+    </Widget>
+  ))
 
   return (
     <>
-      <div className="mb-6">
-        <Metrics
-          data={metrics}
-        />
-      </div>
-      <div className="my-4 sm:my-6">
-        {asset_balances_data ?
-          <Datatable
-            columns={
-              [
-                {
-                  Header: '#',
-                  accessor: 'i',
-                  sortType: (a, b) =>
-                    a.original.i > b.original.i ?
-                      1 :
-                      -1,
-                  Cell: props => (
-                    <span className="font-semibold">
-                      {number_format(
-                        (props.flatRows?.indexOf(props.row) > -1 ?
-                          props.flatRows.indexOf(props.row) :
-                          props.value
-                        ) + 1,
-                        '0,0',
-                      )}
-                    </span>
-                  ),
-                },
-                {
-                  Header: 'Address',
-                  accessor: 'router_address',
-                  disableSortBy: true,
-                  Cell: props => {
-                    const {
-                      value,
-                    } = { ...props }
-
-                    return (
-                      value &&
-                      (
-                        <div className="flex items-center space-x-1">
-                          <Link href={`/router/${value}`}>
-                            <a>
-                              <EnsProfile
-                                address={value}
-                                no_copy={true}
-                                fallback={
-                                  <span className="text-slate-400 dark:text-slate-200 text-sm font-semibold">
-                                    <span className="xl:hidden">
-                                      {ellipse(
-                                        value,
-                                        8,
-                                      )}
-                                    </span>
-                                    <span className="hidden xl:block">
-                                      {ellipse(
-                                        value,
-                                        12,
-                                      )}
-                                    </span>
-                                  </span>
-                                }
-                              />
-                            </a>
-                          </Link>
-                          <Copy
-                            value={value}
-                          />
-                        </div>
-                      )
-                    )
-                  },
-                },
-                {
-                  Header: 'Liquidity',
-                  accessor: 'total_value',
-                  sortType: (a, b) =>
-                    a.original.total_value > b.original.total_value ?
-                      1 :
-                      -1,
-                  Cell: props => {
-                    const {
-                      value,
-                    } = { ...props }
-
-                    return (
-                      <div className="text-base font-bold text-right">
-                        {
-                          typeof value === 'number' ?
-                            <span className="uppercase">
-                              {currency_symbol}
-                              {number_format(
-                                value,
-                                value > 1000000 ?
-                                  '0,0.00a' :
-                                  value > 1000 ?
-                                    '0,0' :
-                                    '0,0.00',
-                              )}
-                            </span> :
-                            <span className="text-slate-400 dark:text-slate-500">
-                              -
-                            </span>
-                        }
-                      </div>
-                    )
-                  },
-                  headerClassName: 'whitespace-nowrap justify-end text-right',
-                },
-                {
-                  Header: 'Transfers',
-                  accessor: 'total_transfers',
-                  sortType: (a, b) =>
-                    a.original.total_transfers > b.original.total_transfers ?
-                      1 :
-                      -1,
-                  Cell: props => {
-                    const {
-                      value,
-                    } = { ...props }
-
-                    return (
-                      <div className="text-base font-bold text-right">
-                        {
-                          typeof value === 'number' ?
-                            <span className="uppercase">
-                              {number_format(
-                                value,
-                                value > 100000 ?
-                                  '0,0.00a' :
-                                  '0,0',
-                                )}
-                            </span> :
-                            <span className="text-slate-400 dark:text-slate-500">
-                              -
-                            </span>
-                        }
-                      </div>
-                    )
-                  },
-                  headerClassName: 'whitespace-nowrap justify-end text-right',
-                },
-                {
-                  Header: 'Volume',
-                  accessor: 'total_volume',
-                  sortType: (a, b) =>
-                    a.original.total_volume > b.original.total_volume ?
-                      1 :
-                      -1,
-                  Cell: props => {
-                    const {
-                      value,
-                    } = { ...props }
-
-                    return (
-                      <div className="text-base font-bold text-right">
-                        {
-                          typeof value === 'number' ?
-                            <span className="uppercase">
-                              {currency_symbol}
-                              {number_format(
-                                value,
-                                value > 10000000 ?
-                                  '0,0.00a' :
-                                  value > 1000 ?
-                                    '0,0' :
-                                    '0,0.00',
-                              )}
-                            </span> :
-                            <span className="text-slate-400 dark:text-slate-500">
-                              -
-                            </span>
-                        }
-                      </div>
-                    )
-                  },
-                  headerClassName: 'whitespace-nowrap justify-end text-right',
-                },
-                {
-                  Header: 'Fee',
-                  accessor: 'total_fee',
-                  sortType: (a, b) =>
-                    a.original.total_fee > b.original.total_fee ?
-                      1 :
-                      -1,
-                  Cell: props => {
-                    const {
-                      value,
-                    } = { ...props }
-
-                    return (
-                      <div className="text-base font-semibold text-right">
-                        {
-                          typeof value === 'number' ?
-                            <span className="uppercase">
-                              {currency_symbol}
-                              {number_format(
-                                value,
-                                value > 100000 ?
-                                  '0,0.00a' :
-                                  value > 1000 ?
-                                    '0,0' :
-                                    '0,0.00',
-                              )}
-                            </span> :
-                            <span className="text-slate-400 dark:text-slate-500">
-                              -
-                            </span>
-                        }
-                      </div>
-                    )
-                  },
-                  headerClassName: 'whitespace-nowrap justify-end text-right',
-                },
-                {
-                  Header: 'Supported Chains',
-                  accessor: 'supported_chains',
-                  sortType: (a, b) =>
-                    a.original.supported_chains?.length > b.original.supported_chains?.length ?
-                      1 :
-                      -1,
-                  Cell: props => {
-                    const {
-                      value,
-                    } = { ...props }
-
-                    return (
-                      <div className={`xl:w-${value?.length > 5 ? '56' : '32'} flex flex-wrap items-center justify-end ml-auto`}>
-                        {
-                          value?.length > 0 ?
-                            value
-                              .map((id, i) => {
-                                const {
-                                  name,
-                                  image,
-                                } = {
-                                  ...(
-                                    (chains_data || [])
-                                      .find(c =>
-                                        c?.chain_id === id
-                                      )
-                                  ),
-                                }
-
-                                return (
-                                  image &&
-                                  (
-                                    <div
-                                      key={i}
-                                      title={name}
-                                      className="mr-1"
-                                    >
-                                      <Image
-                                        src={image}
-                                        width={24}
-                                        height={24}
-                                        className="rounded-full"
-                                      />
-                                    </div>
-                                  )
-                                )
-                              })
-                              .filter(c => c) :
-                            <span className="text-slate-400 dark:text-slate-500">
-                              No chains supported
-                            </span>
-                        }
-                      </div>
-                    )
-                  },
-                  headerClassName: 'whitespace-nowrap justify-end text-right',
-                },
-              ]
-              .filter(c =>
-                ![
-                  'total_fee',
-                ]
-                .includes(c.accessor)
-              )
-            }
-            data={routers}
-            noPagination={routers.length <= 10}
-            defaultPageSize={50}
-            className="no-border"
-          /> :
-          <div className="flex items-center m-3">
-            <TailSpin
-              color={loader_color(theme)}
-              width="32"
-              height="32"
-            />
-          </div>
-        }
+      <StackGrid
+        columnWidth={444}
+        gutterWidth={16}
+        gutterHeight={16}
+        className="hidden sm:block"
+      >
+        {routersComponent}
+      </StackGrid>
+      <div className="block sm:hidden space-y-3">
+        {routersComponent}
       </div>
     </>
   )
