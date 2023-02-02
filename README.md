@@ -12,7 +12,7 @@ This is the frontend part of the [Connext Network Explorer](https://v1.connextsc
 ### Mainnet
 - Explorer: [https://v1.connextscan.io](https://v1.connextscan.io)
 ### Testnet
-- Explorer: [https://v1.testnet.connextscan.io](https://v1.testnet.connextscan.io)
+- Explorer: [https://v1-testnet.connextscan.io](https://v1-testnet.connextscan.io)
 ### Connext Protocol
 - Website: [https://connext.nextwork](https:/connext.nextwork)
 - Doc: [https://docs.connext.network](https://docs.connext.network)
