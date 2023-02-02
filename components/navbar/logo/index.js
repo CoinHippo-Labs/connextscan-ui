@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { Tooltip } from '@material-tailwind/react'
+import { BsArrowLeft } from 'react-icons/bs'
 
 import Image from '../../image'
 
@@ -12,7 +14,7 @@ export default () => {
     )
 
   return (
-    <div className="logo ml-3 mr-0.5 sm:mr-3">
+    <div className="logo flex flex-col items-start ml-3 mr-0.5 sm:mr-3">
       <Link href="/">
         <a className="w-full flex flex-col items-start">
           <div className="min-w-max sm:mr-3">
@@ -49,18 +51,37 @@ export default () => {
               </div>
             </div>
           </div>
-          <div className="hidden sm:block">
-            {
-              is_testnet &&
-              (
-                <div className="max-w-min whitespace-nowrap lowercase tracking-wider text-slate-400 dark:text-slate-500 text-sm ml-10">
-                  {process.env.NEXT_PUBLIC_NETWORK}
-                </div>
-              )
-            }
-          </div>
         </a>
       </Link>
+      <div className="flex items-center space-x-2 ml-0 sm:ml-10">
+        <Tooltip
+          placement="bottom"
+          content="return back to nxtp-v1"
+          className="z-50 bg-dark text-white text-xs"
+        >
+          <a
+            href="https://v1.connextscan.io"
+            className="bg-slate-200 dark:bg-slate-800 flex items-center text-blue-500 dark:text-blue-500 space-x-1 py-1 px-2"
+          >
+            <BsArrowLeft
+              size={12}
+            />
+            <span className="whitespace-nowrap text-xs font-semibold">
+              NXTPv1
+            </span>
+          </a>
+        </Tooltip>
+        <div className="hidden sm:block">
+          {
+            is_testnet &&
+            (
+              <div className="max-w-min whitespace-nowrap lowercase text-slate-400 dark:text-slate-500 text-xs">
+                {process.env.NEXT_PUBLIC_NETWORK}
+              </div>
+            )
+          }
+        </div>
+      </div>
     </div>
   )
 }
