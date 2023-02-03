@@ -12,6 +12,7 @@ import { HiCheckCircle } from 'react-icons/hi'
 import { IoWarning } from 'react-icons/io5'
 import { BsLightningCharge } from 'react-icons/bs'
 import { BiInfoCircle } from 'react-icons/bi'
+import { AiTwotoneFile } from 'react-icons/ai'
 
 import Image from '../image'
 import TimeSpent from '../time-spent'
@@ -134,7 +135,8 @@ export default () => {
                     [
                       _data?.origin_transacting_asset,
                       _data?.origin_bridged_asset,
-                    ].findIndex(_a =>
+                    ]
+                    .findIndex(_a =>
                       [
                         c?.next_asset?.contract_address,
                         c?.contract_address,
@@ -193,7 +195,8 @@ export default () => {
                   [
                     a?.id,
                     a?.symbol,
-                  ].findIndex(s =>
+                  ]
+                  .findIndex(s =>
                     equals_ignore_case(
                       s,
                       symbol,
@@ -234,7 +237,8 @@ export default () => {
                           c?.next_asset?.contract_address :
                           c?.contract_address :
                         _data?.destination_local_asset,
-                    ].findIndex(_a =>
+                    ]
+                    .findIndex(_a =>
                       [
                         c?.next_asset?.contract_address,
                         c?.contract_address,
@@ -296,7 +300,8 @@ export default () => {
                   [
                     a?.id,
                     a?.symbol,
-                  ].findIndex(s =>
+                  ]
+                  .findIndex(s =>
                     equals_ignore_case(
                       s,
                       symbol,
@@ -380,20 +385,9 @@ export default () => {
     reconcile_transaction_hash,
     execute_transaction_hash,
     execute_timestamp,
+    routers,
+    call_data,
   } = { ...data }
-  let {
-    force_slow,
-  } = { ...data }
-
-  force_slow =
-    force_slow ||
-    (status || '')
-      .toLowerCase()
-      .includes('slow') ||
-    !!(
-      reconcile_transaction_hash &&
-      !execute_transaction_hash
-    )
 
   const source_symbol = source_asset_data?.symbol
 
@@ -412,7 +406,8 @@ export default () => {
         [
           'number',
           'string',
-        ].includes(typeof a) &&
+        ]
+        .includes(typeof a) &&
         Number(
           utils.formatUnits(
             BigNumber.from(
@@ -445,7 +440,8 @@ export default () => {
         [
           'number',
           'string',
-        ].includes(typeof a) &&
+        ]
+        .includes(typeof a) &&
         Number(
           utils.formatUnits(
             BigNumber.from(
@@ -485,14 +481,14 @@ export default () => {
   const details =
     _.concat(
       ['xcall'],
-      force_slow ?
+      routers?.length > 0 ?
         [
-          'reconcile',
           'execute',
+          'reconcile',
         ] :
         [
-          'execute',
           'reconcile',
+          'execute',
         ]
     )
     .filter(s =>
@@ -874,7 +870,8 @@ export default () => {
                       data[`${s}_transaction_hash`] ||
                       ![
                         'reconcile',
-                      ].includes(s)
+                      ]
+                      .includes(s)
                     )
                     .map((s, i) => (
                       <div
@@ -908,24 +905,67 @@ export default () => {
                           <div className="flex items-center space-x-4">
                             {
                               s === 'xcall' &&
-                              !force_slow &&
                               (
-                                <Tooltip
-                                  placement="top"
-                                  content="Boosted by router liquidity."
-                                  className="z-50 bg-dark text-white text-xs"
-                                >
-                                  <div className="flex items-center">
-                                    <BsLightningCharge
-                                      size={24}
-                                      className="text-yellow-600 dark:text-yellow-400"
-                                    />
-                                    <BiInfoCircle
-                                      size={14}
-                                      className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
-                                    />
-                                  </div>
-                                </Tooltip>
+                                <>
+                                  {
+                                    call_data &&
+                                    (
+                                      <Tooltip
+                                        placement="top"
+                                        content={
+                                          call_data !== '0x' ?
+                                            'Has calldata' :
+                                            'No calldata'
+                                        }
+                                        className="z-50 bg-dark text-white text-xs"
+                                      >
+                                        <div className="flex items-center">
+                                          <AiTwotoneFile
+                                            size={24}
+                                            className={
+                                              call_data !== '0x' ?
+                                                'text-yellow-600 dark:text-yellow-400' :
+                                                'text-slate-400 dark:text-slate-500'
+                                            }
+                                          />
+                                          <BiInfoCircle
+                                            size={14}
+                                            className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
+                                          />
+                                        </div>
+                                      </Tooltip>
+                                    )
+                                  }
+                                  {
+                                    routers &&
+                                    (
+                                      <Tooltip
+                                        placement="top"
+                                        content={
+                                          routers.length > 0 ?
+                                            'Boosted by router network.' :
+                                            'Not boost by router network.'
+                                        }
+                                        className="z-50 bg-dark text-white text-xs"
+                                      >
+                                        <div className="flex items-center">
+                                          <BsLightningCharge
+                                            size={24}
+                                            className={
+                                              routers.length > 0 ?
+                                                'text-yellow-600 dark:text-yellow-400' :
+                                                'text-slate-400 dark:text-slate-500'
+                                            }
+                                          />
+                                          <BiInfoCircle
+                                            size={14}
+                                            className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
+                                          />
+                                        </div>
+                                      </Tooltip>
+                                    )
+                                  }
+                                </>
                               )
                             }
                             {data[`${s}_transaction_hash`] ?
@@ -1027,7 +1067,8 @@ export default () => {
                                       [
                                         'recovery',
                                         'relayer_fee',
-                                      ].includes(f) ?
+                                      ]
+                                      .includes(f) ?
                                         `${f}` :
                                         `${s}_${f}`
                                     ] === null ?
@@ -1039,7 +1080,8 @@ export default () => {
                                           [
                                             'recovery',
                                             'relayer_fee',
-                                          ].includes(f) ?
+                                          ]
+                                          .includes(f) ?
                                             `${f}` :
                                             `${s}_${f}`
                                         ]

@@ -12,6 +12,7 @@ import { HiCheckCircle, HiXCircle } from 'react-icons/hi'
 import { IoWarning } from 'react-icons/io5'
 import { BsLightningCharge } from 'react-icons/bs'
 import { BiInfoCircle } from 'react-icons/bi'
+import { AiTwotoneFile } from 'react-icons/ai'
 
 import Image from '../image'
 import SelectChain from '../select/chain'
@@ -706,25 +707,12 @@ export default () => {
                       pending,
                       errored,
                       xcall_timestamp,
-                      reconcile_transaction_hash,
-                      execute_transaction_hash,
                       execute_timestamp,
                       status,
                       error_status,
+                      routers,
+                      call_data,
                     } = { ...props.row.original }
-                    let {
-                      force_slow,
-                    } = { ...props.row.original }
-
-                    force_slow =
-                      force_slow ||
-                      (status || '')
-                        .toLowerCase()
-                        .includes('slow') ||
-                      !!(
-                        reconcile_transaction_hash &&
-                        !execute_transaction_hash
-                      )
 
                     return (
                       value &&
@@ -756,6 +744,35 @@ export default () => {
                               value={value}
                             />
                           </div>
+                          {
+                            call_data &&
+                            (
+                              <Tooltip
+                                placement="top"
+                                content={
+                                  call_data !== '0x' ?
+                                    'Has calldata' :
+                                    'No calldata'
+                                }
+                                className="z-50 bg-dark text-white text-xs"
+                              >
+                                <div className="flex items-center">
+                                  <AiTwotoneFile
+                                    size={16}
+                                    className={
+                                      call_data !== '0x' ?
+                                        'text-yellow-600 dark:text-yellow-400' :
+                                        'text-slate-400 dark:text-slate-500'
+                                    }
+                                  />
+                                  <BiInfoCircle
+                                    size={14}
+                                    className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
+                                  />
+                                </div>
+                              </Tooltip>
+                            )
+                          }
                           {
                             address &&
                             (
@@ -819,17 +836,25 @@ export default () => {
                                 }
                                 <div className="flex items-center space-x-2">
                                   {
-                                    !force_slow &&
+                                    routers &&
                                     (
                                       <Tooltip
                                         placement="bottom"
-                                        content="Boosted by router liquidity."
+                                        content={
+                                          routers.length > 0 ?
+                                            'Boosted by router network.' :
+                                            'Not boost by router network.'
+                                        }
                                         className="z-50 bg-dark text-white text-xs"
                                       >
                                         <div className="flex items-center">
                                           <BsLightningCharge
                                             size={16}
-                                            className="text-yellow-600 dark:text-yellow-400"
+                                            className={
+                                              routers.length > 0 ?
+                                                'text-yellow-600 dark:text-yellow-400' :
+                                                'text-slate-400 dark:text-slate-500'
+                                            }
                                           />
                                           <BiInfoCircle
                                             size={14}
@@ -910,24 +935,10 @@ export default () => {
                       pending,
                       errored,
                       xcall_timestamp,
-                      reconcile_transaction_hash,
-                      execute_transaction_hash,
                       execute_timestamp,
                       error_status,
+                      routers,
                     } = { ...props.row.original }
-                    let {
-                      force_slow,
-                    } = { ...props.row.original }
-
-                    force_slow =
-                      force_slow ||
-                      (value || '')
-                        .toLowerCase()
-                        .includes('slow') ||
-                      !!(
-                        reconcile_transaction_hash &&
-                        !execute_transaction_hash
-                      )
 
                     return (
                       <div className="flex flex-col items-start space-y-1 mt-0.5">
@@ -990,17 +1001,25 @@ export default () => {
                         }
                         <div className="flex items-center space-x-2">
                           {
-                            !force_slow &&
+                            routers &&
                             (
                               <Tooltip
                                 placement="bottom"
-                                content="Boosted by router liquidity."
+                                content={
+                                  routers.length > 0 ?
+                                    'Boosted by router network.' :
+                                    'Not boost by router network.'
+                                }
                                 className="z-50 bg-dark text-white text-xs"
                               >
                                 <div className="flex items-center">
                                   <BsLightningCharge
                                     size={16}
-                                    className="text-yellow-600 dark:text-yellow-400"
+                                    className={
+                                      routers.length > 0 ?
+                                        'text-yellow-600 dark:text-yellow-400' :
+                                        'text-slate-400 dark:text-slate-500'
+                                    }
                                   />
                                   <BiInfoCircle
                                     size={14}
