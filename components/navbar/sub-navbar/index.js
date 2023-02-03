@@ -74,28 +74,28 @@ export default () => {
       break
     case '/tx/[tx]':
       title = 'Transfer'
-      subtitle =
-        (
-          <div className="flex items-center text-sm space-x-2">
-            <div>
-              <span className="xl:hidden">
-                {ellipse(
-                  tx,
-                  16,
-                )}
-              </span>
-              <span className="hidden xl:block">
-                {ellipse(
-                  tx,
-                  24,
-                )}
-              </span>
-            </div>
-            <Copy
-              value={tx}
-            />
-          </div>
-        )
+      // subtitle =
+      //   (
+      //     <div className="flex items-center text-sm space-x-2">
+      //       <div>
+      //         <span className="xl:hidden">
+      //           {ellipse(
+      //             tx,
+      //             16,
+      //           )}
+      //         </span>
+      //         <span className="hidden xl:block">
+      //           {ellipse(
+      //             tx,
+      //             24,
+      //           )}
+      //         </span>
+      //       </div>
+      //       <Copy
+      //         value={tx}
+      //       />
+      //     </div>
+      //   )
       break
     case '/address/[address]':
       title =
@@ -218,7 +218,7 @@ export default () => {
   }
 
   return (
-    <div className="w-full overflow-x-auto flex items-center py-2 sm:pt-4 px-2 sm:px-4">
+    <div className="w-full overflow-x-auto flex items-center p-2 pt-6 sm:pt-4 sm:px-4">
       <div className="flex flex-col space-y-1">
         {
           title &&

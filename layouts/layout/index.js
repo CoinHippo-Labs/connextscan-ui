@@ -2,12 +2,13 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import { useSelector, useDispatch, shallowEqual } from 'react-redux'
+import PageVisibility from 'react-page-visibility'
 
 import Navbar from '../../components/navbar'
 import Footer from '../../components/footer'
 import meta from '../../lib/meta'
 import { equals_ignore_case } from '../../lib/utils'
-import { THEME } from '../../reducers/types'
+import { THEME, PAGE_VISIBLE } from '../../reducers/types'
 
 export default (
   {
@@ -155,29 +156,41 @@ export default (
           href={url}
         />
       </Head>
-      <div
-        data-layout="layout"
-        data-background={theme}
-        data-navbar={theme}
-        className={`antialiased disable-scrollbars text-sm ${theme}`}
-      >
-        <div className="wrapper">
-          <div
-            className="main w-full bg-white dark:bg-black"
-            style={
+      <PageVisibility
+        onChange={
+          v =>
+            dispatch(
               {
-                minHeight: 'calc(100vh - 44px)',
+                type: PAGE_VISIBLE,
+                value: v,
               }
-            }
-          >
-            <Navbar />
-            <div className="w-full px-2 sm:px-4">
-              {children}
+            )
+        }
+      >
+        <div
+          data-layout="layout"
+          data-background={theme}
+          data-navbar={theme}
+          className={`antialiased disable-scrollbars text-sm ${theme}`}
+        >
+          <div className="wrapper">
+            <div
+              className="main w-full bg-white dark:bg-black"
+              style={
+                {
+                  minHeight: 'calc(100vh - 44px)',
+                }
+              }
+            >
+              <Navbar />
+              <div className="w-full px-2 sm:px-4">
+                {children}
+              </div>
             </div>
           </div>
+          <Footer />
         </div>
-        <Footer />
-      </div>
+      </PageVisibility>
     </>
   )
 }

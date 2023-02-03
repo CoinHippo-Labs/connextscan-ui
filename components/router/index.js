@@ -14,6 +14,7 @@ import { equals_ignore_case } from '../../lib/utils'
 
 export default () => {
   const {
+    preferences,
     chains,
     assets,
     ens,
@@ -21,6 +22,7 @@ export default () => {
   } = useSelector(state =>
     (
       {
+        preferences: state.preferences,
         chains: state.chains,
         assets: state.assets,
         ens: state.ens,
@@ -29,6 +31,9 @@ export default () => {
     ),
     shallowEqual,
   )
+  const {
+    page_visible,
+  } = { ...preferences }
   const {
     chains_data,
   } = { ...chains }
@@ -89,6 +94,7 @@ export default () => {
     () => {
       const getData = async is_interval => {
         if (
+          page_visible &&
           sdk &&
           chains_data &&
           assets_data
@@ -236,14 +242,15 @@ export default () => {
       getData()
 
       const interval =
-        setInterval(() =>
-          getData(true),
+        setInterval(
+          () =>
+            getData(true),
           0.5 * 60 * 1000,
         )
 
       return () => clearInterval(interval)
     },
-    [address, sdk, chains_data, assets_data, action],
+    [page_visible, address, sdk, chains_data, assets_data, action],
   )
 
   useEffect(

@@ -27,6 +27,7 @@ const WRAPPED_PREFIX =
 export default () => {
   const dispatch = useDispatch()
   const {
+    preferences,
     chains,
     assets,
     pool_assets,
@@ -39,6 +40,7 @@ export default () => {
   } = useSelector(state =>
     (
       {
+        preferences: state.preferences,
         chains: state.chains,
         assets: state.assets,
         pool_assets: state.pool_assets,
@@ -52,6 +54,9 @@ export default () => {
     ),
     shallowEqual,
   )
+  const {
+    page_visible,
+  } = { ...preferences }
   const {
     chains_data,
   } = { ...chains }
@@ -173,7 +178,10 @@ export default () => {
   useEffect(
     () => {
       const getData = async is_interval => {
-        if (assets_data) {
+        if (
+          page_visible &&
+          assets_data
+        ) {
           let updated_ids =
             is_interval ?
               [] :
@@ -266,7 +274,7 @@ export default () => {
 
       return () => clearInterval(interval)
     },
-    [assets_data],
+    [page_visible, assets_data],
   )
 
   // rpcs
@@ -691,7 +699,7 @@ export default () => {
 
       return () => clearInterval(interval)
     },
-    [sdk, chains_data, assets_data, pathname],
+    [page_visible, sdk, chains_data, assets_data, pathname],
   )
 
   // ens
@@ -1143,6 +1151,7 @@ export default () => {
 
       const getData = async () => {
         if (
+          page_visible &&
           sdk &&
           chains_data &&
           pool_assets_data
@@ -1165,7 +1174,7 @@ export default () => {
 
       return () => clearInterval(interval)
     },
-    [sdk, chains_data, pool_assets_data],
+    [page_visible, sdk, chains_data, pool_assets_data],
   )
 
   return (
