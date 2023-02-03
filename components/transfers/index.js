@@ -53,7 +53,6 @@ export default () => {
   )
   const {
     theme,
-    page_visible,
   } = { ...preferences }
   const {
     chains_data,
@@ -111,10 +110,7 @@ export default () => {
   useEffect(
     () => {
       const triggering = is_interval => {
-        if (
-          page_visible &&
-          sdk
-        ) {
+        if (sdk) {
           setFetchTrigger(
             is_interval ?
               moment()
@@ -137,16 +133,13 @@ export default () => {
 
       return () => clearInterval(interval)
     },
-    [page_visible, sdk, pathname, address, statusSelect],
+    [sdk, pathname, address, statusSelect],
   )
 
   useEffect(
     () => {
       const getData = async () => {
-        if (
-          page_visible &&
-          sdk
-        ) {
+        if (sdk) {
           setFetching(true)
 
           if (!fetchTrigger) {
@@ -593,7 +586,7 @@ export default () => {
 
       getData()
     },
-    [page_visible, fetchTrigger],
+    [fetchTrigger],
   )
 
   const source_chain_data = (chains_data || [])
