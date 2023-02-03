@@ -495,7 +495,8 @@ export default () => {
                         XTransferStatus.CompletedFast,
                         XTransferStatus.CompletedSlow,
                       ]
-                      .includes(t?.status),
+                      .includes(t.status) &&
+                      !t.execute_transaction_hash,
                   }
                 })
                 .map(t => {
