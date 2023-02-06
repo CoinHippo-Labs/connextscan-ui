@@ -1058,7 +1058,9 @@ export default () => {
                               [
                                 'xcall',
                               ]
-                              .includes(s) ?
+                              .includes(s) &&
+                              call_data &&
+                              call_data !== '0x' ?
                                 'call_data' :
                                 undefined,
                             ]
