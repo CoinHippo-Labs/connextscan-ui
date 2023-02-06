@@ -499,7 +499,8 @@ export default (
       switch (error_status) {
         case XTransferErrorStatus.LowSlippage:
           try {
-            const newSlippageInBps = newSlippage * 100;
+            const newSlippageInBps = newSlippage * 100
+
             params = {
               domainId: origin_domain,
               transferId: transfer_id,

@@ -1036,6 +1036,12 @@ export default () => {
                               'block_number',
                               'timestamp',
                               'caller',
+                              [
+                                'xcall',
+                              ]
+                              .includes(s) ?
+                                'to' :
+                                undefined,
                               s === 'xcall' ?
                                 'recovery' :
                                 s === 'execute' ?
@@ -1049,6 +1055,12 @@ export default () => {
                                 undefined,
                               'gas_price',
                               'gas_limit',
+                              [
+                                'xcall',
+                              ]
+                              .includes(s) ?
+                                'call_data' :
+                                undefined,
                             ]
                             .filter(f => f)
                             .map(((f, j) => (
@@ -1067,7 +1079,9 @@ export default () => {
                                     data[
                                       [
                                         'recovery',
+                                        'to',
                                         'relayer_fee',
+                                        'call_data',
                                       ]
                                       .includes(f) ?
                                         `${f}` :
@@ -1080,7 +1094,9 @@ export default () => {
                                         data?.[
                                           [
                                             'recovery',
+                                            'to',
                                             'relayer_fee',
+                                            'call_data',
                                           ]
                                           .includes(f) ?
                                             `${f}` :
@@ -1092,19 +1108,23 @@ export default () => {
                                           s === 'xcall' ?
                                             source_chain_data :
                                             destination_chain_data
+
                                         const {
                                           provider_params,
                                           explorer,
                                         } = { ...chain_data }
+
                                         const {
                                           nativeCurrency,
                                         } = { ..._.head(provider_params) }
+
                                         const {
                                           url,
                                           block_path,
                                           transaction_path,
                                           address_path,
                                         } = { ...explorer }
+
                                         const {
                                           symbol,
                                           decimals,
@@ -1179,52 +1199,104 @@ export default () => {
                                           case 'caller':
                                           case 'origin_sender':
                                           case 'recovery':
-                                            _v = (
-                                              <EnsProfile
-                                                address={v}
-                                                no_copy={true}
-                                                fallback={
-                                                  <>
-                                                    <span className="lg:hidden">
-                                                      {ellipse(
-                                                        v,
-                                                        10,
-                                                      )}
-                                                    </span>
-                                                    <span className="hidden lg:block">
-                                                      {ellipse(
-                                                        v,
-                                                        12,
-                                                      )}
-                                                    </span>
-                                                  </>
-                                                }
-                                              />
-                                            )
-
-                                            component = (
-                                              v ?
-                                                <div className="flex items-center space-x-2">
-                                                  {url ?
-                                                    <a
-                                                      href={`${url}${address_path?.replace('{address}', v)}`}
-                                                      target="_blank"
-                                                      rel="noopener noreferrer"
-                                                      className="text-blue-500 dark:text-blue-600"
-                                                    >
-                                                      {_v}
-                                                    </a> :
-                                                    _v
+                                            _v =
+                                              (
+                                                <EnsProfile
+                                                  address={v}
+                                                  no_copy={true}
+                                                  fallback={
+                                                    <>
+                                                      <span className="lg:hidden">
+                                                        {ellipse(
+                                                          v,
+                                                          10,
+                                                        )}
+                                                      </span>
+                                                      <span className="hidden lg:block">
+                                                        {ellipse(
+                                                          v,
+                                                          12,
+                                                        )}
+                                                      </span>
+                                                    </>
                                                   }
-                                                  <Copy
-                                                    size={20}
-                                                    value={v}
-                                                  />
-                                                </div> :
-                                                <span>
-                                                  -
-                                                </span>
-                                            )
+                                                />
+                                              )
+
+                                            component =
+                                              (
+                                                v ?
+                                                  <div className="flex items-center space-x-2">
+                                                    {url ?
+                                                      <a
+                                                        href={`${url}${address_path?.replace('{address}', v)}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-500 dark:text-blue-600"
+                                                      >
+                                                        {_v}
+                                                      </a> :
+                                                      _v
+                                                    }
+                                                    <Copy
+                                                      size={20}
+                                                      value={v}
+                                                    />
+                                                  </div> :
+                                                  <span>
+                                                    -
+                                                  </span>
+                                              )
+                                            break
+                                          case 'to':
+                                            _v =
+                                              (
+                                                <EnsProfile
+                                                  address={v}
+                                                  no_copy={true}
+                                                  fallback={
+                                                    <>
+                                                      <span className="lg:hidden">
+                                                        {ellipse(
+                                                          v,
+                                                          10,
+                                                        )}
+                                                      </span>
+                                                      <span className="hidden lg:block">
+                                                        {ellipse(
+                                                          v,
+                                                          12,
+                                                        )}
+                                                      </span>
+                                                    </>
+                                                  }
+                                                />
+                                              )
+
+                                            component =
+                                              (
+                                                v ?
+                                                  <div className="flex items-center space-x-2">
+                                                    {destination_chain_data?.explorer?.url ?
+                                                      <a
+                                                        href={`${destination_chain_data.explorer.url}${destination_chain_data.explorer.address_path?.replace('{address}', v)}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-500 dark:text-blue-600"
+                                                      >
+                                                        {_v}
+                                                      </a> :
+                                                      _v
+                                                    }
+                                                    <Copy
+                                                      size={20}
+                                                      value={v}
+                                                    />
+                                                  </div> :
+                                                  <span>
+                                                    -
+                                                  </span>
+                                              )
                                             break
                                           case 'relayer_fee':
                                             _v =
@@ -1273,6 +1345,26 @@ export default () => {
                                                 </span>
                                               </div>
                                             )
+                                            break
+                                          case 'call_data':
+                                            component =
+                                              (
+                                                v ?
+                                                  <div className="flex items-start space-x-1">
+                                                    <div className="bg-slate-50 dark:bg-slate-800 rounded break-all p-2">
+                                                      {v}
+                                                    </div>
+                                                    <div className="mt-2.5">
+                                                      <Copy
+                                                        size={20}
+                                                        value={v}
+                                                      />
+                                                    </div>
+                                                  </div> :
+                                                  <span>
+                                                    -
+                                                  </span>
+                                              )
                                             break
                                           default:
                                             component =
