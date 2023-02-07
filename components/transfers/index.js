@@ -837,7 +837,7 @@ export default () => {
                                         content={
                                           routers.length > 0 ?
                                             'Boosted by router network.' :
-                                            'Not boost by router network.'
+                                            'Not boosted by router network.'
                                         }
                                         className="z-50 bg-dark text-white text-xs"
                                       >
@@ -1002,7 +1002,7 @@ export default () => {
                                 content={
                                   routers.length > 0 ?
                                     'Boosted by router network.' :
-                                    'Not boost by router network.'
+                                    'Not boosted by router network.'
                                 }
                                 className="z-50 bg-dark text-white text-xs"
                               >
