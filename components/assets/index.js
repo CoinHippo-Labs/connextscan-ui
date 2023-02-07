@@ -474,6 +474,7 @@ export default (
               .includes(c.accessor)
             )
           }
+          size="small"
           data={_assets_data}
           noPagination={_assets_data.length <= 10}
           defaultPageSize={10}

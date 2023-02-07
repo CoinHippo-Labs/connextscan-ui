@@ -769,6 +769,10 @@ export default () => {
                           }
                           {
                             address &&
+                            ![
+                              '/address/[address]',
+                            ]
+                            .includes(pathname) &&
                             (
                               <div className="flex-col items-start space-y-1">
                                 {
@@ -1369,6 +1373,10 @@ export default () => {
               ]
               .filter(c =>
                 !address ||
+                [
+                  '/address/[address]',
+                ]
+                .includes(pathname) ||
                 ![
                   'xcall_timestamp',
                   'status',
@@ -1377,6 +1385,7 @@ export default () => {
                 .includes(c.accessor)
               )
             }
+            size="small"
             data={data_filtered}
             noPagination={data_filtered.length <= 10}
             defaultPageSize={

@@ -8,10 +8,10 @@
     @apply border-0 border-none;
   }
   thead tr th {
-    @apply px-3 py-2 border-b text-xs leading-4 font-medium uppercase tracking-wider;
+    @apply px-3 py-2 /*border-b */text-xs leading-4 font-medium uppercase;
   }
   tbody tr td {
-    @apply px-3 py-2 border-b whitespace-nowrap align-top;
+    @apply px-3 py-2 /*border-b */whitespace-nowrap align-top;
   }
   &.table-sm {
     thead tr th {
@@ -38,7 +38,7 @@
 }
 
 .table {
-  @apply bg-slate-50 border text-left;
+  @apply bg-slate-50 /*border */ text-left;
   thead tr th,
   tbody tr td {
     @apply text-left;
