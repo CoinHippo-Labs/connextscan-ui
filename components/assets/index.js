@@ -139,9 +139,12 @@ export default (
 
               if (
                 next_asset &&
-                equals_ignore_case(
-                  next_asset.contract_address,
-                  liquidity?.contract_address,
+                (
+                  !liquidity?.contract_address ||
+                  equals_ignore_case(
+                    next_asset.contract_address,
+                    liquidity.contract_address,
+                  )
                 )
               ) {
                 asset_data = {
@@ -360,7 +363,7 @@ export default (
                 Header: 'Chain',
                 accessor: 'chain_data.name',
                 sortType: (a, b) =>
-                  chainName(a.original.chain) > chainName(b.original.chain_data) ?
+                  chainName(a.original.chain_data) > chainName(b.original.chain_data) ?
                     1 :
                     -1,
                 Cell: props => {
