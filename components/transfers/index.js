@@ -279,8 +279,8 @@ export default () => {
                         .findIndex(c =>
                           c?.chain_id === source_chain_data?.chain_id &&
                           [
-                            t?.origin_bridged_asset,
                             t?.origin_transacting_asset,
+                            t?.origin_bridged_asset,
                           ].findIndex(_a =>
                             [
                               c?.next_asset?.contract_address,
@@ -306,7 +306,7 @@ export default () => {
                     source_contract_data?.next_asset &&
                     equals_ignore_case(
                       source_contract_data.next_asset.contract_address,
-                      t?.origin_bridged_asset,
+                      t?.origin_transacting_asset,
                     )
                   ) {
                     source_contract_data = {
