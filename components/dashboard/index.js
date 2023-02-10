@@ -65,6 +65,9 @@ export default () => {
               volumes :
               []
             )
+            .filter(v =>
+              v?.transfer_date
+            )
             .map(v => {
               const {
                 transfer_date,
@@ -190,6 +193,9 @@ export default () => {
             (Array.isArray(transfers) ?
               transfers :
               []
+            )
+            .filter(v =>
+              v?.transfer_date
             )
             .map(t => {
               const {
