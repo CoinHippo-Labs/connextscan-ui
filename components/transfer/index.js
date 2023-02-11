@@ -10,7 +10,7 @@ import { TailSpin } from 'react-loader-spinner'
 import { Tooltip } from '@material-tailwind/react'
 import { HiCheckCircle } from 'react-icons/hi'
 import { IoWarning } from 'react-icons/io5'
-import { BsLightningCharge } from 'react-icons/bs'
+import { BsLightningChargeFill } from 'react-icons/bs'
 import { BiInfoCircle } from 'react-icons/bi'
 import { AiTwotoneFile } from 'react-icons/ai'
 
@@ -910,6 +910,7 @@ export default () => {
                                 <>
                                   {
                                     call_data &&
+                                    call_data !== '0x' &&
                                     (
                                       <Tooltip
                                         placement="top"
@@ -925,7 +926,7 @@ export default () => {
                                             size={24}
                                             className={
                                               call_data !== '0x' ?
-                                                'text-yellow-600 dark:text-yellow-400' :
+                                                'text-yellow-500 dark:text-yellow-400' :
                                                 'text-slate-400 dark:text-slate-500'
                                             }
                                           />
@@ -938,24 +939,24 @@ export default () => {
                                     )
                                   }
                                   {
-                                    routers &&
+                                    call_data === '0x' &&
                                     (
                                       <Tooltip
                                         placement="top"
                                         content={
-                                          routers.length > 0 ?
-                                            'Boosted by router network.' :
-                                            'Not boosted by router network.'
+                                          routers?.length > 0 ?
+                                            'Boosted by routers.' :
+                                            'Pending router boost.'
                                         }
                                         className="z-50 bg-dark text-white text-xs"
                                       >
                                         <div className="flex items-center">
-                                          <BsLightningCharge
+                                          <BsLightningChargeFill
                                             size={24}
                                             className={
-                                              routers.length > 0 ?
-                                                'text-yellow-600 dark:text-yellow-400' :
-                                                'text-slate-400 dark:text-slate-500'
+                                              routers?.length > 0 ?
+                                                'text-yellow-500 dark:text-yellow-400' :
+                                                'text-blue-300 dark:text-blue-200'
                                             }
                                           />
                                           <BiInfoCircle
