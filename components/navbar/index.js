@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useSelector, useDispatch, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import { create } from '@connext/sdk'
-import { BigNumber, providers, utils } from 'ethers'
+import { providers, utils } from 'ethers'
 
 import Logo from './logo'
 import DropdownNavigations from './navigations/dropdown'
@@ -13,16 +13,15 @@ import Wallet from '../wallet'
 import Chains from './chains'
 import Theme from './theme'
 import SubNavbar from './sub-navbar'
-import { chains as getChains, assets as getAssets } from '../../lib/api/config'
-import { assets_price } from '../../lib/api/assets'
+import { getChains, getAssets } from '../../lib/api/config'
+import { assetsPrice } from '../../lib/api/assets'
 import { ens as getEns } from '../../lib/api/ens'
-import { connext } from '../../lib/object/chain'
-import { equals_ignore_case, sleep } from '../../lib/utils'
-import { CHAINS_DATA, ASSETS_DATA, POOL_ASSETS_DATA, ENS_DATA, CHAIN_DATA, ASSET_BALANCES_DATA, POOLS_DATA, SDK, RPCS } from '../../reducers/types'
-
-const WRAPPED_PREFIX =
-  process.env.NEXT_PUBLIC_WRAPPED_PREFIX ||
-  'next'
+import { getChain } from '../../lib/object/chain'
+import { getAsset } from '../../lib/object/asset'
+import { getContract } from '../../lib/object/contract'
+import { getPool } from '../../lib/object/pool'
+import { split, toArray, equalsIgnoreCase, sleep } from '../../lib/utils'
+import { CHAINS_DATA, ASSETS_DATA, POOL_ASSETS_DATA, ENS_DATA, ROUTER_ASSET_BALANCES_DATA, POOLS_DATA, SDK, RPCS } from '../../reducers/types'
 
 export default () => {
   const dispatch = useDispatch()
@@ -32,20 +31,20 @@ export default () => {
     assets,
     pool_assets,
     ens,
-    asset_balances,
+    router_asset_balances,
     pools,
     rpc_providers,
     dev,
     wallet,
-  } = useSelector(state =>
-    (
+  } = useSelector(
+    state => (
       {
         preferences: state.preferences,
         chains: state.chains,
         assets: state.assets,
         pool_assets: state.pool_assets,
         ens: state.ens,
-        asset_balances: state.asset_balances,
+        router_asset_balances: state.router_asset_balances,
         pools: state.pools,
         rpc_providers: state.rpc_providers,
         dev: state.dev,
@@ -70,8 +69,8 @@ export default () => {
     ens_data,
   } = { ...ens }
   const {
-    asset_balances_data,
-  } = { ...asset_balances }
+    router_asset_balances_data,
+  } = { ...router_asset_balances }
   const {
     pools_data,
   } = { ...pools }
@@ -88,9 +87,9 @@ export default () => {
     default_chain_id,
     chain_id,
     provider,
-    web3_provider,
-    address,
+    browser_provider,
     signer,
+    address,
   } = { ...wallet_data }
 
   const router = useRouter()
@@ -110,7 +109,6 @@ export default () => {
       const getData = async () => {
         const {
           evm,
-          cosmos,
         } = { ...await getChains() }
 
         if (evm) {
@@ -132,41 +130,21 @@ export default () => {
   useEffect(
     () => {
       const getData = async () => {
-        const response = await getAssets()
+        const response = toArray(await getAssets())
 
-        if (Array.isArray(response)) {
-          dispatch(
-            {
-              type: ASSETS_DATA,
-              value: response,
-            }
-          )
+        dispatch(
+          {
+            type: ASSETS_DATA,
+            value: response,
+          }
+        )
 
-          dispatch(
-            {
-              type: POOL_ASSETS_DATA,
-              value:
-                response
-                  .map(d => {
-                    const {
-                      contracts,
-                    } = { ...d }
-
-                    return {
-                      ...d,
-                      contracts:
-                        (contracts || [])
-                          .filter(c =>
-                            c?.is_pool
-                          ),
-                    }
-                  })
-                  .filter(d =>
-                    d.contracts.length > 0
-                  ),
-            }
-          )
-        }
+        dispatch(
+          {
+            type: POOL_ASSETS_DATA,
+            value: getAsset(null, response, undefined, undefined, undefined, true, false, true, true),
+          }
+        )
       }
 
       getData()
@@ -178,87 +156,64 @@ export default () => {
   useEffect(
     () => {
       const getData = async is_interval => {
-        if (
-          page_visible &&
-          assets_data
-        ) {
+        if (page_visible && assets_data) {
           let updated_ids =
-            is_interval ?
-              [] :
-              assets_data
-                .filter(a =>
-                  typeof a.price === 'number'
-                )
-                .map(a => a.id)
+            assets_data
+              .filter(a => !is_interval && typeof a.price === 'number')
+              .map(a => a.id)
 
           if (updated_ids.length < assets_data.length) {
             let updated = false
 
             const assets =
               assets_data
-                .filter(a =>
-                  !updated_ids
-                    .includes(
-                      a.id
-                    )
-                )
+                .filter(a => !updated_ids.includes(a.id))
                 .map(a => a.id)
 
             if (assets.length > 0) {
-              const response =
-                await assets_price(
-                  {
-                    assets,
-                  },
-                )
+              const response = toArray(await assetsPrice({ assets }))
 
-              if (Array.isArray(response)) {
-                response
-                  .forEach(d => {
-                    const index =
-                      assets_data
-                        .findIndex(a =>
-                          equals_ignore_case(
-                            a.id,
-                            d?.asset_id,
-                          )
+              response
+                .forEach(d => {
+                  const index =
+                    assets_data
+                      .findIndex(a =>
+                        equalsIgnoreCase(
+                          a.id,
+                          d?.asset_id,
                         )
+                      )
 
-                    if (index > -1) {
-                      const asset = assets_data[index]
+                  if (index > -1) {
+                    const asset_data = assets_data[index]
+                    asset_data.price = d?.price || asset_data.price || 0
+                    assets_data[index] = asset_data
 
-                      asset.price =
-                        d?.price ||
-                        asset.price ||
-                        0
-
-                      assets_data[index] = asset
-
-                      updated_ids =
-                        _.uniq(
-                          _.concat(
-                            updated_ids,
-                            asset.id,
-                          )
-                        )
-
-                      updated = true
-                    }
-                  })
-              }
+                    updated_ids = _.uniq(_.concat(updated_ids, asset_data.id))
+                    updated = true
+                  }
+                })
             }
 
             if (updated) {
               dispatch(
                 {
                   type: ASSETS_DATA,
-                  value:
-                    _.cloneDeep(
-                      assets_data
-                    ),
+                  value: _.cloneDeep(assets_data),
                 }
               )
             }
+          }
+
+          const pool_assets_data = getAsset(null, assets_data, undefined, undefined, undefined, true, false, true, true)
+
+          if (pool_assets_data.findIndex(d => !updated_ids.includes(d?.id)) < 0) {
+            dispatch(
+              {
+                type: POOL_ASSETS_DATA,
+                value: pool_assets_data,
+              }
+            )
           }
         }
       }
@@ -267,8 +222,7 @@ export default () => {
 
       const interval =
         setInterval(
-          () =>
-            getData(true),
+          () => getData(true),
           5 * 60 * 1000,
         )
 
@@ -280,6 +234,17 @@ export default () => {
   // rpcs
   useEffect(
     () => {
+      const createRpcProvider = (
+        url,
+        chain_id,
+      ) =>
+        new providers.StaticJsonRpcProvider(
+          url,
+          chain_id ?
+            Number(chain_id) :
+            undefined
+        )
+
       const init = async => {
         if (chains_data) {
           const _rpcs = {}
@@ -295,43 +260,29 @@ export default () => {
             } = { ...chain_data }
 
             if (!disabled) {
-              const {
-                rpcUrls,
-              } = {
-                ...(
-                  _.head(provider_params)
-                ),
-              }
-   
-              rpc_urls =
-                (
-                  Array.isArray(rpc_urls) ?
-                    rpc_urls :
-                    (
-                      rpcUrls ||
-                      []
-                    )
-                )
-                .filter(url => url)
+              rpc_urls = rpc_urls || toArray(_.head(provider_params)?.rpcUrls)
 
-              const provider =
-                new providers.FallbackProvider(
-                  rpc_urls
-                    .map((url, i) => {
-                      return {
-                        provider:
-                          new providers.StaticJsonRpcProvider(
-                            url,
-                            chain_id,
-                          ),
-                        priority: i + 1,
-                        stallTimeout: 1000,
-                      }
-                    }),
-                  rpc_urls.length / 3,
-                )
-
-              _rpcs[chain_id] = provider
+              _rpcs[chain_id] =
+                rpc_urls.length > 1 ?
+                  new providers.FallbackProvider(
+                    rpc_urls
+                      .map((url, i) => {
+                        return {
+                          priority: i + 1,
+                          provider:
+                            createRpcProvider(
+                              url,
+                              chain_id,
+                            ),
+                          stallTimeout: 1000,
+                        }
+                      }),
+                    rpc_urls.length / 3,
+                  ) :
+                  createRpcProvider(
+                    _.head(rpc_urls),
+                    chain_id,
+                  )
             }
           }
 
@@ -359,97 +310,61 @@ export default () => {
           !sdk &&
           chains_data &&
           assets_data &&
-          assets_data
-            .findIndex(a =>
-              typeof a.price !== 'number'
-            ) < 0
+          assets_data.findIndex(a => typeof a.price !== 'number') < 0
         ) {
-          const chains_config = {}
+          const chains = {}
 
           for (const chain_data of chains_data) {
             const {
+              disabled,
               chain_id,
               domain_id,
               provider_params,
-              disabled,
             } = { ...chain_data }
             let {
               rpc_urls,
             } = { ...chain_data }
 
-            if (!disabled) {
-              const {
-                rpcUrls,
-              } = {
-                ...(
-                  _.head(provider_params)
-                ),
-              }
-   
-              rpc_urls =
-                (
-                  Array.isArray(rpc_urls) ?
-                    rpc_urls :
-                    (
-                      rpcUrls ||
-                      []
-                    )
-                )
-                .filter(url => url)
+            if (!disabled && domain_id) {
+              rpc_urls = rpc_urls || toArray(_.head(provider_params)?.rpcUrls)
 
-              if (domain_id) {
-                chains_config[domain_id] = {
-                  providers: rpc_urls,
-                  assets:
-                    assets_data
-                      .filter(a =>
-                        (a?.contracts || [])
-                          .findIndex(c =>
-                            c?.chain_id === chain_id
-                          ) > -1
-                      )
-                      .map(a => {
-                        const {
-                          contracts,
-                        } = { ...a }
-                        let {
-                          name,
-                          symbol,
-                        } = { ...a }
+              chains[domain_id] = {
+                providers: rpc_urls,
+                assets:
+                  getAsset(null, assets_data, chain_id, undefined, undefined, true, false, false, true)
+                    .map(a => {
+                      const {
+                        contracts,
+                      } = { ...a }
+                      let {
+                        name,
+                        symbol,
+                      } = { ...a }
 
-                        const contract_data = contracts
-                          .find(c =>
-                            c?.chain_id === chain_id
-                          )
-                        const {
-                          contract_address,
-                        } = { ...contract_data }
+                      const contract_data = getContract(chain_id, contracts)
 
-                        symbol =
-                          contract_data?.symbol ||
-                          symbol
+                      const {
+                        contract_address,
+                      } = { ...contract_data }
 
-                        name =
-                          name ||
-                          symbol
+                      symbol = contract_data?.symbol || symbol
+                      name = name || symbol
 
-                        return {
-                          name,
-                          symbol,
-                          address: contract_address,
-                        }
-                      }),
-                }
+                      return {
+                        name,
+                        symbol,
+                        address: contract_address,
+                      }
+                    }),
               }
             }
           }
 
           const sdkConfig = {
-            chains: chains_config,
-            // signerAddress: address,
-            logLevel: 'info',
             network: process.env.NEXT_PUBLIC_NETWORK,
             environment: process.env.NEXT_PUBLIC_ENVIRONMENT,
+            logLevel: 'info',
+            chains,
           }
 
           console.log(
@@ -460,10 +375,7 @@ export default () => {
           dispatch(
             {
               type: SDK,
-              value:
-                await create(
-                  sdkConfig,
-                ),
+              value: await create(sdkConfig),
             }
           )
         }
@@ -474,37 +386,28 @@ export default () => {
     [chains_data, assets_data, sdk],
   )
 
-  // sdk
+  // sdk change signer
   useEffect(
     () => {
       const update = async () => {
         if (
           sdk &&
           address &&
-          !equals_ignore_case(
+          !equalsIgnoreCase(
             address,
             currentAddress,
           )
         ) {
           if (sdk.sdkBase) {
-            await sdk.sdkBase
-              .changeSignerAddress(
-                address,
-              )
+            await sdk.sdkBase.changeSignerAddress(address)
           }
 
           if (sdk.sdkRouter) {
-            await sdk.sdkRouter
-              .changeSignerAddress(
-                address,
-              )
+            await sdk.sdkRouter.changeSignerAddress(address)
           }
 
           if (sdk.sdkPool) {
-            await sdk.sdkPool
-              .changeSignerAddress(
-                address,
-              )
+            await sdk.sdkPool.changeSignerAddress(address)
           }
 
           setCurrentAddress(address)
@@ -525,166 +428,93 @@ export default () => {
 
       update()
     },
-    [sdk, provider, web3_provider, address, signer, currentAddress],
+    [sdk, provider, browser_provider, signer, address, currentAddress],
   )
 
-  // assets balances
+  // router asset balances
   useEffect(
     () => {
-      const getData = async is_interval => {
+      const getData = async () => {
         if (
+          page_visible &&
           sdk &&
           chains_data &&
           assets_data &&
-          assets_data
-            .findIndex(a =>
-              typeof a.price !== 'number'
-            ) < 0 &&
-          ![
-            '/tx/[tx]',
-          ].includes(pathname) &&
-          (
-            !asset_balances_data ||
-            is_interval
-          )
+          assets_data.findIndex(a => typeof a.price !== 'number') < 0
         ) {
-          const response =
-            await sdk.sdkUtils
-              .getRoutersData()
+          try {
+            const response = toArray(await sdk.sdkUtils.getRoutersData())
 
-          if (
-            response ||
-            !is_interval
-          ) {
             const data =
               _.groupBy(
-                (Array.isArray(response) ?
-                  response
-                    .filter(r =>
-                      r?.address
-                    ) :
-                  []
-                )
-                .map(l => {
-                  const {
-                    domain,
-                    local,
-                    balance,
-                  } = { ...l }
-
-                  const chain_data = chains_data
-                    .find(c =>
-                      c?.domain_id === domain
-                    )
-                  const {
-                    chain_id,
-                  } = { ...chain_data }
-
-                  let asset_data = assets_data
-                    .find(a =>
-                      (a?.contracts || [])
-                        .findIndex(c =>
-                          c?.chain_id === chain_id &&
-                          [
-                            c?.next_asset?.contract_address,
-                            c?.contract_address,
-                          ]
-                          .filter(_a => _a)
-                          .findIndex(_a =>
-                            equals_ignore_case(
-                              _a,
-                              local,
-                            )
-                          ) > -1
-                        ) > -1
-                    )
-
-                  asset_data = {
-                    ...asset_data,
-                    ...(
-                      (asset_data?.contracts || [])
-                        .find(c =>
-                          c?.chain_id === chain_id &&
-                          [
-                            c?.next_asset?.contract_address,
-                            c?.contract_address,
-                          ]
-                          .filter(_a => _a)
-                          .findIndex(_a =>
-                            equals_ignore_case(
-                              _a,
-                              local,
-                            )
-                          ) > -1
-                        )
-                    ),
-                  }
-
-                  if (asset_data.contracts) {
-                    delete asset_data.contracts
-                  }
-
-                  if (
-                    asset_data.next_asset &&
-                    equals_ignore_case(
-                      asset_data.next_asset.contract_address,
+                response
+                  .filter(d => d?.domain)
+                  .map(d => {
+                    const {
+                      domain,
+                      adopted,
                       local,
-                    )
-                  ) {
+                      balance,
+                    } = { ...d }
+
+                    const chain_data = getChain(domain, chains_data)
+
+                    const {
+                      chain_id,
+                    } = { ...chain_data }
+
+                    let asset_data =
+                      getAsset(null, assets_data, chain_id, undefined, undefined, false, false, false, true)
+                        .find(a =>
+                          getContract(adopted, toArray(a?.contracts), chain_id) ||
+                          getContract(local, toArray(a?.contracts), chain_id)
+                        )
+
                     asset_data = {
                       ...asset_data,
-                      ...asset_data.next_asset,
+                      ...getContract(chain_id, asset_data?.contracts),
                     }
 
-                    delete asset_data.next_asset
-                  }
+                    if (asset_data.contracts) {
+                      delete asset_data.contracts
+                    }
 
-                  const {
-                    decimals,
-                    price,
-                  } = { ...asset_data }
+                    if (asset_data.next_asset && equalsIgnoreCase(asset_data.next_asset.contract_address, local)) {
+                      asset_data = {
+                        ...asset_data,
+                        ...asset_data.next_asset,
+                      }
 
-                  const amount =
-                    Number(
-                      utils.formatUnits(
-                        BigNumber.from(
-                          BigInt(
-                            balance ||
-                            0
-                          ).toString()
-                        ),
-                        decimals ||
-                        18,
-                      )
-                    )
+                      delete asset_data.next_asset
+                    }
 
-                  const value =
-                    amount *
-                    (
-                      price ||
-                      0
-                    )
+                    const {
+                      decimals,
+                      price,
+                    } = { ...asset_data }
 
-                  return {
-                    ...l,
-                    chain_id,
-                    chain_data,
-                    contract_address: local,
-                    asset_data,
-                    amount,
-                    value,
-                  }
-                }),
+                    const amount = utils.formatUnits(BigInt(balance || '0'), decimals || 18)
+
+                    return {
+                      ...d,
+                      chain_id,
+                      chain_data,
+                      asset_data,
+                      contract_address: local,
+                      amount,
+                      value: Number(amount) * (price || 0),
+                    }
+                  }),
                 'chain_id',
               )
 
             dispatch(
               {
-                type: ASSET_BALANCES_DATA,
+                type: ROUTER_ASSET_BALANCES_DATA,
                 value: data,
               }
             )
-          }
+          } catch (error) {}
         }
       }
 
@@ -692,14 +522,13 @@ export default () => {
 
       const interval =
         setInterval(
-          () =>
-            getData(true),
-          5 * 60 * 1000,
+          () => getData(),
+          1 * 60 * 1000,
         )
 
       return () => clearInterval(interval)
     },
-    [page_visible, sdk, chains_data, assets_data, pathname],
+    [page_visible, sdk, chains_data, assets_data],
   )
 
   // ens
@@ -708,34 +537,24 @@ export default () => {
       const getData = async () => {
         if (
           chains_data &&
-          asset_balances_data &&
-          chains_data
-            .filter(c =>
-              !c?.disabled
-            )
-            .length <=
-            Object.keys(asset_balances_data).length
+          router_asset_balances_data &&
+          getChain(null, chains_data, true, false, false, undefined, true).length <= Object.keys(router_asset_balances_data).length
         ) {
           const addresses =
             _.uniq(
-              Object.values(asset_balances_data)
+              Object.values(router_asset_balances_data)
                 .flatMap(a => a)
-                .map(a =>
-                  a?.address
-                )
-                .filter(a =>
-                  a &&
-                  !ens_data?.[a]
-                )
+                .map(a => a?.router_address)
+                .filter(a => a && !ens_data?.[a])
             )
 
-          const ens_data = await getEns(addresses)
+          const _ens_data = await getEns(addresses)
 
-          if (ens_data) {
+          if (_ens_data) {
             dispatch(
               {
                 type: ENS_DATA,
-                value: ens_data,
+                value: _ens_data,
               }
             )
           }
@@ -744,7 +563,7 @@ export default () => {
 
       getData()
     },
-    [address],
+    [chains_data, router_asset_balances_data],
   )
 
   // pools
@@ -763,17 +582,14 @@ export default () => {
           contracts,
         } = { ...asset_data }
 
-        const contract_data = (contracts || [])
-          .find(c =>
-            c?.chain_id === chain_id
-          )
+        const contract_data = getContract(chain_id, contracts)
+
         const {
           contract_address,
         } = { ...contract_data }
 
         if (contract_address) {
           let data
-
           const id = `${chain_data.id}_${asset_data.id}`
 
           try {
@@ -785,14 +601,7 @@ export default () => {
               },
             )
 
-            const pool =
-              _.cloneDeep(
-                await sdk.sdkPool
-                  .getPool(
-                    domain_id,
-                    contract_address,
-                  )
-              )
+            const pool = _.cloneDeep(await sdk.sdkPool.getPool(domain_id, contract_address))
 
             console.log(
               '[pool]',
@@ -807,64 +616,10 @@ export default () => {
               lpTokenAddress,
               adopted,
               local,
-            } = { ...pool }
-            let {
-              name,
               symbol,
             } = { ...pool }
 
-            if (symbol?.includes(`${WRAPPED_PREFIX}${WRAPPED_PREFIX}`)) {
-              name =
-                (name || '')
-                  .replace(
-                    WRAPPED_PREFIX,
-                    '',
-                  )
-
-              symbol =
-                symbol
-                  .split('-')
-                  .map(s =>
-                    s
-                      .replace(
-                        WRAPPED_PREFIX,
-                        '',
-                      )
-                  )
-                  .join('-')
-
-              pool.name = name
-              pool.symbol = symbol
-            }
-
-            if (symbol?.includes('-')) {
-              const symbols =
-                symbol
-                  .split('-')
-
-              if (
-                equals_ignore_case(
-                  _.head(symbols),
-                  _.last(symbols),
-                ) &&
-                adopted?.symbol &&
-                local?.symbol
-              ) {
-                symbol =
-                  [
-                    adopted.symbol,
-                    local.symbol,
-                  ]
-                  .join('-')
-
-                pool.symbol = symbol
-              }
-            }
-
-            const symbols =
-              (symbol || '')
-                .split('-')
-                .filter(s => s)
+            let supply, tvl
 
             if (adopted) {
               const {
@@ -874,12 +629,8 @@ export default () => {
 
               adopted.balance =
                 utils.formatUnits(
-                  BigNumber.from(
-                    balance ||
-                    '0'
-                  ),
-                  decimals ||
-                  18,
+                  BigInt(balance || '0'),
+                  decimals || 18,
                 )
 
               pool.adopted = adopted
@@ -893,21 +644,15 @@ export default () => {
 
               local.balance =
                 utils.formatUnits(
-                  BigNumber.from(
-                    balance ||
-                    '0'
-                  ),
-                  decimals ||
-                  18,
+                  BigInt(balance || '0'),
+                  decimals || 18,
                 )
 
               pool.local = local
             }
 
-            let supply
-
             if (lpTokenAddress) {
-              await sleep(0.5 * 1000)
+              await sleep(1.5 * 1000)
 
               console.log(
                 '[getTokenSupply]',
@@ -927,9 +672,7 @@ export default () => {
 
                 supply =
                   utils.formatUnits(
-                    BigNumber.from(
-                      supply
-                    ),
+                    BigInt(supply || '0'),
                     18,
                   )
 
@@ -953,119 +696,30 @@ export default () => {
               }
             }
 
-            let rate = 1
+            let {
+              price,
+            } = { ...getAsset(asset_data.id, assets_data) }
+
+            price = price || 0
 
             if (
-              pool &&
-              !rate
+              ['string', 'number'].includes(typeof supply) ||
+              (adopted?.balance && local?.balance)
             ) {
-              console.log(
-                '[getVirtualPrice]',
-                {
-                  domain_id,
-                  contract_address,
-                },
-              )
-
-              try {
-                rate =
-                  await sdk.sdkPool
-                    .getVirtualPrice(
-                      domain_id,
-                      contract_address,
-                    )
-
-                rate =
-                  Number(
-                    utils.formatUnits(
-                      BigNumber.from(
-                        rate ||
-                        '0'
-                      ),
-                      18,
-                    )
-                  )
-
-                console.log(
-                  '[virtualPrice]',
-                  {
-                    domain_id,
-                    contract_address,
-                    rate,
-                  },
-                )
-              } catch (error) {
-                console.log(
-                  '[getVirtualPrice error]',
-                  {
-                    domain_id,
-                    contract_address,
-                  },
-                  error,
-                )
-              }
-            }
-
-            let tvl
-
-            if (
-              [
-                'string',
-                'number',
-              ].includes(typeof supply) ||
-              (
-                adopted?.balance &&
-                local?.balance
-              )
-            ) {
-              const {
-                price,
-              } = {
-                ...(
-                  (assets_data || [])
-                    .find(a =>
-                      a?.id === asset_data.id
-                    )
-                ),
-              }
-
               tvl =
-                typeof price === 'number' ?
-                  (
-                    supply ||
-                    _.sum(
-                      [
-                        adopted,
-                        local,
-                      ]
-                      .filter(t => t)
-                      .map(t => {
-                        const {
-                          balance,
-                          index,
-                        } = { ...t }
-
-                        return (
-                          Number(
-                            balance ||
-                            '0'
-                          ) /
-                          (
-                            index > 0 &&
-                            rate > 0 ?
-                              rate :
-                              1
-                          )
-                        )
-                      })
+                Number(
+                  supply ||
+                  _.sum(
+                    toArray(
+                      _.concat(adopted, local)
                     )
-                  ) *
-                  price :
-                  0
+                    .map(a => Number(a.balance))
+                  )
+                ) * price
             }
 
             if (
-              equals_ignore_case(
+              equalsIgnoreCase(
                 pool?.domainId,
                 domain_id,
               )
@@ -1077,23 +731,14 @@ export default () => {
                 chain_data,
                 asset_data,
                 contract_data,
-                symbols,
-                supply:
-                  supply ||
-                  pool?.supply,
-                rate,
+                symbols: split(symbol, 'normal', '-'),
+                supply: supply || pool?.supply,
                 tvl,
+                rate: 1,
               }
             }
             else {
-              data =
-                (pools_data || [])
-                  .find(p =>
-                    equals_ignore_case(
-                      p?.id,
-                      id,
-                    )
-                  )
+              data = getPool(id, pools_data)
             }
           } catch (error) {
             console.log(
@@ -1106,15 +751,9 @@ export default () => {
             )
 
             data =
-              (pools_data || [])
-                .find(p =>
-                  equals_ignore_case(
-                    p?.id,
-                    id,
-                  )
-                ) ||
+              getPool(id, pools_data) ||
               {
-                id: `${chain_data.id}_${asset_data.id}`,
+                id,
                 chain_id,
                 chain_data,
                 asset_data,
@@ -1134,32 +773,17 @@ export default () => {
         }
       }
 
-      const getChainData = async chain_data => {
-        if (
-          sdk &&
-          chain_data
-        ) {
-          pool_assets_data
-            .forEach(a =>
-              getPoolData(
-                chain_data,
-                a,
-              )
-            )
-        }
-      }
+      const getChainData = async chain_data => pool_assets_data.forEach(a => getPoolData(chain_data, a))
 
       const getData = async () => {
         if (
           page_visible &&
           sdk &&
           chains_data &&
-          pool_assets_data
+          pool_assets_data &&
+          pool_assets_data.findIndex(a => typeof a?.price !== 'number') < 0
         ) {
-          chains_data
-            .forEach(c =>
-              getChainData(c)
-            )
+          chains_data.forEach(c => getChainData(c))
         }
       }
 
@@ -1167,8 +791,7 @@ export default () => {
 
       const interval =
         setInterval(
-          () =>
-            getData(),
+          () => getData(),
           1 * 60 * 1000,
         )
 

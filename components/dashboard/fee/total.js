@@ -3,9 +3,10 @@ import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import { TailSpin } from 'react-loader-spinner'
 
+import DecimalsFormat from '../../decimals-format'
 import Image from '../../image'
 import { currency_symbol } from '../../../lib/object/currency'
-import { number_format, loader_color } from '../../../lib/utils'
+import { toArray, loaderColor } from '../../../lib/utils'
 
 export default (
   {
@@ -14,8 +15,8 @@ export default (
 ) => {
   const {
     preferences,
-  } = useSelector(state =>
-    (
+  } = useSelector(
+    state => (
       {
         preferences: state.preferences,
       }
@@ -37,16 +38,12 @@ export default (
         <div className="space-y-4">
           <div className="text-center py-6">
             <div className="space-y-2 pt-6 pb-3">
-              <div className="uppercase text-4xl font-extrabold">
-                {currency_symbol}
-                {number_format(
-                  total_fee,
-                  total_fee > 100000 ?
-                    '0,0.00a' :
-                    total_fee > 1000 ?
-                      '0,0' :
-                      '0,0.00',
-                )}
+              <div>
+                <DecimalsFormat
+                  value={total_fee}
+                  prefix={currency_symbol}
+                  className="uppercase text-4xl font-extrabold"
+                />
               </div>
               <div className="flex items-center justify-center space-x-2">
                 <span className="text-slate-400 dark:text-white text-base font-bold">
@@ -64,16 +61,13 @@ export default (
                 Fee
               </span>
             </div>
-            {
-              (Array.isArray(top_chains_by_fee) ?
-                top_chains_by_fee :
-                []
-              )
+            {toArray(top_chains_by_fee)
               .map((c, i) => {
                 const {
                   chain_data,
                   fee,
                 } = { ...c }
+
                 const {
                   id,
                   name,
@@ -89,7 +83,7 @@ export default (
                       chain_data &&
                       (
                         <Link href={`/${id}`}>
-                          <a className="flex items-center space-x-1">
+                          <div className="flex items-center space-x-1">
                             {
                               image &&
                               (
@@ -105,21 +99,15 @@ export default (
                             <span className="font-semibold">
                               {name}
                             </span>
-                          </a>
+                          </div>
                         </Link>
                       )
                     }
-                    <span className="uppercase font-bold">
-                      {currency_symbol}
-                      {number_format(
-                        fee,
-                        fee > 10000 ?
-                          '0,0.00a' :
-                          fee > 100 ?
-                            '0,0' :
-                            '0,0.00',
-                      )}
-                    </span>
+                    <DecimalsFormat
+                      value={fee}
+                      prefix={currency_symbol}
+                      className="uppercase font-bold"
+                    />
                   </div>
                 )
               })
@@ -128,10 +116,10 @@ export default (
         </div> :
         <div className="h-full flex items-center justify-center">
           <TailSpin
-            color={loader_color(theme)}
             width="40"
             height="40"
             strokeWidth="8"
+            color={loaderColor(theme)}
           />
         </div>
       }

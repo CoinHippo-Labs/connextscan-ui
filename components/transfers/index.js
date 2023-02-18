@@ -4,34 +4,33 @@ import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import moment from 'moment'
-import { BigNumber, constants, utils } from 'ethers'
-import { XTransferStatus } from '@connext/nxtp-utils'
+import { constants, utils } from 'ethers'
+import { XTransferStatus, XTransferErrorStatus } from '@connext/nxtp-utils'
 import { TailSpin } from 'react-loader-spinner'
 import { Tooltip } from '@material-tailwind/react'
-import { HiCheckCircle, HiXCircle } from 'react-icons/hi'
+import { HiCheckCircle } from 'react-icons/hi'
 import { IoWarning } from 'react-icons/io5'
 import { BsLightningChargeFill } from 'react-icons/bs'
 import { BiInfoCircle } from 'react-icons/bi'
 import { AiTwotoneFile } from 'react-icons/ai'
 
-import Image from '../image'
-import SelectChain from '../select/chain'
-import SelectAsset from '../select/asset'
-import SelectStatus from '../select/status'
-import Datatable from '../datatable'
-import TimeSpent from '../time-spent'
 import ActionRequired from '../action-required'
-import EnsProfile from '../ens-profile'
 import AddToken from '../add-token'
 import Copy from '../copy'
-import { number_format, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
+import Datatable from '../datatable'
+import DecimalsFormat from '../decimals-format'
+import EnsProfile from '../ens-profile'
+import Image from '../image'
+import SelectChain from '../select-options/chain'
+import SelectAsset from '../select-options/asset'
+import SelectStatus from '../select-options/status'
+import TimeSpent from '../time-spent'
+import { getChain } from '../../lib/object/chain'
+import { getAsset } from '../../lib/object/asset'
+import { getContract } from '../../lib/object/contract'
+import { toArray, ellipse, equalsIgnoreCase, loaderColor } from '../../lib/utils'
 
-const ROUTER_FEE_PERCENT =
-  Number(
-    process.env.NEXT_PUBLIC_ROUTER_FEE_PERCENT
-  ) ||
-  0.05
-
+const ROUTER_FEE_PERCENT = Number(process.env.NEXT_PUBLIC_ROUTER_FEE_PERCENT)
 const LIMIT = 100
 
 export default () => {
@@ -40,8 +39,8 @@ export default () => {
     chains,
     assets,
     dev,
-  } = useSelector(state =>
-    (
+  } = useSelector(
+    state => (
       {
         preferences: state.preferences,
         chains: state.chains,
@@ -85,10 +84,7 @@ export default () => {
 
   useEffect(
     () => {
-      if (
-        fromChainSelect &&
-        fromChainSelect === toChainSelect
-      ) {
+      if (fromChainSelect && fromChainSelect === toChainSelect) {
         setToChainSelect('')
       }
     },
@@ -97,10 +93,7 @@ export default () => {
 
   useEffect(
     () => {
-      if (
-        toChainSelect &&
-        toChainSelect === fromChainSelect
-      ) {
+      if (toChainSelect && toChainSelect === fromChainSelect) {
         setFromChainSelect('')
       }
     },
@@ -111,14 +104,7 @@ export default () => {
     () => {
       const triggering = is_interval => {
         if (sdk) {
-          setFetchTrigger(
-            is_interval ?
-              moment()
-                .valueOf() :
-              typeof fetchTrigger === 'number' ?
-                null :
-                0
-          )
+          setFetchTrigger(is_interval ? moment().valueOf() : typeof fetchTrigger === 'number' ? null : 0)
         }
       }
 
@@ -126,8 +112,7 @@ export default () => {
 
       const interval =
         setInterval(
-          () =>
-            triggering(true),
+          () => triggering(true),
           0.25 * 60 * 1000,
         )
 
@@ -150,53 +135,20 @@ export default () => {
 
           let response
 
-          const status =
-            statusSelect ||
-            undefined
-
-          const _data =
-            !fetchTrigger ?
-              [] :
-              data ||
-              []
-
+          const status = statusSelect && !XTransferErrorStatus[statusSelect] ? statusSelect : undefined
+          const errorStatus = statusSelect && XTransferErrorStatus[statusSelect] ? statusSelect : undefined
+          const _data = toArray(!fetchTrigger ? [] : data)
           const limit = LIMIT
-
-          const offset =
-            fetchTrigger ?
-              _data.length :
-              0
+          const offset = fetchTrigger ? _data.length : 0
 
           switch (pathname) {
             case '/address/[address]':
               try {
                 if (address) {
-                  response =
-                    await sdk.sdkUtils
-                      .getTransfers(
-                        {
-                          xcallCaller: address,
-                          status,
-                          range: {
-                            limit,
-                            offset,
-                          },
-                        },
-                      )
+                  response = toArray(await sdk.sdkUtils.getTransfers({ xcallCaller: address, status, errorStatus, range: { limit, offset } }))
 
-                  if (!(response?.length > 0)) {
-                    response =
-                      await sdk.sdkUtils
-                        .getTransfers(
-                          {
-                            userAddress: address,
-                            status,
-                            range: {
-                              limit,
-                              offset,
-                            },
-                          },
-                        )
+                  if (response.length < 1) {
+                    response = toArray(await sdk.sdkUtils.getTransfers({ userAddress: address, status, errorStatus, range: { limit, offset } }))
                   }
                 }
               } catch (error) {}
@@ -204,48 +156,13 @@ export default () => {
             case '/router/[address]':
               try {
                 if (address) {
-                  response =
-                    await sdk.sdkUtils
-                      .getTransfers(
-                        {
-                          routerAddress: address,
-                          status,
-                          range: {
-                            limit,
-                            offset,
-                          },
-                        },
-                      )
+                  response = toArray(await sdk.sdkUtils.getTransfers({ routerAddress: address, status, errorStatus, range: { limit, offset } }))
                 }
               } catch (error) {}
               break
             default:
               try {
-                if (status) {
-                  response =
-                    await sdk.sdkUtils
-                      .getTransfers(
-                        {
-                          status,
-                          range: {
-                            limit,
-                            offset,
-                          },
-                        },
-                      )
-                }
-                else {
-                  response =
-                    await sdk.sdkUtils
-                      .getTransfers(
-                        {
-                          range: {
-                            limit,
-                            offset,
-                          },
-                        },
-                      )
-                }
+                response = toArray(await sdk.sdkUtils.getTransfers({ status, errorStatus, range: { limit, offset } }))
               } catch (error) {}
               break
           }
@@ -254,10 +171,7 @@ export default () => {
             response =
               _.orderBy(
                 _.uniqBy(
-                  _.concat(
-                    _data,
-                    response,
-                  ),
+                  _.concat(_data, response),
                   'transfer_id',
                 ),
                 ['xcall_timestamp'],
@@ -267,48 +181,24 @@ export default () => {
             response =
               response
                 .map(t => {
-                  const source_chain_data = (chains_data || [])
-                    .find(c =>
-                      c?.chain_id === Number(t?.origin_chain) ||
-                      c?.domain_id === t?.origin_domain
-                    )
+                  const {
+                    origin_domain,
+                    origin_transacting_asset,
+                    destination_domain,
+                    destination_transacting_asset,
+                    destination_local_asset,
+                    execute_transaction_hash,
+                    receive_local,
+                    status,
+                    error_status,
+                  } = { ...t }
 
-                  const source_asset_data = (assets_data || [])
-                    .find(a =>
-                      (a?.contracts || [])
-                        .findIndex(c =>
-                          c?.chain_id === source_chain_data?.chain_id &&
-                          [
-                            t?.origin_transacting_asset,
-                            t?.origin_bridged_asset,
-                          ].findIndex(_a =>
-                            [
-                              c?.next_asset?.contract_address,
-                              c?.contract_address,
-                            ]
-                            .filter(__a => __a)
-                            .findIndex(__a =>
-                              equals_ignore_case(
-                                __a,
-                                _a,
-                              )
-                            ) > -1
-                          ) > -1
-                        ) > -1
-                      )
+                  const source_chain_data = getChain(origin_domain, chains_data)
+                  const source_asset_data = getAsset(null, assets_data, source_chain_data?.chain_id, origin_transacting_asset)
 
-                  let source_contract_data = (source_asset_data?.contracts || [])
-                    .find(c =>
-                      c?.chain_id === source_chain_data?.chain_id,
-                    )
-
-                  if (
-                    source_contract_data?.next_asset &&
-                    equals_ignore_case(
-                      source_contract_data.next_asset.contract_address,
-                      t?.origin_transacting_asset,
-                    )
-                  ) {
+                  let source_contract_data = getContract(source_chain_data?.chain_id, source_asset_data?.contracts)
+                  // next asset
+                  if (source_contract_data?.next_asset && equalsIgnoreCase(source_contract_data.next_asset.contract_address, origin_transacting_asset)) {
                     source_contract_data = {
                       ...source_contract_data,
                       ...source_contract_data.next_asset,
@@ -316,102 +206,35 @@ export default () => {
 
                     delete source_contract_data.next_asset
                   }
-
-                  if (
-                    !source_contract_data &&
-                    equals_ignore_case(
-                      t?.origin_transacting_asset,
-                      constants.AddressZero,
-                    )
-                  ) {
+                  // native asset
+                  if (!source_contract_data && equalsIgnoreCase(constants.AddressZero, origin_transacting_asset)) {
                     const {
                       nativeCurrency,
-                    } = {
-                      ...(
-                        _.head(source_chain_data?.provider_params)
-                      ),
-                    }
+                    } = { ..._.head(source_chain_data?.provider_params) }
+
                     const {
                       symbol,
                     } = { ...nativeCurrency }
 
-                    const _source_asset_data = (assets_data || [])
-                      .find(a =>
-                        [
-                          a?.id,
-                          a?.symbol,
-                        ].findIndex(s =>
-                          equals_ignore_case(
-                            s,
-                            symbol,
-                          )
-                        ) > -1
-                      )
+                    const _source_asset_data = getAsset(symbol, assets_data)
 
                     source_contract_data = {
-                      ...(
-                        (_source_asset_data?.contracts || [])
-                          .find(c =>
-                            c?.chain_id === source_chain_data?.chain_id,
-                          )
-                      ),
-                      contract_address: t?.origin_transacting_asset,
+                      ...getContract(source_chain_data?.chain_id, _source_asset_data?.contracts),
                       ...nativeCurrency,
+                      contract_address: origin_transacting_asset,
                     }
                   }
 
-                  const destination_chain_data = (chains_data || [])
-                    .find(c =>
-                      c?.chain_id === Number(t?.destination_chain) ||
-                      c?.domain_id === t?.destination_domain
-                    )
+                  const source_decimals = source_contract_data?.decimals || 18
 
-                  const destination_asset_data = (assets_data || [])
-                    .find(a =>
-                      (a?.contracts || [])
-                        .findIndex(c =>
-                          c?.chain_id === destination_chain_data?.chain_id &&
-                          [
-                            t?.destination_transacting_asset,
-                            equals_ignore_case(
-                              source_asset_data?.id,
-                              a?.id,
-                            ) ?
-                              _data?.receive_local ?
-                                c?.next_asset?.contract_address :
-                                c?.contract_address :
-                              t?.destination_local_asset,
-                          ].findIndex(_a =>
-                            [
-                              c?.next_asset?.contract_address,
-                              c?.contract_address,
-                            ]
-                            .filter(__a => __a)
-                            .findIndex(__a =>
-                              equals_ignore_case(
-                                __a,
-                                _a,
-                              )
-                            ) > -1
-                          ) > -1
-                        ) > -1
-                    )
+                  const destination_chain_data = getChain(destination_domain, chains_data)
+                  const _asset_data = getAsset(source_asset_data?.id, assets_data, destination_chain_data?.chain_id)
+                  const _contract_data = getContract(destination_chain_data?.chain_id, _asset_data?.contracts)
+                  const destination_asset_data = getAsset(null, assets_data, destination_chain_data?.chain_id, [destination_transacting_asset, _asset_data ? receive_local ? _contract_data?.next_asset?.contract_address : _contract_data?.contract_address : destination_local_asset])
 
-                  let destination_contract_data = (destination_asset_data?.contracts || [])
-                    .find(c =>
-                      c?.chain_id === destination_chain_data?.chain_id,
-                    )
-
-                  if (
-                    destination_contract_data?.next_asset &&
-                    (
-                      equals_ignore_case(
-                        destination_contract_data.next_asset.contract_address,
-                        t?.destination_transacting_asset,
-                      ) ||
-                      t?.receive_local
-                    )
-                  ) {
+                  let destination_contract_data = getContract(destination_chain_data?.chain_id, destination_asset_data?.contracts)
+                  // next asset
+                  if (destination_contract_data?.next_asset && (equalsIgnoreCase(destination_contract_data.next_asset.contract_address, destination_transacting_asset) || receive_local)) {
                     destination_contract_data = {
                       ...destination_contract_data,
                       ...destination_contract_data.next_asset,
@@ -419,49 +242,26 @@ export default () => {
 
                     delete destination_contract_data.next_asset
                   }
-
-                  if (
-                    !destination_contract_data &&
-                    equals_ignore_case(
-                      t?.destination_transacting_asset,
-                      constants.AddressZero,
-                    )
-                  ) {
+                  // native asset
+                  if (!destination_contract_data && equalsIgnoreCase(constants.AddressZero, destination_transacting_asset)) {
                     const {
                       nativeCurrency,
-                    } = {
-                      ...(
-                        _.head(destination_chain_data?.provider_params)
-                      ),
-                    }
+                    } = { ..._.head(destination_chain_data?.provider_params) }
+
                     const {
                       symbol,
                     } = { ...nativeCurrency }
 
-                    const _destination_asset_data = (assets_data || [])
-                      .find(a =>
-                        [
-                          a?.id,
-                          a?.symbol,
-                        ].findIndex(s =>
-                          equals_ignore_case(
-                            s,
-                            symbol,
-                          )
-                        ) > -1
-                      )
+                    const _destination_asset_data = getAsset(symbol, assets_data)
 
                     destination_contract_data = {
-                      ...(
-                        (_destination_asset_data?.contracts || [])
-                          .find(c =>
-                            c?.chain_id === destination_chain_data?.chain_id,
-                          )
-                      ),
-                      contract_address: t?.destination_transacting_asset,
+                      ...getContract(destination_chain_data?.chain_id, _destination_asset_data?.contracts),
                       ...nativeCurrency,
+                      contract_address: destination_transacting_asset,
                     }
                   }
+
+                  const destination_decimals = destination_contract_data?.decimals || 18
 
                   return {
                     ...t,
@@ -475,21 +275,10 @@ export default () => {
                       ...destination_asset_data,
                       ...destination_contract_data,
                     },
-                    pending:
-                      ![
-                        XTransferStatus.Executed,
-                        XTransferStatus.CompletedFast,
-                        XTransferStatus.CompletedSlow,
-                      ]
-                      .includes(t?.status),
-                    errored:
-                      t?.error_status &&
-                      ![
-                        XTransferStatus.CompletedFast,
-                        XTransferStatus.CompletedSlow,
-                      ]
-                      .includes(t.status) &&
-                      !t.execute_transaction_hash,
+                    source_decimals,
+                    destination_decimals,
+                    pending: ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status),
+                    errored: error_status && !execute_transaction_hash && ![XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status),
                   }
                 })
                 .map(t => {
@@ -497,67 +286,29 @@ export default () => {
                     source_asset_data,
                     destination_asset_data,
                     origin_transacting_amount,
-                    origin_bridged_amount,
                     destination_transacting_amount,
-                    destination_local_amount,
+                    source_decimals,
+                    destination_decimals,
                   } = { ...t }
 
                   const source_amount =
-                    _.head(
-                      [
-                        origin_transacting_amount,
-                      ]
-                      .map(a =>
-                        [
-                          'number',
-                          'string',
-                        ].includes(typeof a) &&
-                        Number(
-                          utils.formatUnits(
-                            BigNumber.from(
-                              BigInt(a)
-                                .toString()
-                            ),
-                            source_asset_data?.decimals ||
-                            18,
-                          )
-                        )
-                      )
-                      .filter(a =>
-                        typeof a === 'number'
+                    origin_transacting_amount &&
+                    Number(
+                      utils.formatUnits(
+                        BigInt(origin_transacting_amount).toString(),
+                        source_decimals,
                       )
                     )
 
                   const destination_amount =
-                    _.head(
-                      [
-                        destination_transacting_amount,
-                      ]
-                      .map(a =>
-                        [
-                          'number',
-                          'string',
-                        ].includes(typeof a) &&
-                        Number(
-                          utils.formatUnits(
-                            BigNumber.from(
-                              BigInt(a)
-                                .toString()
-                            ),
-                            destination_asset_data?.decimals ||
-                            18,
-                          )
+                    destination_transacting_amount ?
+                      Number(
+                        utils.formatUnits(
+                          BigInt(destination_transacting_amount).toString(),
+                          destination_decimals,
                         )
-                      )
-                      .filter(a =>
-                        typeof a === 'number'
-                      )
-                    ) ||
-                    source_amount *
-                    (
-                      1 -
-                      ROUTER_FEE_PERCENT / 100
-                    )
+                      ) :
+                      source_amount * (1 - ROUTER_FEE_PERCENT / 100)
 
                   return {
                     ...t,
@@ -589,39 +340,16 @@ export default () => {
     [fetchTrigger],
   )
 
-  const source_chain_data = (chains_data || [])
-    .find(c =>
-      c?.id === fromChainSelect
-    )
-  const destination_chain_data = (chains_data || [])
-    .find(c =>
-      c?.id === toChainSelect
-    )
-
-  const asset_data = (assets_data || [])
-    .find(a =>
-      a?.id === assetSelect
-    )
+  const source_chain_data = getChain(fromChainSelect, chains_data)
+  const destination_chain_data = getChain(toChainSelect, chains_data)
+  const asset_data = getAsset(assetSelect, assets_data)
 
   const data_filtered =
-    data &&
-    data
+    toArray(data)
       .filter(t =>
-        (
-          !source_chain_data ||
-          source_chain_data?.id === t?.source_chain_data?.id
-        ) &&
-        (
-          !destination_chain_data ||
-          destination_chain_data?.id === t?.destination_chain_data?.id
-        ) &&
-        (
-          !asset_data ||
-          [
-            t?.source_asset_data?.id,
-            t?.destination_asset_data?.id,
-          ].includes(asset_data?.id)
-        )
+        (!source_chain_data || source_chain_data?.id === t?.source_chain_data?.id) &&
+        (!destination_chain_data || destination_chain_data?.id === t?.destination_chain_data?.id) &&
+        (!asset_data || [t?.source_asset_data?.id, t?.destination_asset_data?.id].includes(asset_data.id))
       )
 
   return (
@@ -651,12 +379,7 @@ export default () => {
             <SelectAsset
               value={assetSelect}
               onSelect={a => setAssetSelect(a)}
-              chain={
-                [
-                  fromChainSelect,
-                  toChainSelect,
-                ]
-              }
+              chain={[fromChainSelect, toChainSelect]}
             />
             <SelectStatus
               value={statusSelect}
@@ -665,7 +388,7 @@ export default () => {
           </div>
         </div>
       </div>
-      {data_filtered ?
+      {data ?
         <div className={`grid space-y-2 gap-${data_filtered.length <= 10 ? 4 : 2}`}>
           <Datatable
             columns={
@@ -679,13 +402,7 @@ export default () => {
                       -1,
                   Cell: props => (
                     <div className="font-semibold mt-0.5">
-                      {number_format(
-                        (props.flatRows?.indexOf(props.row) > -1 ?
-                          props.flatRows.indexOf(props.row) :
-                          props.value
-                        ) + 1,
-                        '0,0',
-                      )}
+                      {(props.flatRows?.indexOf(props.row) > -1 ? props.flatRows.indexOf(props.row) : props.value) + 1}
                     </div>
                   ),
                 },
@@ -695,8 +412,10 @@ export default () => {
                   disableSortBy: true,
                   Cell: props => {
                     const {
+                      row,
                       value,
                     } = { ...props }
+
                     const {
                       pending,
                       errored,
@@ -706,7 +425,7 @@ export default () => {
                       error_status,
                       routers,
                       call_data,
-                    } = { ...props.row.original }
+                    } = { ...row.original }
 
                     return (
                       value &&
@@ -714,24 +433,20 @@ export default () => {
                         <div className="flex flex-col items-start space-y-2 mt-0.5">
                           <div className="flex items-center space-x-1">
                             <Link href={`/tx/${value}`}>
-                              <a className="text-blue-500 dark:text-white font-semibold">
+                              <div className="text-blue-500 dark:text-white font-semibold">
                                 <span className="sm:hidden">
                                   {ellipse(
                                     value,
-                                    address ?
-                                      6 :
-                                      8,
+                                    address ? 6 : 8,
                                   )}
                                 </span>
                                 <span className="hidden sm:block">
                                   {ellipse(
                                     value,
-                                    address ?
-                                      8 :
-                                      12,
+                                    address ? 8 : 12,
                                   )}
                                 </span>
-                              </a>
+                              </div>
                             </Link>
                             <Copy
                               size={20}
@@ -739,26 +454,17 @@ export default () => {
                             />
                           </div>
                           {
-                            call_data &&
-                            call_data !== '0x' &&
+                            call_data && call_data !== '0x' &&
                             (
                               <Tooltip
                                 placement="top"
-                                content={
-                                  call_data !== '0x' ?
-                                    'Has calldata' :
-                                    'No calldata'
-                                }
+                                content={call_data !== '0x' ? 'Has calldata' : 'No calldata'}
                                 className="z-50 bg-dark text-white text-xs"
                               >
                                 <div className="flex items-center">
                                   <AiTwotoneFile
                                     size={16}
-                                    className={
-                                      call_data !== '0x' ?
-                                        'text-yellow-500 dark:text-yellow-400' :
-                                        'text-slate-400 dark:text-slate-500'
-                                    }
+                                    className={call_data !== '0x' ? 'text-yellow-500 dark:text-yellow-400' : 'text-slate-400 dark:text-slate-500'}
                                   />
                                   <BiInfoCircle
                                     size={14}
@@ -769,69 +475,47 @@ export default () => {
                             )
                           }
                           {
-                            address &&
-                            ![
-                              '/address/[address]',
-                            ]
-                            .includes(pathname) &&
+                            address && !['/address/[address]'].includes(pathname) &&
                             (
                               <div className="flex-col items-start space-y-1">
-                                {
-                                  errored ?
-                                    <ActionRequired
-                                      transferData={props.row.original}
-                                      buttonTitle={
-                                        <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
-                                          <IoWarning
-                                            size={20}
-                                          />
-                                          <span className="normal-case font-bold">
-                                            {error_status}
-                                          </span>
-                                        </div>
-                                      }
-                                      onTransferBumped={
-                                        relayer_fee => {
-                                          setFetchTrigger(
-                                            moment()
-                                              .valueOf()
-                                          )
-                                        }
-                                      }
-                                      onSlippageUpdated={
-                                        slippage => {
-                                          setFetchTrigger(
-                                            moment()
-                                              .valueOf()
-                                          )
-                                        }
-                                      }
-                                    /> :
-                                    <Link href={`/tx/${value}`}>
-                                      <a>
-                                        {
-                                          pending ?
-                                            <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-1.5">
-                                              <TailSpin
-                                                color={loader_color(theme)}
-                                                width="16"
-                                                height="16"
-                                              />
-                                              <span className="font-medium">
-                                                Processing...
-                                              </span>
-                                            </div> :
-                                            <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
-                                              <HiCheckCircle
-                                                size={20}
-                                              />
-                                              <span className="uppercase font-bold">
-                                                Success
-                                              </span>
-                                            </div>
-                                        }
-                                      </a>
-                                    </Link>
+                                {errored ?
+                                  <ActionRequired
+                                    transferData={row.original}
+                                    buttonTitle={
+                                      <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
+                                        <IoWarning
+                                          size={20}
+                                        />
+                                        <span className="normal-case font-bold">
+                                          {error_status}
+                                        </span>
+                                      </div>
+                                    }
+                                    onTransferBumped={relayer_fee => setFetchTrigger(moment().valueOf())}
+                                    onSlippageUpdated={slippage => setFetchTrigger(moment().valueOf())}
+                                  /> :
+                                  <Link href={`/tx/${value}`}>
+                                    {pending ?
+                                      <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-1.5">
+                                        <TailSpin
+                                          width="16"
+                                          height="16"
+                                          color={loaderColor(theme)}
+                                        />
+                                        <span className="font-medium">
+                                          Processing...
+                                        </span>
+                                      </div> :
+                                      <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
+                                        <HiCheckCircle
+                                          size={20}
+                                        />
+                                        <span className="uppercase font-bold">
+                                          Success
+                                        </span>
+                                      </div>
+                                    }
+                                  </Link>
                                 }
                                 <div className="flex items-center space-x-2">
                                   {
@@ -839,21 +523,13 @@ export default () => {
                                     (
                                       <Tooltip
                                         placement="bottom"
-                                        content={
-                                          routers?.length > 0 ?
-                                            'Boosted by routers.' :
-                                            'Pending router boost.'
-                                        }
+                                        content={routers?.length > 0 ? 'Boosted by routers.' : 'Pending router boost.'}
                                         className="z-50 bg-dark text-white text-xs"
                                       >
                                         <div className="flex items-center">
                                           <BsLightningChargeFill
                                             size={16}
-                                            className={
-                                              routers?.length > 0 ?
-                                                'text-yellow-500 dark:text-yellow-400' :
-                                                'text-blue-300 dark:text-blue-200'
-                                            }
+                                            className={routers?.length > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-blue-300 dark:text-blue-200'}
                                           />
                                           <BiInfoCircle
                                             size={14}
@@ -865,17 +541,9 @@ export default () => {
                                   }
                                   <TimeSpent
                                     title="Time spent"
-                                    from_time={xcall_timestamp}
-                                    to_time={execute_timestamp}
-                                    className={
-                                      `${
-                                        errored ?
-                                          'text-red-600 dark:text-red-500' :
-                                          pending ?
-                                            'text-blue-500 dark:text-blue-300' :
-                                            'text-yellow-600 dark:text-yellow-400'
-                                      } font-semibold`
-                                    }
+                                    fromTime={xcall_timestamp}
+                                    toTime={execute_timestamp}
+                                    className={`${errored ? 'text-red-600 dark:text-red-500' : pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}
                                   />
                                 </div>
                                 <div className="normal-case font-bold">
@@ -904,16 +572,10 @@ export default () => {
                       (
                         <div className="flex flex-col space-y-1 mt-0.5">
                           <span className="text-slate-400 dark:text-slate-500 text-sm font-medium">
-                            {
-                              moment(value * 1000)
-                                .format('MMM D, YYYY')
-                            }
+                            {moment(value * 1000).format('MMM D, YYYY')}
                           </span>
                           <span className="text-slate-700 dark:text-slate-200 text-sm font-medium">
-                            {
-                              moment(value * 1000)
-                                .format('HH:mm:ss A')
-                            }
+                            {moment(value * 1000).format('HH:mm:ss A')}
                           </span>
                         </div>
                       )
@@ -927,8 +589,10 @@ export default () => {
                   disableSortBy: true,
                   Cell: props => {
                     const {
+                      row,
                       value,
                     } = { ...props }
+
                     const {
                       transfer_id,
                       pending,
@@ -938,66 +602,48 @@ export default () => {
                       error_status,
                       routers,
                       call_data,
-                    } = { ...props.row.original }
+                    } = { ...row.original }
 
                     return (
                       <div className="flex flex-col items-start space-y-1 mt-0.5">
-                        {
-                          errored ?
-                            <ActionRequired
-                              transferData={props.row.original}
-                              buttonTitle={
-                                <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
-                                  <IoWarning
-                                    size={20}
-                                  />
-                                  <span className="normal-case font-bold">
-                                    {error_status}
-                                  </span>
-                                </div>
-                              }
-                              onTransferBumped={
-                                relayer_fee => {
-                                  setFetchTrigger(
-                                    moment()
-                                      .valueOf()
-                                  )
-                                }
-                              }
-                              onSlippageUpdated={
-                                slippage => {
-                                  setFetchTrigger(
-                                    moment()
-                                      .valueOf()
-                                  )
-                                }
-                              }
-                            /> :
-                            <Link href={`/tx/${transfer_id}`}>
-                              <a>
-                                {
-                                  pending ?
-                                    <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-1.5">
-                                      <TailSpin
-                                        color={loader_color(theme)}
-                                        width="16"
-                                        height="16"
-                                      />
-                                      <span className="font-medium">
-                                        Processing...
-                                      </span>
-                                    </div> :
-                                    <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
-                                      <HiCheckCircle
-                                        size={20}
-                                      />
-                                      <span className="uppercase font-bold">
-                                        Success
-                                      </span>
-                                    </div>
-                                }
-                              </a>
-                            </Link>
+                        {errored ?
+                          <ActionRequired
+                            transferData={row.original}
+                            buttonTitle={
+                              <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
+                                <IoWarning
+                                  size={20}
+                                />
+                                <span className="normal-case font-bold">
+                                  {error_status}
+                                </span>
+                              </div>
+                            }
+                            onTransferBumped={relayer_fee => setFetchTrigger(moment().valueOf())}
+                            onSlippageUpdated={slippage => setFetchTrigger(moment().valueOf())}
+                          /> :
+                          <Link href={`/tx/${transfer_id}`}>
+                            {pending ?
+                              <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-1.5">
+                                <TailSpin
+                                  color={loaderColor(theme)}
+                                  width="16"
+                                  height="16"
+                                />
+                                <span className="font-medium">
+                                  Processing...
+                                </span>
+                              </div> :
+                              <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
+                                <HiCheckCircle
+                                  size={20}
+                                />
+                                <span className="uppercase font-bold">
+                                  Success
+                                </span>
+                              </div>
+                            }
+                          </Link>
                         }
                         <div className="flex items-center space-x-2">
                           {
@@ -1005,21 +651,13 @@ export default () => {
                             (
                               <Tooltip
                                 placement="bottom"
-                                content={
-                                  routers?.length > 0 ?
-                                    'Boosted by routers.' :
-                                    'Pending router boost.'
-                                }
+                                content={routers?.length > 0 ? 'Boosted by routers.' : 'Pending router boost.'}
                                 className="z-50 bg-dark text-white text-xs"
                               >
                                 <div className="flex items-center">
                                   <BsLightningChargeFill
                                     size={16}
-                                    className={
-                                      routers?.length > 0 ?
-                                        'text-yellow-500 dark:text-yellow-400' :
-                                        'text-blue-300 dark:text-blue-200'
-                                    }
+                                    className={routers?.length > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-blue-300 dark:text-blue-200'}
                                   />
                                   <BiInfoCircle
                                     size={14}
@@ -1031,17 +669,9 @@ export default () => {
                           }
                           <TimeSpent
                             title="Time spent"
-                            from_time={xcall_timestamp}
-                            to_time={execute_timestamp}
-                            className={
-                              `${
-                                errored ?
-                                  'text-red-600 dark:text-red-500' :
-                                  pending ?
-                                    'text-blue-500 dark:text-blue-300' :
-                                    'text-yellow-600 dark:text-yellow-400'
-                              } font-semibold`
-                            }
+                            fromTime={xcall_timestamp}
+                            toTime={execute_timestamp}
+                            className={`${errored ? 'text-red-600 dark:text-red-500' : pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}
                           />
                         </div>
                       </div>
@@ -1054,21 +684,26 @@ export default () => {
                   disableSortBy: true,
                   Cell: props => {
                     const {
+                      row,
                       value,
                     } = { ...props }
+
                     const {
                       source_asset_data,
                       xcall_caller,
-                    } = { ...props.row.original }
+                    } = { ...row.original }
+
                     const {
                       name,
                       image,
                       explorer,
                     } = { ...value }
+
                     const {
                       url,
                       address_path,
                     } = { ...explorer }
+
                     const {
                       symbol,
                       amount,
@@ -1095,9 +730,9 @@ export default () => {
                           </div> :
                           <div className="h-7 flex items-center justify-start">
                             <TailSpin
-                              color={loader_color(theme)}
                               width="24"
                               height="24"
+                              color={loaderColor(theme)}
                             />
                           </div>
                         }
@@ -1116,13 +751,10 @@ export default () => {
                           {
                             amount >= 0 &&
                             (
-                              <span className="text-xs font-semibold">
-                                {number_format(
-                                  amount,
-                                  '0,0.000000',
-                                  true,
-                                )}
-                              </span>
+                              <DecimalsFormat
+                                value={amount}
+                                className="text-xs font-semibold"
+                              />
                             )
                           }
                           {
@@ -1158,18 +790,14 @@ export default () => {
                           (
                             <div className="flex items-center justify-start space-x-1">
                               <a
-                                href={
-                                  url ?
-                                    `${url}${address_path?.replace('{address}', xcall_caller)}` :
-                                    `/address/${xcall_caller}`
-                                }
+                                href={url ? `${url}${address_path?.replace('{address}', xcall_caller)}` : `/address/${xcall_caller}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >
                                 <EnsProfile
                                   address={xcall_caller}
-                                  no_copy={true}
-                                  no_image={true}
+                                  noCopy={true}
+                                  noImage={true}
                                   fallback={
                                     <span className="text-slate-400 dark:text-slate-600 text-xs font-semibold">
                                       <span className="sm:hidden">
@@ -1204,21 +832,26 @@ export default () => {
                   disableSortBy: true,
                   Cell: props => {
                     const {
+                      row,
                       value,
                     } = { ...props }
+
                     const {
                       destination_asset_data,
                       to,
-                    } = { ...props.row.original }
+                    } = { ...row.original }
+
                     const {
                       name,
                       image,
                       explorer,
                     } = { ...value }
+
                     const {
                       url,
                       address_path,
                     } = { ...explorer }
+
                     const {
                       symbol,
                       amount,
@@ -1245,9 +878,9 @@ export default () => {
                           </div> :
                           <div className="h-7 flex items-center justify-start">
                             <TailSpin
-                              color={loader_color(theme)}
                               width="24"
                               height="24"
+                              color={loaderColor(theme)}
                             />
                           </div>
                         }
@@ -1266,13 +899,10 @@ export default () => {
                           {
                             amount >= 0 &&
                             (
-                              <span className="text-xs font-semibold">
-                                {number_format(
-                                  amount,
-                                  '0,0.000000',
-                                  true,
-                                )}
-                              </span>
+                              <DecimalsFormat
+                                value={amount}
+                                className="text-xs font-semibold"
+                              />
                             )
                           }
                           {
@@ -1308,18 +938,14 @@ export default () => {
                           (
                             <div className="flex items-center justify-start space-x-1">
                               <a
-                                href={
-                                  url ?
-                                    `${url}${address_path?.replace('{address}', to)}` :
-                                    `/address/${to}`
-                                }
+                                href={url ? `${url}${address_path?.replace('{address}', to)}` : `/address/${to}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >
                                 <EnsProfile
                                   address={to}
-                                  no_copy={true}
-                                  no_image={true}
+                                  noCopy={true}
+                                  noImage={true}
                                   fallback={
                                     <span className="text-slate-400 dark:text-slate-600 text-xs font-semibold">
                                       <span className="sm:hidden">
@@ -1354,18 +980,20 @@ export default () => {
                   disableSortBy: true,
                   Cell: props => {
                     const {
+                      row,
+                    } = { ...props }
+
+                    const {
                       transfer_id,
                       status,
-                    } = { ...props.row.original }
+                    } = { ...row.original }
 
                     return (
                       <div className="flex flex-col items-start space-y-1 mt-0.5">
                         <Link href={`/tx/${transfer_id}`}>
-                          <a>
-                            <div className="normal-case font-bold">
-                              {status}
-                            </div>
-                          </a>
+                          <div className="normal-case font-bold">
+                            {status}
+                          </div>
                         </Link>
                       </div>
                     )
@@ -1374,45 +1002,29 @@ export default () => {
                 },
               ]
               .filter(c =>
-                !address ||
-                [
-                  '/address/[address]',
-                ]
-                .includes(pathname) ||
-                ![
-                  'xcall_timestamp',
-                  'status',
-                  'xcall_status',
-                ]
-                .includes(c.accessor)
+                !address || ['/address/[address]'].includes(pathname) ||
+                !['xcall_timestamp','status', 'xcall_status'].includes(c.accessor)
               )
             }
             size="small"
             data={data_filtered}
             noPagination={data_filtered.length <= 10}
-            defaultPageSize={
-              address ?
-                10 :
-                25
-            }
+            defaultPageSize={address ? 10 : 25}
             className="no-border"
           />
           {
             data.length > 0 &&
             (
               !fetching ?
-                data.length >= LIMIT &&
-                !noMore &&
+                data.length >= LIMIT && !noMore &&
                 (
                   <button
-                    onClick={() => {
-                      setOffset(data.length)
-                      setFetchTrigger(
-                        typeof fetchTrigger === 'number' ?
-                          true :
-                          1
-                      )
-                    }}
+                    onClick={
+                      () => {
+                        setOffset(data.length)
+                        setFetchTrigger(typeof fetchTrigger === 'number' ? true : 1)
+                      }
+                    }
                     className="max-w-min whitespace-nowrap text-slate-400 hover:text-blue-500 dark:text-slate-200 dark:hover:text-blue-400 font-normal hover:font-medium mx-auto"
                   >
                     Load more
@@ -1420,18 +1032,18 @@ export default () => {
                 ) :
                 <div className="flex justify-center">
                   <TailSpin
-                    color={loader_color(theme)}
                     width="24"
                     height="24"
+                    color={loaderColor(theme)}
                   />
                 </div>
             )
           }
         </div> :
         <TailSpin
-          color={loader_color(theme)}
           width="32"
           height="32"
+          color={loaderColor(theme)}
         />
       }
     </div>

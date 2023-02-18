@@ -23,7 +23,6 @@ export default (
 
   const hide = () => {
     setOpen(false)
-
     if (onClose) {
       onClose()
     }
@@ -37,7 +36,7 @@ export default (
           <button
             type="button"
             onClick={show}
-            className={`${btnClassNames}`}
+            className={btnClassNames}
           >
             {btnTitle}
           </button>

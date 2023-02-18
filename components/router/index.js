@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
-import { BigNumber, utils } from 'ethers'
+import { utils } from 'ethers'
 
 import Metrics from '../metrics'
 import RouterLiquidity from '../router-liquidity'
@@ -10,7 +10,10 @@ import Assets from '../assets'
 import Transfers from '../transfers'
 import { daily_transfer_metrics, daily_transfer_volume } from '../../lib/api/metrics'
 import { type } from '../../lib/object/id'
-import { equals_ignore_case } from '../../lib/utils'
+import { getChain } from '../../lib/object/chain'
+import { getAsset } from '../../lib/object/asset'
+import { getContract } from '../../lib/object/contract'
+import { toArray, equalsIgnoreCase } from '../../lib/utils'
 
 export default () => {
   const {
@@ -19,8 +22,8 @@ export default () => {
     assets,
     ens,
     dev,
-  } = useSelector(state =>
-    (
+  } = useSelector(
+    state => (
       {
         preferences: state.preferences,
         chains: state.chains,
@@ -67,7 +70,7 @@ export default () => {
         type(_address) === 'ens' &&
         Object.values({ ...ens_data })
           .findIndex(d =>
-            equals_ignore_case(
+            equalsIgnoreCase(
               d?.name,
               _address,
             )
@@ -77,7 +80,7 @@ export default () => {
           _.head(
             Object.entries(ens_data)
               .find(([k, v]) =>
-                equals_ignore_case(
+                equalsIgnoreCase(
                   v?.name,
                   _address,
                 )
@@ -93,101 +96,43 @@ export default () => {
   useEffect(
     () => {
       const getData = async is_interval => {
-        if (
-          page_visible &&
-          sdk &&
-          chains_data &&
-          assets_data
-        ) {
-          const response =
-            await sdk.sdkUtils
-              .getRoutersData()
+        if (page_visible && sdk && chains_data && assets_data) {
+          const response = toArray(await sdk.sdkUtils.getRoutersData())
 
-          if (
-            Array.isArray(response) ||
-            !is_interval
-          ) {
-            const data =
-              (Array.isArray(response) ?
-                response :
-                []
-              )
-              .filter(l =>
-                equals_ignore_case(
-                  l?.address,
+          const data =
+            response
+              .filter(d =>
+                equalsIgnoreCase(
+                  d?.address,
                   address,
                 ) &&
-                chains_data
-                  .findIndex(c =>
-                    c?.domain_id === l?.domain
-                  ) > -1
+                getChain(d?.domain, chains_data)
               )
-              .map(l => {
+              .map(d => {
                 const {
                   domain,
                   local,
                   balance,
-                } = { ...l }
+                } = { ...d }
 
-                const chain_data = chains_data
-                  .find(c =>
-                    c?.domain_id === domain
-                  )
+                const chain_data = getChain(domain, chains_data)
+
                 const {
                   chain_id,
                 } = { ...chain_data }
 
-                let asset_data = assets_data
-                  .find(a =>
-                    (a?.contracts || [])
-                      .findIndex(c =>
-                        c?.chain_id === chain_id &&
-                        [
-                          c?.next_asset?.contract_address,
-                          c?.contract_address,
-                        ]
-                        .filter(_a => _a)
-                        .findIndex(_a =>
-                          equals_ignore_case(
-                            _a,
-                            local,
-                          )
-                        ) > -1
-                      ) > -1
-                  )
+                let asset_data = getAsset(null, assets_data, chain_id, local)
 
                 asset_data = {
                   ...asset_data,
-                  ...(
-                    (asset_data?.contracts || [])
-                    .find(c =>
-                      c?.chain_id === chain_id &&
-                      [
-                        c?.next_asset?.contract_address,
-                        c?.contract_address,
-                      ]
-                      .filter(_a => _a)
-                      .findIndex(_a =>
-                        equals_ignore_case(
-                          _a,
-                          local,
-                        )
-                      ) > -1
-                    )
-                  ),
+                  ...getContract(chain_id, asset_data?.contracts),
                 }
 
                 if (asset_data.contracts) {
                   delete asset_data.contracts
                 }
 
-                if (
-                  asset_data.next_asset &&
-                  equals_ignore_case(
-                    asset_data.next_asset.contract_address,
-                    local,
-                  )
-                ) {
+                if (asset_data.next_asset && equalsIgnoreCase(asset_data.next_asset.contract_address, local)) {
                   asset_data = {
                     ...asset_data,
                     ...asset_data.next_asset,
@@ -201,37 +146,18 @@ export default () => {
                   price,
                 } = { ...asset_data }
 
-                const amount =
-                  Number(
-                    utils.formatUnits(
-                      BigNumber.from(
-                        BigInt(
-                          balance ||
-                          0
-                        )
-                        .toString()
-                      ),
-                      decimals ||
-                      18,
-                    )
-                  )
+                const amount = Number(utils.formatUnits(BigInt(balance || '0'), decimals || 18))
 
                 return {
-                  ...l,
+                  ...d,
                   chain_id,
                   contract_address: local,
                   amount,
-                  value:
-                    amount *
-                    (
-                      price ||
-                      0
-                    ),
+                  value: amount * (price || 0),
                 }
               })
 
-            setLiquidity(data)
-          }
+          setLiquidity(data)
 
           if (['refresh'].includes(action)) {
             router.push(`/router/${address}`)
@@ -243,8 +169,7 @@ export default () => {
 
       const interval =
         setInterval(
-          () =>
-            getData(true),
+          () => getData(),
           0.5 * 60 * 1000,
         )
 
@@ -256,182 +181,81 @@ export default () => {
   useEffect(
     () => {
       const getData = async () => {
-        if (
-          sdk &&
-          chains_data &&
-          assets_data
-        ) {
-          let volumes =
-            await daily_transfer_volume(
-              {
-                router: `eq.${address}`,
-              },
-            )
-
-          volumes =
-            (Array.isArray(volumes) ?
-              volumes :
-              []
-            )
-            .map(v => {
-              const {
-                transfer_date,
-                origin_chain,
-                destination_chain,
-                asset,
-                volume,
-              } = { ...v }
-
-              const origin_chain_data = chains_data
-                .find(c =>
-                  c?.domain_id === origin_chain
-                )
-              const destination_chain_data = chains_data
-                .find(c =>
-                  c?.domain_id === destination_chain
-                )
-
-              let asset_data = assets_data
-                .find(a =>
-                  (a?.contracts || [])
-                    .findIndex(c =>
-                      c?.chain_id === origin_chain_data?.chain_id &&
-                      [
-                        c?.next_asset?.contract_address,
-                        c?.contract_address,
-                      ]
-                      .filter(_a => _a)
-                      .findIndex(_a =>
-                        equals_ignore_case(
-                          _a,
-                          asset,
-                        )
-                      ) > -1
-                    ) > -1
-                )
-
-              asset_data = {
-                ...asset_data,
-                ...(
-                  (asset_data?.contracts || [])
-                  .find(c =>
-                    c?.chain_id === origin_chain_data?.chain_id &&
-                    [
-                      c?.next_asset?.contract_address,
-                      c?.contract_address,
-                    ]
-                    .filter(_a => _a)
-                    .findIndex(_a =>
-                      equals_ignore_case(
-                        _a,
-                        asset,
-                      )
-                    ) > -1
-                  )
-                ),
-              }
-
-              if (asset_data.contracts) {
-                delete asset_data.contracts
-              }
-
-              if (
-                asset_data.next_asset &&
-                equals_ignore_case(
-                  asset_data.next_asset.contract_address,
+        if (sdk && chains_data && assets_data) {
+          const volumes =
+            toArray(await daily_transfer_volume({ router: `eq.${address}` }))
+              .filter(v => v.transfer_date)
+              .map(v => {
+                const {
+                  origin_chain,
+                  destination_chain,
                   asset,
-                )
-              ) {
+                  volume,
+                } = { ...v }
+
+                const origin_chain_data = getChain(origin_chain, chains_data)
+                const destination_chain_data = getChain(destination_chain, chains_data)
+
+                let asset_data = getAsset(null, assets_data, origin_chain_data?.chain_id, asset)
+
                 asset_data = {
                   ...asset_data,
-                  ...asset_data.next_asset,
+                  ...getContract(origin_chain_data?.chain_id, asset_data?.contracts),
                 }
 
-                delete asset_data.next_asset
-              }
+                if (asset_data.contracts) {
+                  delete asset_data.contracts
+                }
 
-              const {
-                decimals,
-                price,
-              } = { ...asset_data }
+                if (asset_data.next_asset && equalsIgnoreCase(asset_data.next_asset.contract_address, asset)) {
+                  asset_data = {
+                    ...asset_data,
+                    ...asset_data.next_asset,
+                  }
 
-              const amount =
-                Number(
-                  utils.formatUnits(
-                    BigNumber.from(
-                      BigInt(
-                        volume ||
-                        0
-                      )
-                      .toString()
-                    ),
-                    decimals ||
-                    18,
-                  )
-                )
+                  delete asset_data.next_asset
+                }
 
-              return {
-                ...v,
-                origin_chain_data,
-                destination_chain_data,
-                asset_data,
-                amount,
-                volume:
-                  amount *
-                  (
-                    price ||
-                    0
-                  ),
-              }
-            })
+                const {
+                  decimals,
+                  price,
+                } = { ...asset_data }
 
-          let transfers =
-            await daily_transfer_metrics(
-              {
-                router: `eq.${address}`,
-              },
-            )
+                const amount = Number(utils.formatUnits(BigInt(volume || '0'), decimals || 18))
 
-          transfers =
-            (Array.isArray(transfers) ?
-              transfers :
-              []
-            )
-            .map(t => {
-              const {
-                transfer_date,
-                origin_chain,
-                destination_chain,
-              } = { ...t }
+                return {
+                  ...v,
+                  origin_chain_data,
+                  destination_chain_data,
+                  asset_data,
+                  amount,
+                  volume: amount * (price || 0),
+                }
+              })
 
-              const origin_chain_data = chains_data
-                .find(c =>
-                  c?.domain_id === origin_chain
-                )
-              const destination_chain_data = chains_data
-                .find(c =>
-                  c?.domain_id === destination_chain
-                )
+          const transfers =
+            toArray(await daily_transfer_metrics({ router: `eq.${address}` }))
+              .filter(t => t.transfer_date)
+              .map(t => {
+                const {
+                  origin_chain,
+                  destination_chain,
+                } = { ...t }
 
-              return {
-                ...t,
-                origin_chain_data,
-                destination_chain_data,
-              }
-            })
+                const origin_chain_data = getChain(origin_chain, chains_data)
+                const destination_chain_data = getChain(destination_chain, chains_data)
+
+                return {
+                  ...t,
+                  origin_chain_data,
+                  destination_chain_data,
+                }
+              })
 
           setData(
             {
-              total_volume:
-                _.sumBy(
-                  volumes,
-                  'volume',
-                ),
-              total_transfers:
-                _.sumBy(
-                  transfers,
-                  'transfer_count',
-                ),
+              total_volume: _.sumBy(volumes, 'volume'),
+              total_transfers: _.sumBy(transfers, 'transfer_count'),
             },
           )
         }
@@ -448,23 +272,13 @@ export default () => {
   } = { ...data }
 
   const metrics =
-    liquidity &&
+    liquidity && data &&
     {
-      liquidity:
-        _.sumBy(
-          liquidity,
-          'value',
-        ),
+      liquidity: _.sumBy(liquidity, 'value'),
       volume: total_volume,
       transfers: total_transfers,
       // fee: 33.33,
-      supported_chains:
-        _.uniq(
-          liquidity
-            .map(d =>
-              d?.chain_id
-            )
-        ),
+      supported_chains: _.uniq(liquidity.map(d => d?.chain_id)),
     }
 
   return (

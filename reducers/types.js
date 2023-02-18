@@ -12,11 +12,8 @@ export const POOL_ASSETS_DATA = 'pool_assets_data'
 // ens
 export const ENS_DATA = 'ens_data'
 
-// status
-export const CHAIN_DATA = 'chain_data'
-
-// asset balances
-export const ASSET_BALANCES_DATA = 'asset_balances_data'
+// router asset balances
+export const ROUTER_ASSET_BALANCES_DATA = 'router_asset_balances_data'
 
 // pools
 export const POOLS_DATA = 'pools_data'

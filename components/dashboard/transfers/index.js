@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
@@ -15,10 +14,11 @@ import {
 } from 'recharts'
 import { TailSpin } from 'react-loader-spinner'
 
+import DecimalsFormat from '../../decimals-format'
 import Image from '../../image'
 import { timeframes } from '../../../lib/object/timeframe'
 import { chainName } from '../../../lib/object/chain'
-import { number_format, loader_color } from '../../../lib/utils'
+import { toArray, numberFormat, loaderColor } from '../../../lib/utils'
 
 const CustomTooltip = (
   {
@@ -30,57 +30,52 @@ const CustomTooltip = (
   if (active) {
     const {
       values,
-    } = {
-      ...(
-        _.head(payload)?.payload
-      ),
-    }
+    } = { ..._.head(payload)?.payload }
 
     return (
       values?.length > 0 &&
       (
         <div className="bg-slate-100 dark:bg-slate-800 dark:bg-opacity-75 border border-slate-200 dark:border-slate-800 rounded-lg flex flex-col space-y-1 p-2">
-          {
-            values
-              .map((v, i) => {
-                const {
-                  chain_data,
-                  transfers,
-                } = { ...v }
-                const {
-                  image,
-                } = { ...chain_data }
+          {values
+            .map((v, i) => {
+              const {
+                chain_data,
+                transfers,
+              } = { ...v }
 
-                return (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between space-x-4"
-                  >
-                    <div className="flex items-center space-x-1.5">
-                      {
-                        image &&
-                        (
-                          <Image
-                            src={image}
-                            width={18}
-                            height={18}
-                            className="rounded-full"
-                          />
-                        )
-                      }
-                      <span className="text-xs font-semibold">
-                        {chainName(chain_data)}
-                      </span>
-                    </div>
-                    <span className=" text-xs font-semibold">
-                      {number_format(
-                        transfers,
-                        '0,0',
-                      )}
+              const {
+                image,
+              } = { ...chain_data }
+
+              return (
+                <div
+                  key={i}
+                  className="flex items-center justify-between space-x-4"
+                >
+                  <div className="flex items-center space-x-1.5">
+                    {
+                      image &&
+                      (
+                        <Image
+                          src={image}
+                          width={18}
+                          height={18}
+                          className="rounded-full"
+                        />
+                      )
+                    }
+                    <span className="text-xs font-semibold">
+                      {chainName(chain_data)}
                     </span>
                   </div>
-                )
-              })
+                  <DecimalsFormat
+                    values={transfers}
+                    noToolip={true}
+                    className="text-xs font-semibold"
+                  />
+                </div>
+              )
+            })
           }
         </div>
       )
@@ -101,8 +96,8 @@ export default (
 ) => {
   const {
     preferences,
-  } = useSelector(state =>
-    (
+  } = useSelector(
+    state => (
       {
         preferences: state.preferences,
       }
@@ -113,18 +108,13 @@ export default (
     theme,
   } = { ...preferences }
 
-  const router = useRouter()
-
   const [data, setData] = useState(null)
   const [xFocus, setXFocus] = useState(null)
 
   useEffect(
     () => {
       if (transfers) {
-        const _timeframe = timeframes
-          .find(t =>
-            t?.day === timeframe
-          )
+        const _timeframe = timeframes.find(t => t?.day === timeframe)
 
         setData(
           transfers
@@ -138,49 +128,28 @@ export default (
               return {
                 ...d,
                 id: timestamp,
-                time_string:
-                  `${
-                    moment(timestamp)
-                      .startOf(_timeframe?.timeframe)
-                      .format('MMM D, YYYY')
-                  }${
-                    _timeframe?.timeframe === 'week' ?
-                      ` - ${
-                        moment(timestamp)
-                          .endOf(_timeframe?.timeframe)
-                          .format('MMM D, YYYY')
-                      }` :
-                      ''
-                  }`,
-                short_name:
-                  moment(timestamp)
-                    .startOf(_timeframe?.timeframe)
-                    .format('D MMM'),
+                time_string: `${moment(timestamp).startOf(_timeframe?.timeframe).format('MMM D, YYYY')}${_timeframe?.timeframe === 'week' ? ` - ${moment(timestamp).endOf(_timeframe?.timeframe).format('MMM D, YYYY')}` : ''}`,
+                short_name: moment(timestamp).startOf(_timeframe?.timeframe).format('D MMM'),
                 value: transfers,
-                value_string:
-                  number_format(
-                    transfers,
-                    transfers > 100000 ?
-                      '0,0.00a' :
-                      '0,0',
-                  ),
+                value_string: numberFormat(transfers, transfers > 1000000 ? '0,0.00a' : '0,0'),
                 values: transfers_by_chains,
-                ...Object.fromEntries(
-                  (Array.isArray(transfers_by_chains) ?
-                    transfers_by_chains :
-                    []
-                  )
-                  .map(v => {
-                    const {
-                      id,
-                      transfers,
-                    } = { ...v }
+                ...(
+                  Object.fromEntries(
+                    toArray(transfers_by_chains)
+                      .map(v => {
+                        const {
+                          id,
+                          transfers,
+                        } = { ...v }
 
-                    return [
-                      id,
-                      transfers,
-                    ]
-                  })
+                        return (
+                          [
+                            id,
+                            transfers,
+                          ]
+                        )
+                      })
+                  )
                 ),
               }
             })
@@ -190,12 +159,7 @@ export default (
     [transfers],
   )
 
-  const d =
-    (data || [])
-      .find(d =>
-        d.id === xFocus
-      ) ||
-    _.last(data)
+  const d = toArray(data).find(d => d.id === xFocus) || _.last(data)
 
   const {
     time_string,
@@ -215,12 +179,7 @@ export default (
               {description}
             </span>
             <span>
-              {
-                timeframes
-                  .find(t =>
-                    t?.day === timeframe
-                  )?.timeframe
-              }
+              {timeframes.find(t => t?.day === timeframe)?.timeframe}
             </span>
           </span>
         </div>
@@ -228,12 +187,11 @@ export default (
           d &&
           (
             <div className="flex flex-col items-end">
-              <span className="uppercase font-bold">
-                {number_format(
-                  value,
-                  '0,0',
-                )}
-              </span>
+              <DecimalsFormat
+                value={numberFormat(value, '0,0')}
+                noToolip={true}
+                className="uppercase font-bold"
+              />
               <span className="whitespace-nowrap text-slate-400 dark:text-slate-200 text-xs sm:text-sm text-right">
                 {time_string}
               </span>
@@ -246,24 +204,28 @@ export default (
           <ResponsiveContainer>
             <BarChart
               data={data}
-              onMouseEnter={e => {
-                if (e) {
-                  const {
-                    id,
-                  } = { ..._.head(e.activePayload)?.payload }
+              onMouseEnter={
+                e => {
+                  if (e) {
+                    const {
+                      id,
+                    } = { ..._.head(e.activePayload)?.payload }
 
-                  setXFocus(id)
+                    setXFocus(id)
+                  }
                 }
-              }}
-              onMouseMove={e => {
-                if (e) {
-                  const {
-                    id,
-                  } = { ..._.head(e.activePayload)?.payload }
+              }
+              onMouseMove={
+                e => {
+                  if (e) {
+                    const {
+                      id,
+                    } = { ..._.head(e.activePayload)?.payload }
 
-                  setXFocus(id)
+                    setXFocus(id)
+                  }
                 }
-              }}
+              }
               onMouseLeave={() => setXFocus(null)}
               margin={
                 {
@@ -300,68 +262,59 @@ export default (
                 axisLine={false}
                 tickLine={false}
               />
-              {
-                stacked &&
-                values?.length > 0 ?
-                  <>
-                    <Tooltip
-                      content={
-                        <CustomTooltip />
+              {stacked && values?.length > 0 ?
+                <>
+                  <Tooltip
+                    content={<CustomTooltip />}
+                    cursor={
+                      {
+                        fill: 'transparent',
                       }
-                      cursor={
-                        {
-                          fill: 'transparent',
-                        }
-                      }
-                    />
-                    {
-                      _.orderBy(
-                        values,
-                        ['id'],
-                        ['asc'],
-                      )
-                      .map((v, i) => {
-                        const {
-                          id,
-                          color,
-                        } = { ...v }
+                    }
+                  />
+                  {_.orderBy(values, ['id'], ['asc'])
+                    .map((v, i) => {
+                      const {
+                        id,
+                        color,
+                      } = { ...v }
 
-                        return (
-                          <Bar
-                            key={i}
-                            dataKey={id}
-                            minPointSize={5}
-                            stackId={title}
-                            fill={color}
-                          />
-                        )
-                      })
-                    }
-                  </> :
-                  <Bar
-                    dataKey="value"
-                    minPointSize={5}
-                  >
-                    {data
-                      .map((d, i) => {
-                        return (
-                          <Cell
-                            key={i}
-                            fillOpacity={1}
-                            fill="url(#gradient-transfers)"
-                          />
-                        )
-                      })
-                    }
-                  </Bar>
+                      return (
+                        <Bar
+                          key={i}
+                          dataKey={id}
+                          minPointSize={5}
+                          stackId={title}
+                          fill={color}
+                        />
+                      )
+                    })
+                  }
+                </> :
+                <Bar
+                  dataKey="value"
+                  minPointSize={5}
+                >
+                  {data
+                    .map((d, i) => {
+                      return (
+                        <Cell
+                          key={i}
+                          fillOpacity={1}
+                          fill="url(#gradient-transfers)"
+                        />
+                      )
+                    })
+                  }
+                </Bar>
               }
             </BarChart>
           </ResponsiveContainer> :
           <div className="w-full h-4/5 flex items-center justify-center">
             <TailSpin
-              color={loader_color(theme)}
               width="32"
               height="32"
+              color={loaderColor(theme)}
             />
           </div>
         }

@@ -15,9 +15,10 @@ import {
 } from 'recharts'
 import { TailSpin } from 'react-loader-spinner'
 
+import DecimalsFormat from '../../decimals-format'
 import Image from '../../image'
 import { currency_symbol } from '../../../lib/object/currency'
-import { number_format, loader_color } from '../../../lib/utils'
+import { toArray, numberFormat, loaderColor } from '../../../lib/utils'
 
 const CustomTooltip = (
   {
@@ -29,49 +30,39 @@ const CustomTooltip = (
   if (active) {
     const {
       values,
-    } = {
-      ...(
-        _.head(payload)?.payload
-      ),
-    }
+    } = { ..._.head(payload)?.payload }
 
     return (
       values?.length > 0 &&
       (
         <div className="bg-slate-100 dark:bg-slate-800 dark:bg-opacity-75 border border-slate-200 dark:border-slate-800 flex flex-col space-y-1 p-2">
-          {
-            values
-              .filter(v =>
-                v?.value
-              )
-              .map((v, i) => {
-                const {
-                  id,
-                  value,
-                } = { ...v }
+          {values
+            .filter(v => v?.value)
+            .map((v, i) => {
+              const {
+                id,
+                value,
+              } = { ...v }
 
-                return (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between space-x-4"
-                  >
-                    <div className="flex items-center space-x-1.5">
-                      <span className="text-xs font-semibold">
-                        {id}
-                      </span>
-                    </div>
-                    <span className=" text-xs font-semibold">
-                      {currency_symbol}
-                      {number_format(
-                        value,
-                        value > 10000 ?
-                          '0,0' :
-                          '0,0.000000',
-                      )}
+              return (
+                <div
+                  key={i}
+                  className="flex items-center justify-between space-x-4"
+                >
+                  <div className="flex items-center space-x-1.5">
+                    <span className="text-xs font-semibold">
+                      {id}
                     </span>
                   </div>
-                )
-              })
+                  <DecimalsFormat
+                    value={value}
+                    prefix={currency_symbol}
+                    noToolip={true}
+                    className="text-xs font-semibold"
+                  />
+                </div>
+              )
+            })
           }
         </div>
       )
@@ -89,13 +80,13 @@ export default (
 ) => {
   const {
     preferences,
-    asset_balances,
+    router_asset_balances,
     pools,
-  } = useSelector(state =>
-    (
+  } = useSelector(
+    state => (
       {
         preferences: state.preferences,
-        asset_balances: state.asset_balances,
+        router_asset_balances: state.router_asset_balances,
         pools: state.pools,
       }
     ),
@@ -105,8 +96,8 @@ export default (
     theme,
   } = { ...preferences }
   const {
-    asset_balances_data,
-  } = { ...asset_balances }
+    router_asset_balances_data,
+  } = { ...router_asset_balances }
   const {
     pools_data,
   } = { ...pools }
@@ -118,33 +109,16 @@ export default (
 
   useEffect(
     () => {
-      if (asset_balances_data) {
+      if (router_asset_balances_data) {
         setData(
-          Object.values(asset_balances_data)
+          Object.values(router_asset_balances_data)
             .map(v => {
               const {
                 chain_data,
-              } = {  
-                ...(
-                  _.head(v)
-                ),
-              }
+              } = { ..._.head(v) }
 
-              const router_value =
-                _.sumBy(
-                  v,
-                  'value',
-                )
-
-              const pool_value =
-                _.sumBy(
-                  (pools_data || [])
-                    .filter(p =>
-                      p?.chain_data?.id === chain_data?.id
-                    ),
-                  'tvl',
-                ) ||
-                0
+              const router_value = _.sumBy(v, 'value')
+              const pool_value = _.sumBy(toArray(pools_data).filter(p => p?.chain_data?.id === chain_data?.id), 'tvl') || 0
 
               return {
                 ...chain_data,
@@ -153,25 +127,17 @@ export default (
                 value: router_value + pool_value,
               }
             })
-            .filter(l => l.id)
-            .map(l => {
+            .filter(t => t.id)
+            .map(t => {
               const {
                 router_value,
                 pool_value,
                 value,
-              } = { ...l }
+              } = { ...t }
 
               return {
-                ...l,
-                value_string:
-                  number_format(
-                    value,
-                    value > 1000000 ?
-                      '0,0.00a' :
-                      value > 1000 ?
-                        '0,0' :
-                        '0,0.00',
-                  ),
+                ...t,
+                value_string: numberFormat(value, value > 1000000 ? '0,0.00a' : value > 1000 ? '0,0' : '0,0.00'),
                 values:
                   [
                     {
@@ -188,14 +154,10 @@ export default (
         )
       }
     },
-    [asset_balances_data, pools_data],
+    [router_asset_balances_data, pools_data],
   )
 
-  const d =
-  (data || [])
-    .find(d =>
-      d.id === xFocus
-    )
+  const d = toArray(data).find(d => d.id === xFocus)
 
   const {
     id,
@@ -219,13 +181,12 @@ export default (
           d &&
           (
             <div className="flex flex-col items-end">
-              <span className="uppercase font-bold">
-                {currency_symbol}
-                {number_format(
-                  value,
-                  '0,0.00',
-                )}
-              </span>
+              <DecimalsFormat
+                value={numberFormat(value, '0,0')}
+                prefix={currency_symbol}
+                noToolip={true}
+                className="uppercase font-bold"
+              />
               <div className="flex items-center space-x-1.5">
                 {
                   image &&
@@ -251,28 +212,32 @@ export default (
           <ResponsiveContainer>
             <BarChart
               data={data}
-              onMouseEnter={e => {
-                if (e) {
-                  const {
-                    id,
-                  } = { ..._.head(e.activePayload)?.payload }
+              onMouseEnter={
+                e => {
+                  if (e) {
+                    const {
+                      id,
+                    } = { ..._.head(e.activePayload)?.payload }
 
-                  setXFocus(id)
+                    setXFocus(id)
+                  }
                 }
-              }}
-              onMouseMove={e => {
-                if (e) {
-                  const {
-                    id,
-                  } = { ..._.head(e.activePayload)?.payload }
+              }
+              onMouseMove={
+                e => {
+                  if (e) {
+                    const {
+                      id,
+                    } = { ..._.head(e.activePayload)?.payload }
 
-                  setXFocus(id)
+                    setXFocus(id)
+                  }
                 }
-              }}
+              }
               onMouseLeave={() => setXFocus(null)}
               margin={
                 {
-                  top: 10,
+                  top: 20,
                   right: 2,
                   bottom: 4,
                   left: 2,
@@ -318,9 +283,7 @@ export default (
                 tickLine={false}
               />
               <Tooltip
-                content={
-                  <CustomTooltip />
-                }
+                content={<CustomTooltip />}
                 cursor={
                   {
                     fill: 'transparent',
@@ -359,9 +322,9 @@ export default (
           </ResponsiveContainer> :
           <div className="w-full h-4/5 flex items-center justify-center">
             <TailSpin
-              color={loader_color(theme)}
               width="32"
               height="32"
+              color={loaderColor(theme)}
             />
           </div>
         }

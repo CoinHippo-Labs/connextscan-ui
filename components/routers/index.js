@@ -2,35 +2,37 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
-import { BigNumber, utils } from 'ethers'
+import { utils } from 'ethers'
 import { TailSpin } from 'react-loader-spinner'
-import { TiArrowRight } from 'react-icons/ti'
 
 import Metrics from '../metrics'
-import Image from '../image'
-import Datatable from '../datatable'
 import Copy from '../copy'
+import Datatable from '../datatable'
+import DecimalsFormat from '../decimals-format'
 import EnsProfile from '../ens-profile'
+import Image from '../image'
 
 import { daily_transfer_metrics, daily_transfer_volume } from '../../lib/api/metrics'
 import { currency_symbol } from '../../lib/object/currency'
-import { number_format, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
+import { getChain } from '../../lib/object/chain'
+import { getAsset } from '../../lib/object/asset'
+import { getContract } from '../../lib/object/contract'
+import { toArray, ellipse, equalsIgnoreCase, loaderColor } from '../../lib/utils'
 
 export default () => {
   const {
     preferences,
     chains,
     assets,
-    asset_balances,
+    router_asset_balances,
     dev,
-  } = useSelector(state =>
-    (
+  } = useSelector(
+    state => (
       {
         preferences: state.preferences,
         chains: state.chains,
         assets: state.assets,
-        asset_balances:
-        state.asset_balances,
+        router_asset_balances: state.router_asset_balances,
         dev: state.dev,
       }
     ),
@@ -49,209 +51,108 @@ export default () => {
     sdk,
   } = { ...dev }
   const {
-    asset_balances_data,
-  } = { ...asset_balances }
+    router_asset_balances_data,
+  } = { ...router_asset_balances }
 
   const [data, setData] = useState(null)
 
   useEffect(
     () => {
       const getData = async () => {
-        if (
-          sdk &&
-          chains_data &&
-          assets_data
-        ) {
-          let volumes = await daily_transfer_volume()
-
-          volumes =
-            (Array.isArray(volumes) ?
-              volumes :
-              []
-            )
-            .map(v => {
-              const {
-                transfer_date,
-                origin_chain,
-                destination_chain,
-                asset,
-                volume,
-              } = { ...v }
-
-              const origin_chain_data = chains_data
-                .find(c =>
-                  c?.domain_id === origin_chain
-                )
-              const destination_chain_data = chains_data
-                .find(c =>
-                  c?.domain_id === destination_chain
-                )
-
-              let asset_data = assets_data
-                .find(a =>
-                  (a?.contracts || [])
-                    .findIndex(c =>
-                      c?.chain_id === origin_chain_data?.chain_id &&
-                      [
-                        c?.next_asset?.contract_address,
-                        c?.contract_address,
-                      ]
-                      .filter(_a => _a)
-                      .findIndex(_a =>
-                        equals_ignore_case(
-                          _a,
-                          asset,
-                        )
-                      ) > -1
-                    ) > -1
-                )
-
-              asset_data = {
-                ...asset_data,
-                ...(
-                  (asset_data?.contracts || [])
-                    .find(c =>
-                      c?.chain_id === origin_chain_data?.chain_id &&
-                      [
-                        c?.next_asset?.contract_address,
-                        c?.contract_address,
-                      ]
-                      .filter(_a => _a)
-                      .findIndex(_a =>
-                        equals_ignore_case(
-                          _a,
-                          asset,
-                        )
-                      ) > -1
-                    )
-                ),
-              }
-
-              if (asset_data.contracts) {
-                delete asset_data.contracts
-              }
-
-              if (
-                asset_data.next_asset &&
-                equals_ignore_case(
-                  asset_data.next_asset.contract_address,
+        if (sdk && chains_data && assets_data) {
+          const volumes =
+            toArray(await daily_transfer_volume())
+              .filter(v => v.transfer_date)
+              .map(v => {
+                const {
+                  origin_chain,
+                  destination_chain,
                   asset,
-                )
-              ) {
+                  volume,
+                } = { ...v }
+
+                const origin_chain_data = getChain(origin_chain, chains_data)
+                const destination_chain_data = getChain(destination_chain, chains_data)
+
+                let asset_data = getAsset(null, assets_data, origin_chain_data?.chain_id, asset)
+
                 asset_data = {
                   ...asset_data,
-                  ...asset_data.next_asset,
+                  ...getContract(origin_chain_data?.chain_id, asset_data?.contracts),
                 }
 
-                delete asset_data.next_asset
-              }
+                if (asset_data.contracts) {
+                  delete asset_data.contracts
+                }
 
-              const {
-                decimals,
-                price,
-              } = { ...asset_data }
+                if (asset_data.next_asset && equalsIgnoreCase(asset_data.next_asset.contract_address, asset)) {
+                  asset_data = {
+                    ...asset_data,
+                    ...asset_data.next_asset,
+                  }
 
-              const amount =
-                Number(
-                  utils.formatUnits(
-                    BigNumber.from(
-                      BigInt(
-                        volume ||
-                        0
-                      )
-                      .toString()
-                    ),
-                    decimals ||
-                    18,
-                  )
-                )
+                  delete asset_data.next_asset
+                }
 
-              return {
-                ...v,
-                origin_chain_data,
-                destination_chain_data,
-                asset_data,
-                amount,
-                volume:
-                  amount *
-                  (
-                    price ||
-                    0
-                  ),
-              }
-            })
+                const {
+                  decimals,
+                  price,
+                } = { ...asset_data }
 
-          let transfers = await daily_transfer_metrics()
+                const amount = Number(utils.formatUnits(BigInt(volume || '0'), decimals || 18))
 
-          transfers =
-            (Array.isArray(transfers) ?
-              transfers :
-              []
-            )
-            .map(t => {
-              const {
-                transfer_date,
-                origin_chain,
-                destination_chain,
-              } = { ...t }
+                return {
+                  ...v,
+                  origin_chain_data,
+                  destination_chain_data,
+                  asset_data,
+                  amount,
+                  volume: amount * (price || 0),
+                }
+              })
 
-              const origin_chain_data = chains_data
-                .find(c =>
-                  c?.domain_id === origin_chain
-                )
-              const destination_chain_data = chains_data
-                .find(c =>
-                  c?.domain_id === destination_chain
-                )
+          const transfers =
+            toArray(await daily_transfer_metrics())
+              .filter(t => t.transfer_date)
+              .map(t => {
+                const {
+                  origin_chain,
+                  destination_chain,
+                } = { ...t }
 
-              return {
-                ...t,
-                origin_chain_data,
-                destination_chain_data,
-              }
-            })
+                const origin_chain_data = getChain(origin_chain, chains_data)
+                const destination_chain_data = getChain(destination_chain, chains_data)
+
+                return {
+                  ...t,
+                  origin_chain_data,
+                  destination_chain_data,
+                }
+              })
 
           setData(
             {
               volumes:
                 _.orderBy(
-                  Object.entries(
-                    _.groupBy(
-                      volumes,
-                      'router',
-                    )
-                  )
-                  .map(([k, v]) => {
-                    return {
-                      router: k,
-                      volume:
-                        _.sumBy(
-                          v,
-                          'volume',
-                        ),
-                    }
-                  }),
+                  Object.entries(_.groupBy(volumes, 'router'))
+                    .map(([k, v]) => {
+                      return {
+                        router: k,
+                        volume: _.sumBy(v, 'volume'),
+                      }
+                    }),
                   ['volume'],
                   ['desc'],
                 ),
               transfers:
                 _.orderBy(
-                  Object.entries(
-                    _.groupBy(
-                      transfers,
-                      'router',
-                    )
-                  )
-                  .map(([k, v]) => {
-                    return {
-                      router: k,
-                      transfers:
-                        _.sumBy(
-                          v,
-                          'transfer_count',
-                        ),
-                    }
-                  }),
+                  Object.entries(_.groupBy(transfers, 'router'))
+                    .map(([k, v]) => {
+                      return {
+                        router: k,
+                        transfers: _.sumBy(v, 'transfer_count'),
+                      }
+                    }),
                   ['transfers'],
                   ['desc'],
                 ),
@@ -267,110 +168,65 @@ export default () => {
 
   const routers =
     _.orderBy(
-      Object.entries(
-        _.groupBy(
-          Object.values({ ...asset_balances_data })
-            .flatMap(a => a),
-          'address',
-        )
-      )
-      .map(([k, v]) => {
-        return {
-          router_address: k,
-          assets:
-            _.orderBy(
-              v,
-              ['value'],
-              ['desc'],
-            ),
-        }
-      })
-      .map(r => {
-        const {
-          router_address,
-          assets,
-        } = { ...r }
+      Object.entries(_.groupBy(Object.values({ ...router_asset_balances_data }).flatMap(t => t), 'address'))
+        .map(([k, v]) => {
+          return {
+            router_address: k,
+            assets: _.orderBy(v, ['value'], ['desc']),
+          }
+        })
+        .map(r => {
+          const {
+            router_address,
+            assets,
+          } = { ...r }
 
-        const {
-          volumes,
-          transfers,
-        } = { ...data }
+          const {
+            volumes,
+            transfers,
+          } = { ...data }
 
-        return {
-          ...r,
-          total_value:
-            _.sumBy(
-              assets,
-              'value',
-            ),
-          total_volume:
-            _.sumBy(
-              (Array.isArray(volumes) ?
-                volumes :
-                []
-              )
-              .filter(d =>
-                equals_ignore_case(
-                  d?.router,
-                  router_address,
-                )
+          return {
+            ...r,
+            total_value: _.sumBy(assets, 'value'),
+            total_volume:
+              _.sumBy(
+                toArray(volumes)
+                  .filter(d =>
+                    equalsIgnoreCase(
+                      d?.router,
+                      router_address,
+                    )
+                  ),
+                'volume',
               ),
-              'volume',
-            ),
-          total_transfers:
-            _.sumBy(
-              (Array.isArray(transfers) ?
-                transfers :
-                []
-              )
-              .filter(d =>
-                equals_ignore_case(
-                  d?.router,
-                  router_address,
-                )
+            total_transfers:
+              _.sumBy(
+                toArray(transfers)
+                  .filter(d =>
+                    equalsIgnoreCase(
+                      d?.router,
+                      router_address,
+                    )
+                  ),
+                'transfers',
               ),
-              'transfers',
-            ),
-          // total_fee: 33.33,
-          supported_chains:
-            _.uniq(
-              (assets || [])
-                .map(a =>
-                  a?.chain_id
-                )
-            ),
-        }
-      }),
+            // total_fee: 33.33,
+            supported_chains: _.uniq(assets.map(a => a.chain_id)),
+          }
+        }),
       ['total_value'],
       ['desc'],
     )
 
   const metrics =
-    asset_balances_data &&
+    router_asset_balances_data &&
     {
-      liquidity:
-        _.sumBy(
-          routers,
-          'total_value',
-        ),
-      volume:
-        _.sumBy(
-          routers,
-          'total_volume',
-        ),
-      transfers:
-        _.sumBy(
-          routers,
-          'total_transfers',
-        ),
+      liquidity: _.sumBy(routers, 'total_value'),
+      volume: _.sumBy(routers, 'total_volume'),
+      transfers: _.sumBy(routers, 'total_transfers'),
       // fee: 33.33,
-      supported_chains:
-        _.uniq(
-          routers
-            .flatMap(r =>
-              r?.supported_chains
-            )
-        ),
+      supported_chains: _.uniq(routers.flatMap(r => r?.supported_chains)),
     }
 
   return (
@@ -381,7 +237,7 @@ export default () => {
         />
       </div>
       <div className="my-4 sm:my-6">
-        {asset_balances_data ?
+        {router_asset_balances_data ?
           <Datatable
             columns={
               [
@@ -394,13 +250,7 @@ export default () => {
                       -1,
                   Cell: props => (
                     <span className="font-semibold">
-                      {number_format(
-                        (props.flatRows?.indexOf(props.row) > -1 ?
-                          props.flatRows.indexOf(props.row) :
-                          props.value
-                        ) + 1,
-                        '0,0',
-                      )}
+                      {(props.flatRows?.indexOf(props.row) > -1 ? props.flatRows.indexOf(props.row) : props.value) + 1}
                     </span>
                   ),
                 },
@@ -418,28 +268,26 @@ export default () => {
                       (
                         <div className="flex items-center space-x-1">
                           <Link href={`/router/${value}`}>
-                            <a>
-                              <EnsProfile
-                                address={value}
-                                no_copy={true}
-                                fallback={
-                                  <span className="text-slate-400 dark:text-slate-200 text-sm font-semibold">
-                                    <span className="xl:hidden">
-                                      {ellipse(
-                                        value,
-                                        8,
-                                      )}
-                                    </span>
-                                    <span className="hidden xl:block">
-                                      {ellipse(
-                                        value,
-                                        12,
-                                      )}
-                                    </span>
+                            <EnsProfile
+                              address={value}
+                              noCopy={true}
+                              fallback={
+                                <span className="text-slate-400 dark:text-slate-200 text-sm font-semibold">
+                                  <span className="xl:hidden">
+                                    {ellipse(
+                                      value,
+                                      8,
+                                    )}
                                   </span>
-                                }
-                              />
-                            </a>
+                                  <span className="hidden xl:block">
+                                    {ellipse(
+                                      value,
+                                      12,
+                                    )}
+                                  </span>
+                                </span>
+                              }
+                            />
                           </Link>
                           <Copy
                             value={value}
@@ -463,22 +311,15 @@ export default () => {
 
                     return (
                       <div className="text-base font-bold text-right">
-                        {
-                          typeof value === 'number' ?
-                            <span className="uppercase">
-                              {currency_symbol}
-                              {number_format(
-                                value,
-                                value > 1000000 ?
-                                  '0,0.00a' :
-                                  value > 1000 ?
-                                    '0,0' :
-                                    '0,0.00',
-                              )}
-                            </span> :
-                            <span className="text-slate-400 dark:text-slate-500">
-                              -
-                            </span>
+                        {typeof value === 'number' ?
+                          <DecimalsFormat
+                            value={value}
+                            prefix={currency_symbol}
+                            className="uppercase"
+                          /> :
+                          <span className="text-slate-400 dark:text-slate-500">
+                            -
+                          </span>
                         }
                       </div>
                     )
@@ -499,19 +340,14 @@ export default () => {
 
                     return (
                       <div className="text-base font-bold text-right">
-                        {
-                          typeof value === 'number' ?
-                            <span className="uppercase">
-                              {number_format(
-                                value,
-                                value > 100000 ?
-                                  '0,0.00a' :
-                                  '0,0',
-                                )}
-                            </span> :
-                            <span className="text-slate-400 dark:text-slate-500">
-                              -
-                            </span>
+                        {typeof value === 'number' ?
+                          <DecimalsFormat
+                            value={value}
+                            className="uppercase"
+                          /> :
+                          <span className="text-slate-400 dark:text-slate-500">
+                            -
+                          </span>
                         }
                       </div>
                     )
@@ -532,22 +368,15 @@ export default () => {
 
                     return (
                       <div className="text-base font-bold text-right">
-                        {
-                          typeof value === 'number' ?
-                            <span className="uppercase">
-                              {currency_symbol}
-                              {number_format(
-                                value,
-                                value > 10000000 ?
-                                  '0,0.00a' :
-                                  value > 1000 ?
-                                    '0,0' :
-                                    '0,0.00',
-                              )}
-                            </span> :
-                            <span className="text-slate-400 dark:text-slate-500">
-                              -
-                            </span>
+                        {typeof value === 'number' ?
+                          <DecimalsFormat
+                            value={value}
+                            prefix={currency_symbol}
+                            className="uppercase"
+                          /> :
+                          <span className="text-slate-400 dark:text-slate-500">
+                            -
+                          </span>
                         }
                       </div>
                     )
@@ -568,22 +397,15 @@ export default () => {
 
                     return (
                       <div className="text-base font-semibold text-right">
-                        {
-                          typeof value === 'number' ?
-                            <span className="uppercase">
-                              {currency_symbol}
-                              {number_format(
-                                value,
-                                value > 100000 ?
-                                  '0,0.00a' :
-                                  value > 1000 ?
-                                    '0,0' :
-                                    '0,0.00',
-                              )}
-                            </span> :
-                            <span className="text-slate-400 dark:text-slate-500">
-                              -
-                            </span>
+                        {typeof value === 'number' ?
+                          <DecimalsFormat
+                            value={value}
+                            prefix={currency_symbol}
+                            className="uppercase"
+                          /> :
+                          <span className="text-slate-400 dark:text-slate-500">
+                            -
+                          </span>
                         }
                       </div>
                     )
@@ -611,14 +433,7 @@ export default () => {
                                 const {
                                   name,
                                   image,
-                                } = {
-                                  ...(
-                                    (chains_data || [])
-                                      .find(c =>
-                                        c?.chain_id === id
-                                      )
-                                  ),
-                                }
+                                } = { ...getChain(id, chains_data) }
 
                                 return (
                                   image &&
@@ -649,12 +464,7 @@ export default () => {
                   headerClassName: 'whitespace-nowrap justify-end text-right',
                 },
               ]
-              .filter(c =>
-                ![
-                  'total_fee',
-                ]
-                .includes(c.accessor)
-              )
+              .filter(c => !['total_fee'].includes(c.accessor))
             }
             data={routers}
             noPagination={routers.length <= 10}
@@ -663,9 +473,9 @@ export default () => {
           /> :
           <div className="flex items-center m-3">
             <TailSpin
-              color={loader_color(theme)}
               width="32"
               height="32"
+              color={loaderColor(theme)}
             />
           </div>
         }

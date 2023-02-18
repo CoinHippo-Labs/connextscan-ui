@@ -4,6 +4,8 @@ import _ from 'lodash'
 import Web3Modal from 'web3modal'
 import { providers, utils } from 'ethers'
 
+import { getChain } from '../../lib/object/chain'
+import { equalsIgnoreCase } from '../../lib/utils'
 import { WALLET_DATA, WALLET_RESET } from '../../reducers/types'
 
 const providerOptions = {}
@@ -32,7 +34,7 @@ export default (
   {
     mainController = false,
     hidden = false,
-    disabled = false, 
+    disabled = false,
     connectChainId,
     onSwitch,
     children,
@@ -41,22 +43,17 @@ export default (
 ) => {
   const dispatch = useDispatch()
   const {
-    preferences,
     chains,
     wallet,
-  } = useSelector(state =>
-    (
+  } = useSelector(
+    state => (
       {
-        preferences: state.preferences,
         chains: state.chains,
         wallet: state.wallet,
       }
     ),
     shallowEqual,
   )
-  const {
-    theme,
-  } = { ...preferences }
   const {
     chains_data,
   } = { ...chains }
@@ -66,7 +63,7 @@ export default (
   const {
     chain_id,
     provider,
-    web3_provider,
+    browser_provider,
   } = { ...wallet_data }
 
   const [defaultChainId, setDefaultChainId] = useState(null)
@@ -86,7 +83,7 @@ export default (
   useEffect(
     () => {
       if (typeof window !== 'undefined') {
-        if (web3_provider) {
+        if (browser_provider) {
           dispatch(
             {
               type: WALLET_DATA,
@@ -100,12 +97,7 @@ export default (
         web3Modal =
           new Web3Modal(
             {
-              network:
-                getNetwork(defaultChainId) ||
-                (process.env.NETWORK === 'testnet' ?
-                  'goerli' :
-                  'mainnet'
-                ),
+              network: getNetwork(defaultChainId) || (process.env.NETWORK === 'testnet' ? 'goerli' : 'mainnet'),
               cacheProvider: true,
               providerOptions,
             }
@@ -124,26 +116,13 @@ export default (
     [web3Modal],
   )
 
-  useEffect(
-    () => {
-      const update = async () => {
-        if (web3Modal) {
-          await web3Modal.updateTheme(theme)
-        }
-      }
-
-      update()
-    },
-    [theme],
-  )
-
   const connect =
     useCallback(
       async () => {
         const provider = await web3Modal.connect()
-        const web3Provider = new providers.Web3Provider(provider)
-        const network = await web3Provider.getNetwork()
-        const signer = web3Provider.getSigner()
+        const browser_provider = new providers.Web3Provider(provider)
+        const network = await browser_provider.getNetwork()
+        const signer = browser_provider.getSigner()
         const address = await signer.getAddress()
 
         const {
@@ -156,9 +135,9 @@ export default (
             value: {
               chain_id: chainId,
               provider,
-              web3_provider: web3Provider,
-              address,
+              browser_provider,
               signer,
+              address,
             },
           }
         )
@@ -172,47 +151,34 @@ export default (
         e,
         is_reestablish,
       ) => {
-        if (
-          web3Modal &&
-          !is_reestablish
-        ) {
+        if (web3Modal && !is_reestablish) {
           await web3Modal.clearCachedProvider()
         }
 
-        if (
-          provider?.disconnect &&
-          typeof provider.disconnect === 'function'
-        ) {
+        if (typeof provider?.disconnect === 'function') {
           await provider.disconnect()
         }
 
-        dispatch(
-          {
-            type: WALLET_RESET,
-          }
-        )
+        if (!is_reestablish) {
+          dispatch(
+            {
+              type: WALLET_RESET,
+            }
+          )
+        }
       },
       [web3Modal, provider],
     )
 
   const switchChain = async () => {
-    if (
-      connectChainId &&
-      connectChainId !== chain_id &&
-      provider
-    ) {
+    if (connectChainId && connectChainId !== chain_id && provider) {
       try {
-        await provider
-          .request(
-            {
-              method: 'wallet_switchEthereumChain',
-              params: [
-                {
-                  chainId: utils.hexValue(connectChainId),
-                },
-              ],
-            },
-          )
+        await provider.request(
+          {
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: utils.hexValue(connectChainId) }],
+          },
+        )
       } catch (error) {
         const {
           code,
@@ -222,22 +188,14 @@ export default (
           try {
             const {
               provider_params,
-            } = {
-              ...(
-                (chains_data || [])
-                  .find(c =>
-                    c.chain_id === connectChainId
-                  )
-              ),
-            }
+            } = { ...getChain(connectChainId, chains_data) }
 
-            await provider
-              .request(
-                {
-                  method: 'wallet_addEthereumChain',
-                  params: provider_params,
-                },
-              )
+            await provider.request(
+              {
+                method: 'wallet_addEthereumChain',
+                params: provider_params,
+              },
+            )
           } catch (error) {}
         }
       }
@@ -277,51 +235,26 @@ export default (
             code,
           } = { ...e }
 
-          disconnect(
-            e,
-            code === 1013,
-          )
+          disconnect(e, code === 1013)
 
           if (code === 1013) {
             connect()
           }
         }
 
-        provider
-          .on(
-            'chainChanged',
-            handleChainChanged,
-          )
-        provider
-          .on(
-            'accountsChanged',
-            handleAccountsChanged,
-          )
-        provider
-          .on(
-            'disconnect',
-            handleDisconnect,
-          )
+        provider.on('chainChanged', handleChainChanged)
+        provider.on('accountsChanged', handleAccountsChanged)
+        provider.on('disconnect', handleDisconnect)
 
-        return () => {
-          if (provider.removeListener) {
-            provider
-              .removeListener(
-                'chainChanged',
-                handleChainChanged,
-              )
-            provider
-              .removeListener(
-                'accountsChanged',
-                handleAccountsChanged,
-              )
-            provider
-              .removeListener(
-                'disconnect',
-                handleDisconnect,
-              )
+        return (
+          () => {
+            if (provider.removeListener) {
+              provider.removeListener('chainChanged', handleChainChanged)
+              provider.removeListener('accountsChanged', handleAccountsChanged)
+              provider.removeListener('disconnect', handleDisconnect)
+            }
           }
-        }
+        )
       }
     },
     [provider, disconnect],
@@ -331,59 +264,57 @@ export default (
     !hidden &&
     (
       <>
-        {
-          web3_provider ?
-            !mainController &&
-            connectChainId &&
-            connectChainId !== chain_id ?
-              <button
-                disabled={disabled}
-                onClick={() => {
+        {browser_provider ?
+          !mainController && connectChainId && connectChainId !== chain_id ?
+            <button
+              disabled={disabled}
+              onClick={
+                () => {
                   switchChain()
-
                   if (onSwitch) {
                     onSwitch()
                   }
-                }}
-                className={className}
-              >
-                {
-                  children ||
-                  (
-                    <div className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded whitespace-nowrap py-1 px-2">
-                      Switch Network
-                    </div>
-                  )
                 }
-              </button> :
-              <button
-                disabled={disabled}
-                onClick={disconnect}
-                className={className}
-              >
-                {
-                  children ||
-                  (
-                    <div className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500 rounded whitespace-nowrap text-white py-1 px-2">
-                      Disconnect
-                    </div>
-                  )
-                }
-              </button> :
-            <button
-              disabled={disabled}
-              onClick={connect}
+              }
               className={className}
             >
               {
                 children ||
                 (
-                  <div className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500 rounded whitespace-nowrap text-white py-1 px-2">
-                    Connect
+                  <div className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded whitespace-nowrap py-1 px-2">
+                    Switch Network
                   </div>
                 )
               }
-            </button>
+            </button> :
+            <button
+              disabled={disabled}
+              onClick={disconnect}
+              className={className}
+            >
+              {
+                children ||
+                (
+                  <div className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500 rounded whitespace-nowrap text-white py-1 px-2">
+                    Disconnect
+                  </div>
+                )
+              }
+            </button> :
+          <button
+            disabled={disabled}
+            onClick={connect}
+            className={className}
+          >
+            {
+              children ||
+              (
+                <div className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500 rounded whitespace-nowrap text-white py-1 px-2">
+                  Connect
+                </div>
+              )
+            }
+          </button>
         }
       </>
     )

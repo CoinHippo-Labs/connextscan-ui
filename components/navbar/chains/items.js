@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import { useSelector, shallowEqual } from 'react-redux'
-import _ from 'lodash'
 
 import Image from '../../image'
-import { chainName, connext } from '../../../lib/object/chain'
+import { chainName } from '../../../lib/object/chain'
+import { toArray } from '../../../lib/utils'
 
 export default (
   {
@@ -12,8 +12,8 @@ export default (
 ) => {
   const {
     chains,
-  } = useSelector(state =>
-    (
+  } = useSelector(
+    state => (
       {
         chains: state.chains,
       }
@@ -30,15 +30,8 @@ export default (
         Select Chain
       </div>
       <div className="flex flex-wrap pb-1">
-        {
-          _.concat(
-            connext,
-            chains_data,
-          )
-          .filter(c =>
-            c &&
-            !c.menu_hidden
-          )
+        {toArray(chains_data)
+          .filter(c => c && !c.menu_hidden)
           .map(c => {
             const {
               id,
@@ -46,20 +39,19 @@ export default (
               image,
             } = { ...c }
 
-            const item =
-              (
-                <>
-                  <Image
-                    src={image}
-                    width={20}
-                    height={20}
-                    className="rounded-full"
-                  />
-                  <span className="leading-4 text-2xs font-medium">
-                    {chainName(c)}
-                  </span>
-                </>
-              )
+            const item = (
+              <>
+                <Image
+                  src={image}
+                  width={20}
+                  height={20}
+                  className="rounded-full"
+                />
+                <span className="leading-4 whitespace-nowrap text-2xs font-medium">
+                  {chainName(c)}
+                </span>
+              </>
+            )
 
             return (
               disabled ?
@@ -70,17 +62,19 @@ export default (
                 >
                   {item}
                 </div> :
-                <Link
+                <div
                   key={id}
-                  href={`/${id}`}
+                  className="dropdown-item w-1/2"
                 >
-                  <a
-                    onClick={onClick}
-                    className="dropdown-item w-1/2 flex items-center justify-start space-x-1.5 p-2"
-                  >
-                    {item}
-                  </a>
-                </Link>
+                  <Link href={`/${id}`}>
+                    <div
+                      onClick={onClick}
+                      className="flex items-center justify-start space-x-1.5 p-2"
+                    >
+                      {item}
+                    </div>
+                  </Link>
+                </div>
             )
           })
         }

@@ -4,6 +4,7 @@ import Web3 from 'web3'
 import { constants, providers } from 'ethers'
 
 import Image from '../image'
+import { getChain } from '../../lib/object/chain'
 import { WALLET_DATA, CHAIN_ID } from '../../reducers/types'
 
 export default (
@@ -16,8 +17,8 @@ export default (
     chains,
     wallet,
     _chain_id,
-  } = useSelector(state =>
-    (
+  } = useSelector(
+    state => (
       {
         chains: state.chains,
         wallet: state.wallet,
@@ -46,11 +47,7 @@ export default (
   useEffect(
     () => {
       if (!web3) {
-        setWeb3(
-          new Web3(
-            Web3.givenProvider
-          )
-        )
+        setWeb3(new Web3(Web3.givenProvider))
       }
       else {
         try {
@@ -75,7 +72,7 @@ export default (
                   type: WALLET_DATA,
                   value: {
                     chain_id: chainId,
-                    web3_provider: web3Provider,
+                    browser_provider: web3Provider,
                     signer,
                   },
                 }
@@ -104,14 +101,8 @@ export default (
         contract_data,
       } = { ...data }
 
-      if (
-        chain_id === chainId &&
-        contract_data
-      ) {
-        addToken(
-          chain_id,
-          contract_data,
-        )
+      if (chain_id === chainId && contract_data) {
+        addToken(chain_id, contract_data)
       }
     },
     [chainId, data],
@@ -121,10 +112,7 @@ export default (
     chain_id,
     contract_data,
   ) => {
-    if (
-      web3 &&
-      contract_data
-    ) {
+    if (web3 && contract_data) {
       if (chain_id === chainId) {
         try {
           const {
@@ -135,37 +123,26 @@ export default (
           } = { ...contract_data }
 
           const response =
-            await web3.currentProvider
-              .request(
-                {
-                  method: 'wallet_watchAsset',
-                  params: {
-                    type: 'ERC20',
-                    options: {
-                      address: contract_address,
-                      symbol,
-                      decimals,
-                      image:
-                        image ?
-                          `${
-                            image.startsWith('/') ?
-                              process.env.NEXT_PUBLIC_SITE_URL :
-                              ''
-                          }${image}` :
-                          undefined,
-                    },
+            await web3.currentProvider.request(
+              {
+                method: 'wallet_watchAsset',
+                params: {
+                  type: 'ERC20',
+                  options: {
+                    address: contract_address,
+                    symbol,
+                    decimals,
+                    image: image ? `${image.startsWith('/') ? process.env.NEXT_PUBLIC_APP_URL : ''}${image}` : undefined,
                   },
                 },
-              )
+              },
+            )
         } catch (error) {}
 
         setData(null)
       }
       else {
-        switchChain(
-          chain_id,
-          contract_data,
-        )
+        switchChain(chain_id, contract_data)
       }
     }
   }
@@ -175,17 +152,12 @@ export default (
     contract_data,
   ) => {
     try {
-      await web3.currentProvider
-        .request(
-          {
-            method: 'wallet_switchEthereumChain',
-            params: [
-              {
-                chainId: web3.utils.toHex(chain_id),
-              },
-            ],
-          },
-        )
+      await web3.currentProvider.request(
+        {
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: web3.utils.toHex(chain_id) }],
+        },
+      )
     } catch (error) {
       const {
         code,
@@ -195,22 +167,14 @@ export default (
         try {
           const {
             provider_params,
-          } = {
-            ...(
-              (chains_data || [])
-                .find(c =>
-                  c.chain_id === chain_id
-                )
-            ),
-          }
+          } = { ...getChain(chain_id, chains_data) }
 
-          await web3.currentProvider
-            .request(
-              {
-                method: 'wallet_addEthereumChain',
-                params: provider_params,
-              },
-            )
+          await web3.currentProvider.request(
+            {
+              method: 'wallet_addEthereumChain',
+              params: provider_params,
+            },
+          )
         } catch (error) {}
       }
     }
@@ -233,13 +197,7 @@ export default (
     contract_address !== constants.AddressZero &&
     (
       <button
-        onClick={
-          () =>
-            addToken(
-              token_data?.chain_id,
-              token_data,
-            )
-        }
+        onClick={() => addToken(token_data?.chain_id, token_data)}
         className="min-w-max bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 shadow rounded cursor-pointer flex items-center py-1.5 px-2"
       >
         <Image

@@ -33,8 +33,8 @@ export default (
 ) => {
   const {
     preferences,
-  } = useSelector(state =>
-    (
+  } = useSelector(
+    state => (
       {
         preferences: state.preferences,
       }
@@ -53,7 +53,6 @@ export default (
     if (onClick) {
       onClick(true)
     }
-
     setOpen(true)
   }
 
@@ -67,14 +66,8 @@ export default (
     () => {
       const handleClickOutside = e => {
         if (
-          !modalRef ||
-          !modalRef.current
-        ) {
-          return false
-        }
-
-        if (
           !open ||
+          !modalRef?.current ||
           modalRef.current.contains(e.target)
         ) {
           return false
@@ -90,20 +83,8 @@ export default (
       }
 
       if (!noCancelOnClickOutside) {
-        document
-          .addEventListener(
-            'mousedown',
-            handleClickOutside,
-          )
-
-        return (
-          () =>
-            document
-              .removeEventListener(
-                'mousedown',
-                handleClickOutside,
-              )
-        )
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
       }
     },
     [modalRef, open, cancelDisabled],
@@ -139,25 +120,13 @@ export default (
             <div className="modal-backdrop fade-in" />
             <div
               data-background={theme}
-              className={
-                `modal show ${
-                  theme === 'dark' ?
-                    'dark' :
-                    ''
-                }`
-              }
+              className={`modal show ${theme === 'dark' ? 'dark' : ''}`}
             >
               <div
                 ref={modalRef}
-                className={
-                  `w-full ${
-                    modalClassName.includes('max-w-') ?
-                      '' :
-                      'max-w-sm lg:max-w-lg'
-                  } relative lg:my-4 mx-auto ${modalClassName}`
-                }
+                className={`w-full ${modalClassName.includes('max-w-') ? '' : 'max-w-sm lg:max-w-lg'} relative lg:my-4 mx-auto ${modalClassName}`}
               >
-                <div className="w-full bg-white dark:bg-slate-900 relative outline-none rounded-lg shadow-lg border-0 flex flex-col">
+                <div className="w-full bg-white dark:bg-slate-900 relative outline-none rounded shadow-lg border-0 flex flex-col">
                   <div className="relative flex-auto p-4">
                     <div className="flex items-start justify-start space-x-4 p-2">
                       {
@@ -179,48 +148,44 @@ export default (
                   {
                     !noButtons &&
                     (
-                      <div className={`border-t border-zinc-100 dark:border-zinc-800 border-solid rounded-b flex items-center justify-end ${cancelButtonClassName?.includes('hidden') ? 'space-x-0' : 'space-x-2'} py-4 px-6`}>
+                      <div className={`border-t border-slate-100 dark:border-slate-800 border-solid rounded-b flex items-center justify-end ${cancelButtonClassName?.includes('hidden') ? 'space-x-0' : 'space-x-2'} py-4 px-6`}>
                         <button
                           type="button"
                           disabled={cancelDisabled}
-                          onClick={() => {
-                            if (onCancel) {
-                              onCancel()
+                          onClick={
+                            () => {
+                              if (onCancel) {
+                                onCancel()
+                              }
+                              hide()
                             }
-
-                            hide()
-                          }}
+                          }
                           className={
                             cancelButtonClassName ||
                             'btn btn-default btn-rounded bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800'
                           }
                         >
-                          {
-                            cancelButtonTitle ||
-                            'Cancel'
-                          }
+                          {cancelButtonTitle || 'Cancel'}
                         </button>
                         <button
                           type="button"
                           disabled={confirmDisabled}
-                          onClick={() => {
-                            if (onConfirm) {
-                              onConfirm()
+                          onClick={
+                            () => {
+                              if (onConfirm) {
+                                onConfirm()
+                              }
+                              if (onConfirmHide) {
+                                hide()
+                              }
                             }
-
-                            if (onConfirmHide) {
-                              hide()
-                            }
-                          }}
+                          }
                           className={
                             confirmButtonClassName ||
                             'btn btn-default btn-rounded bg-blue-500 hover:bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-400 text-white'
                           }
                         >
-                          {
-                            confirmButtonTitle ||
-                            'Confirm'
-                          }
+                          {confirmButtonTitle || 'Confirm'}
                         </button>
                       </div>
                     )

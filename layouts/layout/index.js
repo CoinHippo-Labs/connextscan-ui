@@ -7,7 +7,7 @@ import PageVisibility from 'react-page-visibility'
 import Navbar from '../../components/navbar'
 import Footer from '../../components/footer'
 import meta from '../../lib/meta'
-import { equals_ignore_case } from '../../lib/utils'
+import { equalsIgnoreCase } from '../../lib/utils'
 import { THEME, PAGE_VISIBLE } from '../../reducers/types'
 
 export default (
@@ -18,8 +18,8 @@ export default (
   const dispatch = useDispatch()
   const {
     preferences,
-  } = useSelector(state =>
-    (
+  } = useSelector(
+    state => (
       {
         preferences: state.preferences,
       }
@@ -53,10 +53,7 @@ export default (
     [theme],
   )
 
-  const headMeta =
-    meta(
-      asPath,
-    )
+  const headMeta = meta(asPath)
 
   const {
     title,

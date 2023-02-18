@@ -8,36 +8,36 @@ import { DebounceInput } from 'react-debounce-input'
 import { Tooltip } from '@material-tailwind/react'
 import { BiMessageError, BiMessageCheck, BiX } from 'react-icons/bi'
 
-import Notification from '../notifications'
-import Modal from '../modals'
-import SelectChain from '../select-ui/chain'
-import SelectAsset from '../select-ui/asset'
-import Wallet from '../wallet'
 import Copy from '../copy'
+import DecimalsFormat from '../decimals-format'
 import EnsProfile from '../ens-profile'
-import { number_format, number_to_fixed, capitalize, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
+import Modal from '../modals'
+import Notification from '../notifications'
+import SelectChain from '../select/chain'
+import SelectAsset from '../select/asset'
+import Wallet from '../wallet'
+import { getChain } from '../../lib/object/chain'
+import { getAsset } from '../../lib/object/asset'
+import { getContract } from '../../lib/object/contract'
+import { toArray, numberToFixed, capitalize, ellipse, equalsIgnoreCase, loaderColor, parseError } from '../../lib/utils'
 
-const ACTIONS =
-  [
-    'add',
-    'remove',
-  ]
+const ACTIONS = ['add', 'remove']
 
 export default () => {
   const {
     preferences,
     chains,
     assets,
-    asset_balances,
+    router_asset_balances,
     rpc_providers,
     dev,
     wallet,
-  } = useSelector(state =>
-    (
+  } = useSelector(
+    state => (
       { preferences: state.preferences,
         chains: state.chains,
         assets: state.assets,
-        asset_balances: state.asset_balances,
+        router_asset_balances: state.router_asset_balances,
         rpc_providers: state.rpc_providers,
         dev: state.dev,
         wallet: state.wallet,
@@ -55,8 +55,8 @@ export default () => {
     assets_data,
   } = { ...assets }
   const {
-    asset_balances_data,
-  } = { ...asset_balances }
+    router_asset_balances_data,
+  } = { ...router_asset_balances }
   const {
     rpcs,
   } = { ...rpc_providers }
@@ -67,7 +67,7 @@ export default () => {
     wallet_data,
   } = { ...wallet }
   const {
-    web3_provider,
+    browser_provider,
     signer,
   } = { ...wallet_data }
 
@@ -86,10 +86,7 @@ export default () => {
   const [hidden, setHidden] = useState(true)
   const [data, setData] = useState(null)
   const [balance, setBalance] = useState(null)
-  const [action, setAction] =
-    useState(
-      _.head(ACTIONS)
-    )
+  const [action, setAction] = useState(_.head(ACTIONS))
 
   const [approving, setApproving] = useState(null)
   const [approveProcessing, setApproveProcessing] = useState(null)
@@ -109,35 +106,17 @@ export default () => {
         chain,
       } = { ...data }
 
-      if (
-        chains_data &&
-        assets_data &&
-        !chain
-      ) {
-        const chain_data = _.head(chains_data)
+      if (chains_data && assets_data && !chain) {
         const {
           id,
           chain_id,
-        } = { ...chain_data }
+        } = { ..._.head(chains_data) }
 
         setData(
           {
             ...data,
             chain: id,
-            asset:
-              _.head(
-                assets_data
-                  .filter(a =>
-                    (a?.contracts || [])
-                      .findIndex(c =>
-                        c?.chain_id === chain_id &&
-                        (
-                          c?.next_asset?.contract_address ||
-                          c?.contract_address
-                        )
-                      ) > -1
-                  )
-              )?.id,
+            asset: getAsset(null, assets_data, chain_id, undefined, undefined, false, true)?.id,
           }
         )
       }
@@ -153,34 +132,17 @@ export default () => {
           asset,
         } = { ...data }
 
-        if (
-          chains_data &&
-          assets_data &&
-          chain &&
-          asset &&
-          asset_balances_data &&
-          wallet_address
-        ) {
-          const chain_data = chains_data
-            .find(c =>
-              c?.id === chain
-            )
+        if (chain && asset && chains_data && assets_data && router_asset_balances_data && wallet_address) {
           const {
             chain_id,
-          } = { ...chain_data }
+          } = { ...getChain(chain, chains_data) }
 
-          const asset_data = assets_data
-            .find(a =>
-              a?.id === asset
-            )
           const {
             contracts,
-          } = { ...asset_data }
+          } = { ...getChain(asset, assets_data) }
 
-          const contract_data = (contracts || [])
-            .find(c =>
-              c?.chain_id === chain_id
-            )
+          const contract_data = getContract(chain_id, contracts)
+
           const {
             next_asset,
           } = { ...contract_data }
@@ -189,13 +151,8 @@ export default () => {
             decimals,
           } = { ...contract_data }
 
-          contract_address =
-            next_asset?.contract_address ||
-            contract_address
-
-          decimals =
-            next_asset?.decimals ||
-            decimals
+          contract_address = next_asset?.contract_address || contract_address
+          decimals = next_asset?.decimals || decimals
 
           setBalance(null)
 
@@ -206,13 +163,13 @@ export default () => {
                   amount,
                 } = {
                   ...(
-                    (asset_balances_data[chain_id] || [])
+                    toArray(router_asset_balances_data[chain_id])
                       .find(a =>
-                        equals_ignore_case(
+                        equalsIgnoreCase(
                           a?.contract_address,
                           contract_address,
                         ) &&
-                        equals_ignore_case(
+                        equalsIgnoreCase(
                           a?.router_address,
                           address,
                         )
@@ -222,60 +179,30 @@ export default () => {
 
                 setBalance(amount)
               } catch (error) {}
-
               break
             case 'add':
             default:
               try {
                 const provider = rpcs?.[chain_id]
 
-                let balance
+                if (provider && contract_address) {
+                  let balance
 
-                if (
-                  provider &&
-                  contract_address
-                ) {
-                  if (contract_address === constants.AddressZero) {
-                    balance =
-                      await provider
-                        .getBalance(
-                          wallet_address,
-                        )
+                  switch (contract_address) {
+                    case constants.AddressZero:
+                      balance = await provider.getBalance(wallet_address)
+                      break
+                    default:
+                      const contract = new Contract(contract_address, ['function balanceOf(address owner) view returns (uint256)'], provider)
+                      balance = await contract.balanceOf(wallet_address)
+                      break
                   }
-                  else {
-                    const contract =
-                      new Contract(
-                        contract_address,
-                        [
-                          'function balanceOf(address owner) view returns (uint256)',
-                        ],
-                        provider,
-                      )
 
-                    balance =
-                      await contract
-                        .balanceOf(
-                          wallet_address,
-                        )
+                  if (balance) {
+                    setBalance(Number(utils.formatUnits(balance, decimals || 18)))
                   }
-                }
-
-                if (balance) {
-                  setBalance(
-                    Number(
-                      utils.formatUnits(
-                        balance,
-                        decimals ||
-                        18,
-                      )
-                    )
-                  )
-                }
-                else {
-                  setBalance(null)
                 }
               } catch (error) {}
-
               break
           }
         }
@@ -286,7 +213,7 @@ export default () => {
 
       getData()
     },
-    [chains_data, assets_data, asset_balances_data, rpcs, data, wallet_address, action, adding, removing],
+    [chains_data, assets_data, router_asset_balances_data, rpcs, wallet_address, data, action, adding, removing],
   )
 
   const reset = () => {
@@ -303,12 +230,7 @@ export default () => {
   }
 
   const addLiquidity = async () => {
-    if (
-      chains_data &&
-      sdk &&
-      signer &&
-      data
-    ) {
+    if (chains_data && sdk && signer && data) {
       setApproving(null)
       setAdding(true)
       setRemoving(null)
@@ -319,27 +241,17 @@ export default () => {
         amount,
       } = { ...data }
 
-      const chain_data = chains_data
-        .find(c =>
-          c?.id === chain
-        )
+      const chain_data = getChain(chain, chains_data)
+
       const {
         chain_id,
         domain_id,
       } = { ...chain_data }
 
-      const asset_data = (assets_data || [])
-        .find(a =>
-          a?.id === asset
-        )
-      const {
-        contracts,
-      } = { ...asset_data }
+      const asset_data = getAsset(asset, assets_data)
 
-      const contract_data = (contracts || [])
-        .find(c =>
-          c?.chain_id === chain_id
-        )
+      const contract_data = getContract(chain_id, asset_data?.contracts)
+
       const {
         next_asset,
       } = { ...contract_data }
@@ -349,32 +261,13 @@ export default () => {
         symbol,
       } = { ...contract_data }
 
-      contract_address =
-        next_asset?.contract_address ||
-        contract_address
-
-      decimals =
-        next_asset?.decimals ||
-        decimals ||
-        18
-
-      symbol =
-        next_asset?.symbol ||
-        symbol ||
-        asset_data?.symbol
+      contract_address = next_asset?.contract_address || contract_address
+      decimals = next_asset?.decimals || decimals || 18
+      symbol = next_asset?.symbol || symbol || asset_data?.symbol
 
       const params = {
         domainId: domain_id,
-        amount:
-          utils.parseUnits(
-            (
-              amount ||
-              0
-            )
-            .toString(),
-            decimals,
-          )
-          .toString(),
+        amount: utils.parseUnits((amount || 0).toString(), decimals).toString(),
         tokenAddress: contract_address,
         router: address,
       }
@@ -382,23 +275,12 @@ export default () => {
       let failed = false
 
       try {
-        const approve_request =
-          await sdk.sdkBase
-            .approveIfNeeded(
-              params.domainId,
-              params.tokenAddress,
-              params.amount,
-              false,
-            )
+        const approve_request = await sdk.sdkBase.approveIfNeeded(params.domainId, params.tokenAddress, params.amount, false)
 
         if (approve_request) {
           setApproving(true)
 
-          const approve_response =
-            await signer
-              .sendTransaction(
-                approve_request,
-              )
+          const approve_response = await signer.sendTransaction(approve_request)
 
           const {
             hash,
@@ -411,13 +293,10 @@ export default () => {
               tx_hash: hash,
             }
           )
+
           setApproveProcessing(true)
 
-          const approve_receipt =
-            await signer.provider
-              .waitForTransaction(
-                hash,
-              )
+          const approve_receipt = await signer.provider.waitForTransaction(hash)
 
           const {
             status,
@@ -442,12 +321,12 @@ export default () => {
           setApproving(false)
         }
       } catch (error) {
+        const response = parseError(error)
+
         setApproveResponse(
           {
             status: 'failed',
-            message:
-              error?.data?.message ||
-              error?.message,
+            ...response,
           }
         )
 
@@ -459,18 +338,10 @@ export default () => {
 
       if (!failed) {
         try {
-          const add_request =
-            await sdk.sdkRouter
-              .addLiquidityForRouter(
-                params,
-              )
+          const add_request = await sdk.sdkRouter.addLiquidityForRouter(params)
 
           if (add_request) {
-            const add_response =
-              await signer
-                .sendTransaction(
-                  add_request,
-                )
+            const add_response = await signer.sendTransaction(add_request)
 
             const {
               hash,
@@ -483,13 +354,10 @@ export default () => {
                 tx_hash: hash,
               }
             )
+
             setAddProcessing(true)
 
-            const add_receipt =
-              await signer.provider
-                .waitForTransaction(
-                  hash,
-                )
+            const add_receipt = await signer.provider.waitForTransaction(hash)
 
             const {
               status,
@@ -499,14 +367,8 @@ export default () => {
 
             setAddResponse(
               {
-                status:
-                  failed ?
-                    'failed' :
-                    'success',
-                message:
-                  failed ?
-                    `Failed to add ${symbol} liquidity` :
-                    `Add ${symbol} liquidity successful`,
+                status: failed ? 'failed' : 'success',
+                message: failed ? `Failed to add ${symbol} liquidity` : `Add ${symbol} liquidity successful`,
                 tx_hash: hash,
               }
             )
@@ -516,12 +378,12 @@ export default () => {
             }
           }
         } catch (error) {
+          const response = parseError(error)
+
           setAddResponse(
             {
               status: 'failed',
-              message:
-                error?.data?.message ||
-                error?.message,
+              ...response,
             }
           )
 
@@ -536,12 +398,7 @@ export default () => {
   }
 
   const removeLiquidity = async () => {
-    if (
-      chains_data &&
-      sdk &&
-      signer &&
-      data
-    ) {
+    if (chains_data && sdk && signer && data) {
       setApproving(null)
       setAdding(null)
       setRemoving(true)
@@ -552,27 +409,17 @@ export default () => {
         amount,
       } = { ...data }
 
-      const chain_data = chains_data
-        .find(c =>
-          c?.id === chain
-        )
+      const chain_data = getChain(chain, chains_data)
+
       const {
         chain_id,
         domain_id,
       } = { ...chain_data }
 
-      const asset_data = (assets_data || [])
-        .find(a =>
-          a?.id === asset
-        )
-      const {
-        contracts,
-      } = { ...asset_data }
+      const asset_data = getAsset(asset, assets_data)
 
-      const contract_data = (contracts || [])
-        .find(c =>
-          c?.chain_id === chain_id
-        )
+      const contract_data = getContract(chain_id, asset_data?.contracts)
+
       const {
         next_asset,
       } = { ...contract_data }
@@ -582,53 +429,26 @@ export default () => {
         symbol,
       } = { ...contract_data }
 
-      contract_address =
-        next_asset?.contract_address ||
-        contract_address
-
-      decimals =
-        next_asset?.decimals ||
-        decimals ||
-        18
-
-      symbol =
-        next_asset?.symbol ||
-        symbol ||
-        asset_data?.symbol
+      contract_address = next_asset?.contract_address || contract_address
+      decimals = next_asset?.decimals || decimals || 18
+      symbol = next_asset?.symbol || symbol || asset_data?.symbol
 
       const params = {
         domainId: domain_id,
-        amount:
-          utils.parseUnits(
-            (
-              amount ||
-              0
-            )
-            .toString(),
-            decimals,
-          )
-          .toString(),
+        amount: utils.parseUnits((amount || 0).toString(), decimals).toString(),
         tokenAddress: contract_address,
-        recipient: wallet_address,
         router: address,
+        recipient: wallet_address,
       }
 
       let failed = false
 
       if (!failed) {
         try {
-          const remove_request =
-            await sdk.sdkRouter
-              .removeRouterLiquidityFor(
-                params,
-              )
+          const remove_request = await sdk.sdkRouter.removeRouterLiquidityFor(params)
 
           if (remove_request) {
-            const remove_response =
-              await signer
-                .sendTransaction(
-                  remove_request,
-                )
+            const remove_response = await signer.sendTransaction(remove_request)
 
             const {
               hash,
@@ -641,13 +461,10 @@ export default () => {
                 tx_hash: hash,
               }
             )
+
             setRemoveProcessing(true)
 
-            const remove_receipt =
-              await signer.provider
-                .waitForTransaction(
-                  hash,
-                )
+            const remove_receipt = await signer.provider.waitForTransaction(hash)
 
             const {
               status,
@@ -657,14 +474,8 @@ export default () => {
 
             setRemoveResponse(
               {
-                status:
-                  failed ?
-                    'failed' :
-                    'success',
-                message:
-                  failed ?
-                    `Failed to remove ${symbol} liquidity` :
-                    `Remove ${symbol} liquidity successful`,
+                status: failed ? 'failed' : 'success',
+                message: failed ? `Failed to remove ${symbol} liquidity` : `Remove ${symbol} liquidity successful`,
                 tx_hash: hash,
               }
             )
@@ -674,12 +485,12 @@ export default () => {
             }
           }
         } catch (error) {
+          const response = parseError(error)
+
           setRemoveResponse(
             {
               status: 'failed',
-              message:
-                error?.data?.message ||
-                error?.message,
+              ...response,
             }
           )
 
@@ -699,48 +510,36 @@ export default () => {
     amount,
   } = { ...data }
 
-  const chain_data = (chains_data || [])
-    .find(c =>
-      c?.id === chain
-    )
+  const chain_data = getChain(chain, chains_data)
+
   const {
     chain_id,
     explorer,
   } = { ...chain_data }
+
   const {
     url,
     transaction_path,
   } = { ...explorer }
 
-  const asset_data = (assets_data || [])
-    .find(a =>
-      a?.id === asset
-    )
-  const {
-    contracts,
-  } = { ...asset_data }
+  const asset_data = getAsset(asset, assets_data)
 
-  const contract_data = (contracts || [])
-    .find(c =>
-      c?.chain_id === chain_id
-    )
+  const contract_data = getContract(chain_id, asset_data?.contracts)
+
   const {
     next_asset,
   } = { ...contract_data }
+
   let {
     contract_address,
     decimals,
     symbol,
   } = { ...contract_data }
 
-  contract_address =
-    next_asset?.contract_address ||
-    contract_address
+  contract_address = next_asset?.contract_address || contract_address
+  decimals = next_asset?.decimals || decimals || 18
 
-  decimals =
-    next_asset?.decimals ||
-    decimals ||
-    18
+  const max_amount = balance || 0
 
   const fields =
     [
@@ -750,7 +549,7 @@ export default () => {
         type: 'select',
         placeholder: 'Select chain',
         options:
-          (chains_data || [])
+          toArray(chains_data)
             .filter(c => !c?.view_only)
             .map(c => {
               const {
@@ -772,17 +571,10 @@ export default () => {
         type: 'select',
         placeholder: 'Select asset',
         options:
-          (assets_data || [])
+          toArray(assets_data)
             .filter(a =>
               !chain ||
-              (a?.contracts || [])
-                .findIndex(c =>
-                  c?.chain_id === chain_id &&
-                  (
-                    c?.next_asset?.contract_address ||
-                    c?.contract_address
-                  )
-                ) > -1
+              toArray(a?.contracts).findIndex(c => getContract(chain_id, a.contracts)) > -1
             )
             .map(a => {
               const {
@@ -791,10 +583,8 @@ export default () => {
                 contracts,
               } = { ...a }
 
-              const contract_data = (contracts || [])
-                .find(c =>
-                  c?.chain_id === chain_id
-                )
+              const contract_data = getContract(chain_id, contracts)
+
               const {
                 next_asset,
               } = { ...contract_data }
@@ -803,29 +593,13 @@ export default () => {
                 symbol,
               } = { ...contract_data }
 
-              contract_address =
-                next_asset?.contract_address ||
-                contract_address
-
-              symbol =
-                next_asset?.symbol ||
-                symbol ||
-                a?.symbol
+              contract_address = next_asset?.contract_address || contract_address
+              symbol = next_asset?.symbol || symbol || a?.symbol
 
               return {
                 value: id,
                 title: name,
-                name:
-                  `${symbol}${
-                    contract_address ?
-                      `: ${
-                        ellipse(
-                          contract_address,
-                          16,
-                        )
-                      }` :
-                      ''
-                  }`,
+                name: `${symbol}${contract_address ? `: ${ellipse(contract_address, 16)}` : ''}`,
               }
             }),
         hidden: true,
@@ -839,10 +613,9 @@ export default () => {
       },
     ]
 
-  const notificationResponse =
-    addResponse ||
-    removeResponse ||
-    approveResponse
+  const has_all_fields = fields.length === fields.filter(f => data?.[f.name]).length
+
+  const notificationResponse = addResponse || removeResponse || approveResponse
 
   const {
     status,
@@ -850,65 +623,48 @@ export default () => {
     tx_hash,
   } = { ...notificationResponse }
 
-  const max_amount =
-    balance ||
-    0
+  const disabled = adding || removing || approving
 
-  const hasAllFields =
-    fields.length ===
-    fields
-      .filter(f =>
-        data?.[f.name]
-      )
-      .length
-
-  const disabled =
-    adding ||
-    removing ||
-    approving
-
-  const confirmButtonTitle =
-    (
-      <span className="flex items-center justify-center space-x-1.5">
-        {
-          disabled &&
-          (
-            <TailSpin
-              color="white"
-              width="20"
-              height="20"
-            />
-          )
+  const confirmButtonTitle = (
+    <span className="flex items-center justify-center space-x-1.5">
+      {
+        disabled &&
+        (
+          <TailSpin
+            width="20"
+            height="20"
+            color="white"
+          />
+        )
+      }
+      <span>
+        {action === 'remove' ?
+          removing ?
+            approving ?
+              approveProcessing ?
+                'Approving' :
+                'Please Approve' :
+              removeProcessing ?
+                'Removing' :
+                typeof approving === 'boolean' ?
+                  'Please Confirm' :
+                  'Checking Approval' :
+            'Remove' :
+          adding ?
+            approving ?
+              approveProcessing ?
+                'Approving' :
+                'Please Approve' :
+              addProcessing ?
+                'Adding' :
+                typeof approving === 'boolean' ?
+                  'Please Confirm' :
+                  'Checking Approval' :
+            'Add'
         }
-        <span>
-          {
-            action === 'remove' ?
-              removing ?
-                approving ?
-                  approveProcessing ?
-                    'Approving' :
-                    'Please Approve' :
-                  removeProcessing ?
-                    'Removing' :
-                    typeof approving === 'boolean' ?
-                      'Please Confirm' :
-                      'Checking Approval' :
-                'Remove' :
-              adding ?
-                approving ?
-                  approveProcessing ?
-                    'Approving' :
-                    'Please Approve' :
-                  addProcessing ?
-                    'Adding' :
-                    typeof approving === 'boolean' ?
-                      'Please Confirm' :
-                      'Checking Approval' :
-                'Add'
-          }
-        </span>
       </span>
-    )
+    </span>
+  )
 
   return (
     <>
@@ -939,9 +695,9 @@ export default () => {
                   /> :
                   <div className="mr-2">
                     <Watch
-                      color="white"
                       width="20"
                       height="20"
+                      color="white"
                     />
                   </div>
             }
@@ -951,8 +707,7 @@ export default () => {
                   {message}
                 </span>
                 {
-                  url &&
-                  tx_hash &&
+                  url && tx_hash &&
                   (
                     <a
                       href={`${url}${transaction_path?.replace('{tx}', tx_hash)}`}
@@ -967,8 +722,7 @@ export default () => {
                   )
                 }
                 {
-                  status === 'failed' &&
-                  message &&
+                  status === 'failed' && message &&
                   (
                     <Copy
                       size={24}
@@ -979,21 +733,20 @@ export default () => {
                 }
               </div>
             }
-            onClose={() => {
-              setApproveResponse(null)
-              setAddResponse(null)
-              setRemoveResponse(null)
-            }}
+            onClose={
+              () => {
+                setApproveResponse(null)
+                setAddResponse(null)
+                setRemoveResponse(null)
+              }
+            }
           />
         )
       }
       <Modal
         hidden={hidden}
         disabled={disabled}
-        onClick={
-          () =>
-            setHidden(false)
-        }
+        onClick={() => setHidden(false)}
         buttonTitle={
           address ?
             <div className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-400 rounded-lg shadow flex items-center justify-center text-white space-x-1.5 py-1.5 px-2">
@@ -1002,9 +755,9 @@ export default () => {
               </span>
             </div> :
             <TailSpin
-              color={loader_color(theme)}
               width="24"
               height="24"
+              color={loaderColor(theme)}
             />
         }
         buttonClassName={`min-w-max ${disabled ? 'cursor-not-allowed' : ''} flex items-center justify-center`}
@@ -1078,22 +831,17 @@ export default () => {
                   </span>
                   <SelectChain
                     disabled={disabled}
-                    value={
-                      chain ||
-                      _.head(
-                        (chains_data || [])
-                          .map(c => c?.id)
-                      )
+                    value={chain || getChain(null, chains_data, false, false, true)?.id}
+                    onSelect={
+                      c => {
+                        setData(
+                          {
+                            ...data,
+                            chain: c,
+                          }
+                        )
+                      }
                     }
-                    onSelect={c => {
-                      setData(
-                        {
-                          ...data,
-                          chain: c,
-                        }
-                      )
-                    }}
-                    origin=""
                     className="w-fit flex items-center justify-center space-x-1.5 sm:space-x-2"
                   />
                 </div>
@@ -1104,17 +852,18 @@ export default () => {
                     <SelectAsset
                       disabled={disabled}
                       value={asset}
-                      onSelect={(a, c) => {
-                        setData(
-                          {
-                            ...data,
-                            asset: a,
-                            amount: null,
-                          }
-                        )
-                      }}
+                      onSelect={
+                        (a, c) => {
+                          setData(
+                            {
+                              ...data,
+                              asset: a,
+                              amount: null,
+                            }
+                          )
+                        }
+                      }
                       chain={chain}
-                      origin=""
                       className="flex items-center space-x-1.5 sm:space-x-2 sm:-ml-1"
                     />
                     <DebounceInput
@@ -1123,59 +872,35 @@ export default () => {
                       type="number"
                       placeholder="0.00"
                       disabled={disabled}
-                      value={
-                        [
-                          'string',
-                          'number',
-                        ].includes(typeof amount) &&
-                        ![
-                          '',
-                        ].includes(amount) &&
-                        !isNaN(amount) ?
-                          amount :
-                          ''
+                      value={['string', 'number'].includes(typeof amount) && ![''].includes(amount) && !isNaN(amount) ? amount : ''}
+                      onChange={
+                        e => {
+                          const regex = /^[0-9.\b]+$/
+
+                          let value
+
+                          if (e.target.value === '' || regex.test(e.target.value)) {
+                            value = e.target.value
+                          }
+
+                          if (typeof value === 'string') {
+                            if (value.startsWith('.')) {
+                              value = `0${value}`
+                            }
+
+                            value = numberToFixed(value, decimals || 18)
+                          }
+
+                          setData(
+                            {
+                              ...data,
+                              amount: value,
+                            }
+                          )
+                        }
                       }
-                      onChange={e => {
-                        const regex = /^[0-9.\b]+$/
-
-                        let value
-
-                        if (
-                          e.target.value === '' ||
-                          regex.test(e.target.value)
-                        ) {
-                          value = e.target.value
-                        }
-
-                        if (typeof value === 'string') {
-                          if (value.startsWith('.')) {
-                            value = `0${value}`
-                          }
-
-                          value =
-                            number_to_fixed(
-                              value,
-                              decimals ||
-                              18,
-                            )
-                        }
-
-                        setData(
-                          {
-                            ...data,
-                            amount: value,
-                          }
-                        )
-                      }}
                       onWheel={e => e.target.blur()}
-                      onKeyDown={e =>
-                        [
-                          'e',
-                          'E',
-                          '-',
-                        ].includes(e.key) &&
-                        e.preventDefault()
-                      }
+                      onKeyDown={e => ['e', 'E', '-'].includes(e.key) && e.preventDefault()}
                       className={`w-36 sm:w-48 bg-transparent ${disabled ? 'cursor-not-allowed' : ''} rounded border-0 focus:ring-0 sm:text-lg font-semibold text-right py-1.5`}
                     />
                   </div>
@@ -1185,25 +910,43 @@ export default () => {
                         Balance:
                       </div>
                       {
-                        chain_data &&
-                        asset &&
-                        contract_data &&
+                        chain_data && contract_data &&
                         (
                           <button
                             disabled={disabled}
-                            onClick={() => {
+                            onClick={
+                              () => {
+                                const amount = balance
+
+                                if (['string', 'number'].includes(typeof amount) && ![''].includes(amount)) {
+                                  setData(
+                                    {
+                                      ...data,
+                                      amount,
+                                    }
+                                  )
+                                }
+                              }
+                            }
+                          >
+                            <DecimalsFormat
+                              value={balance}
+                              className="text-black dark:text-white text-sm font-medium"
+                            />
+                          </button>
+                        )
+                      }
+                    </div>
+                    {
+                      browser_provider &&
+                      (
+                        <button
+                          disabled={disabled}
+                          onClick={
+                            () => {
                               const amount = balance
 
-                              if (
-                                [
-                                  'string',
-                                  'number',
-                                ]
-                                .includes(typeof amount) &&
-                                ![
-                                  '',
-                                ].includes(amount)
-                              ) {
+                              if (['string', 'number'].includes(typeof amount) && ![''].includes(amount)) {
                                 setData(
                                   {
                                     ...data,
@@ -1211,44 +954,8 @@ export default () => {
                                   }
                                 )
                               }
-                            }}
-                          >
-                            <span className="text-black dark:text-white text-sm font-medium">
-                              {number_format(
-                                balance,
-                                '0,0.000000',
-                                true,
-                              )}
-                            </span>
-                          </button>
-                        )
-                      }
-                    </div>
-                    {
-                      web3_provider &&
-                      (
-                        <button
-                          disabled={disabled}
-                          onClick={() => {
-                            const amount = balance
-
-                            if (
-                              [
-                                'string',
-                                'number',
-                              ].includes(typeof amount) &&
-                              ![
-                                '',
-                              ].includes(amount)
-                            ) {
-                              setData(
-                                {
-                                  ...data,
-                                  amount,
-                                }
-                              )
                             }
-                          }}
+                          }
                           className={`${disabled ? 'cursor-not-allowed text-slate-400 dark:text-slate-500' : 'cursor-pointer text-blue-400 hover:text-blue-500 dark:text-blue-500 dark:hover:text-blue-400'} text-sm font-medium`}
                         >
                           Select Max
@@ -1258,9 +965,7 @@ export default () => {
                   </div>
                 </div>
                 {fields
-                  .filter(f =>
-                    !f?.hidden
-                  )
+                  .filter(f => !f?.hidden)
                   .map((f, i) => {
                     const {
                       label,
@@ -1284,31 +989,28 @@ export default () => {
                                 {label}
                               </div>
                               {
-                                name === 'amount' &&
-                                wallet_address &&
-                                typeof balance === 'number' &&
+                                name === 'amount' && wallet_address && typeof balance === 'number' &&
                                 (
                                   <div
-                                    onClick={() =>
-                                      setData(
-                                        {
-                                          ...data,
-                                          [`${name}`]: max_amount,
-                                        }
-                                      )
+                                    onClick={
+                                      () => {
+                                        setData(
+                                          {
+                                            ...data,
+                                            [name]: max_amount,
+                                          }
+                                        )
+                                      }
                                     }
                                     className="cursor-pointer flex items-center space-x-1.5 mb-2"
                                   >
                                     <span className="text-slate-500 dark:text-slate-500">
                                       Balance:
                                     </span>
-                                    <span className="text-black dark:text-white font-medium">
-                                      {number_format(
-                                        balance,
-                                        '0,0.000000',
-                                        true,
-                                      )}
-                                    </span>
+                                    <DecimalsFormat
+                                      value={balance}
+                                      className="text-black dark:text-white font-medium"
+                                    />
                                   </div>
                                 )
                               }
@@ -1319,17 +1021,19 @@ export default () => {
                           <select
                             placeholder={placeholder}
                             value={data?.[name]}
-                            onChange={e =>
-                              setData(
-                                {
-                                  ...data,
-                                  [`${name}`]: e.target.value,
-                                }
-                              )
+                            onChange={
+                              e => {
+                                setData(
+                                  {
+                                    ...data,
+                                    [name]: e.target.value,
+                                  }
+                                )
+                              }
                             }
                             className="form-select bg-slate-50 border-0 focus:ring-0 rounded-lg"
                           >
-                            {(options || [])
+                            {toArray(options)
                               .map((o, j) => {
                                 const {
                                   title,
@@ -1353,35 +1057,31 @@ export default () => {
                             type={type}
                             placeholder={placeholder}
                             value={data?.[name]}
-                            onChange={e => {
-                              let value
+                            onChange={
+                              e => {
+                                let value
 
-                              if (type === 'number') {
-                                const regex = /^[0-9.\b]+$/
+                                if (type === 'number') {
+                                  const regex = /^[0-9.\b]+$/
 
-                                if (
-                                  e.target.value === '' ||
-                                  regex.test(e.target.value)
-                                ) {
+                                  if (e.target.value === '' || regex.test(e.target.value)) {
+                                    value = e.target.value
+                                  }
+
+                                  value = value < 0 ? 0 : value
+                                }
+                                else {
                                   value = e.target.value
                                 }
 
-                                value =
-                                  value < 0 ?
-                                    0 :
-                                    value
+                                setData(
+                                  {
+                                    ...data,
+                                    [name]: value,
+                                  }
+                                )
                               }
-                              else {
-                                value = e.target.value
-                              }
-
-                              setData(
-                                {
-                                  ...data,
-                                  [`${name}`]: value,
-                                }
-                              )
-                            }}
+                            }
                             className="form-input border-0 focus:ring-0 rounded-lg"
                           />
                         }
@@ -1393,54 +1093,39 @@ export default () => {
             </div>
           </div>
         }
-        noCancelOnClickOutside={
-          notificationResponse ||
-          true
-        }
+        noCancelOnClickOutside={true}
         cancelDisabled={disabled}
-        onCancel={() => {
-          reset()
-          setHidden(true)
-        }}
-        confirmDisabled={
-          disabled ||
-          !web3_provider ||
-          chain_id !== wallet_chain_id ||
-          !hasAllFields ||
-          !(
-            Number(amount) > 0 &&
-            Number(amount) <= max_amount
-          )
+        onCancel={
+          () => {
+            reset()
+            setHidden(true)
+          }
         }
-        onConfirm={() => {
-          if (action === 'remove') {
-            removeLiquidity()
+        confirmDisabled={disabled || !has_all_fields || !browser_provider || chain_id !== wallet_chain_id || !(Number(amount) > 0 && Number(amount) <= max_amount)}
+        onConfirm={
+          () => {
+            switch (action) {
+              case 'remove':
+                removeLiquidity()
+                break
+              case 'add':
+              default:
+                addLiquidity()
+                break
+            }
           }
-          else {
-            addLiquidity()
-          }
-        }}
+        }
         onConfirmHide={false}
         confirmButtonTitle={
-          !web3_provider ||
-          chain_id !== wallet_chain_id ||
-          !hasAllFields ||
-          !(
-            Number(amount) > 0 &&
-            Number(amount) <= max_amount
-          ) ?
+          !has_all_fields || !browser_provider || chain_id !== wallet_chain_id || !(Number(amount) > 0 && Number(amount) <= max_amount) ?
             <Tooltip
               placement="top"
               content={
-                !web3_provider ?
+                !browser_provider ?
                   'Please connect your wallet.' :
                   chain_id !== wallet_chain_id ?
                     'Please switch to correct network.' :
-                    !hasAllFields ||
-                    !(
-                      Number(amount) > 0 &&
-                      Number(amount) <= max_amount
-                    ) ?
+                    !has_all_fields || !(Number(amount) > 0 && Number(amount) <= max_amount) ?
                       !(Number(amount) <= max_amount) ?
                         'Insufficient Funds.' :
                         'Please fill in the amount.' :
@@ -1452,11 +1137,7 @@ export default () => {
             </Tooltip> :
             confirmButtonTitle
         }
-        confirmButtonClassName={
-          action === 'remove' ?
-            'btn btn-default btn-rounded bg-red-500 hover:bg-red-600 dark:bg-red-500 dark:hover:bg-red-400 text-white' :
-            undefined
-        }
+        confirmButtonClassName={action === 'remove' ? 'btn btn-default btn-rounded bg-red-500 hover:bg-red-600 dark:bg-red-500 dark:hover:bg-red-400 text-white' : undefined}
         onClose={() => reset()}
         modalClassName="max-w-sm lg:max-w-md"
       />

@@ -4,20 +4,21 @@ import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import { TailSpin } from 'react-loader-spinner'
 
+import DecimalsFormat from '../../decimals-format'
 import Image from '../../image'
 import { currency_symbol } from '../../../lib/object/currency'
-import { number_format, loader_color } from '../../../lib/utils'
+import { toArray, loaderColor } from '../../../lib/utils'
 
 export default () => {
   const {
     preferences,
-    asset_balances,
+    router_asset_balances,
     pools,
-  } = useSelector(state =>
-    (
+  } = useSelector(
+    state => (
       {
         preferences: state.preferences,
-        asset_balances: state.asset_balances,
+        router_asset_balances: state.router_asset_balances,
         pools: state.pools,
       }
     ),
@@ -27,8 +28,8 @@ export default () => {
     theme,
   } = { ...preferences }
   const {
-    asset_balances_data,
-  } = { ...asset_balances }
+    router_asset_balances_data,
+  } = { ...router_asset_balances }
   const {
     pools_data,
   } = { ...pools }
@@ -37,51 +38,21 @@ export default () => {
 
   useEffect(
     () => {
-      if (asset_balances_data) {
+      if (router_asset_balances_data) {
         setData(
           {
-            total:
-              _.sumBy(
-                Object.values(asset_balances_data)
-                  .flatMap(l => l),
-                'value',
-              ) +
-              (
-                _.sumBy(
-                  pools_data ||
-                  [],
-                  'tvl',
-                ) ||
-                0
-              ),
+            total: _.sumBy(Object.values(router_asset_balances_data).flatMap(t => t), 'value') + (_.sumBy(toArray(pools_data), 'tvl') || 0),
             top_chains:
               _.slice(
                 _.orderBy(
-                  Object.values(asset_balances_data)
+                  Object.values(router_asset_balances_data)
                     .map(v => {
                       const {
                         chain_data,
-                      } = {  
-                        ...(
-                          _.head(v)
-                        ),
-                      }
+                      } = { ... _.head(v) }
 
-                      const router_value =
-                        _.sumBy(
-                          v,
-                          'value',
-                        )
-
-                      const pool_value =
-                        _.sumBy(
-                          (pools_data || [])
-                            .filter(p =>
-                              p?.chain_data?.id === chain_data?.id
-                            ),
-                          'tvl',
-                        ) ||
-                        0
+                      const router_value = _.sumBy(v, 'value')
+                      const pool_value = _.sumBy(toArray(pools_data).filter(p => p?.chain_data?.id === chain_data?.id), 'tvl') || 0
 
                       return {
                         ...chain_data,
@@ -99,45 +70,22 @@ export default () => {
             top_assets:
               _.slice(
                 _.orderBy(
-                  Object.values(
-                    _.groupBy(
-                      Object.values(asset_balances_data)
-                        .flatMap(l => l),
-                      'asset_data.id',
-                    )
-                  )
-                  .map(v => {
-                    const {
-                      asset_data,
-                    } = {  
-                      ...(
-                        _.head(v)
-                      ),
-                    }
+                  Object.values(_.groupBy(Object.values(router_asset_balances_data).flatMap(t => t), 'asset_data.id'))
+                    .map(v => {
+                      const {
+                        asset_data,
+                      } = { ..._.head(v) }
 
-                    const router_value =
-                      _.sumBy(
-                        v,
-                        'value',
-                      )
+                      const router_value = _.sumBy(v, 'value')
+                      const pool_value = _.sumBy(toArray(pools_data).filter(p => p?.asset_data?.id === asset_data?.id), 'tvl') || 0
 
-                    const pool_value =
-                      _.sumBy(
-                        (pools_data || [])
-                          .filter(p =>
-                            p?.asset_data?.id === asset_data?.id
-                          ),
-                        'tvl',
-                      ) ||
-                      0
-
-                    return {
-                      ...asset_data,
-                      router_value,
-                      pool_value,
-                      value: router_value + pool_value,
-                    }
-                  }),
+                      return {
+                        ...asset_data,
+                        router_value,
+                        pool_value,
+                        value: router_value + pool_value,
+                      }
+                    }),
                   ['value'],
                   ['desc'],
                 ),
@@ -148,7 +96,7 @@ export default () => {
         )
       }
     },
-    [asset_balances_data, pools_data],
+    [router_asset_balances_data, pools_data],
   )
 
   const {
@@ -163,16 +111,12 @@ export default () => {
         <div className="space-y-4">
           <div className="text-center py-12">
             <div className="space-y-2 pt-6 pb-3">
-              <div className="uppercase text-4xl font-extrabold">
-                {currency_symbol}
-                {number_format(
-                  total,
-                  total > 50000000 ?
-                    '0,0.00a' :
-                    total > 1000 ?
-                      '0,0' :
-                      '0,0.00',
-                )}
+              <div>
+                <DecimalsFormat
+                  value={total}
+                  prefix={currency_symbol}
+                  className="uppercase text-4xl font-extrabold"
+                />
               </div>
               <div className="flex items-center justify-center space-x-2">
                 <span className="text-slate-400 dark:text-white text-base font-bold">
@@ -206,11 +150,7 @@ export default () => {
                 Top 3 chains
               </span>
               <div className="flex items-center space-x-1.5">
-                {
-                  (Array.isArray(top_chains) ?
-                    top_chains :
-                    []
-                  )
+                {toArray(top_chains)
                   .filter(c => c?.image)
                   .map((c, i) => {
                     const {
@@ -224,7 +164,7 @@ export default () => {
                         key={i}
                         href={`/${id}`}
                       >
-                        <a className="flex items-center">
+                        <div className="flex items-center">
                           <Image
                             src={image}
                             title={name}
@@ -232,7 +172,7 @@ export default () => {
                             height={20}
                             className="rounded-full"
                           />
-                        </a>
+                        </div>
                       </Link>
                     )
                   })
@@ -244,11 +184,7 @@ export default () => {
                 Top 3 tokens
               </span>
               <div className="flex items-center space-x-1.5">
-                {
-                  (Array.isArray(top_assets) ?
-                    top_assets :
-                    []
-                  )
+                {toArray(top_assets)
                   .filter(a => a?.symbol)
                   .map((a, i) => {
                     const {
@@ -281,10 +217,10 @@ export default () => {
         </div> :
         <div className="h-full flex items-center justify-center">
           <TailSpin
-            color={loader_color(theme)}
             width="40"
             height="40"
             strokeWidth="8"
+            color={loaderColor(theme)}
           />
         </div>
       }

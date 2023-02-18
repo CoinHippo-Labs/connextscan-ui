@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
@@ -15,11 +14,12 @@ import {
 } from 'recharts'
 import { TailSpin } from 'react-loader-spinner'
 
+import DecimalsFormat from '../../decimals-format'
 import Image from '../../image'
 import { timeframes } from '../../../lib/object/timeframe'
-import { chainName } from '../../../lib/object/chain'
 import { currency_symbol } from '../../../lib/object/currency'
-import { number_format, loader_color } from '../../../lib/utils'
+import { chainName } from '../../../lib/object/chain'
+import { toArray, numberFormat, loaderColor } from '../../../lib/utils'
 
 const CustomTooltip = (
   {
@@ -31,60 +31,53 @@ const CustomTooltip = (
   if (active) {
     const {
       values,
-    } = {
-      ...(
-        _.head(payload)?.payload
-      ),
-    }
+    } = { ..._.head(payload)?.payload }
 
     return (
       values?.length > 0 &&
       (
         <div className="bg-slate-100 dark:bg-slate-800 dark:bg-opacity-75 border border-slate-200 dark:border-slate-800 rounded-lg flex flex-col space-y-1 p-2">
-          {
-            values
-              .map((v, i) => {
-                const {
-                  chain_data,
-                  fee,
-                } = { ...v }
-                const {
-                  image,
-                } = { ...chain_data }
+          {values
+            .map((v, i) => {
+              const {
+                chain_data,
+                fee,
+              } = { ...v }
 
-                return (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between space-x-4"
-                  >
-                    <div className="flex items-center space-x-1.5">
-                      {
-                        image &&
-                        (
-                          <Image
-                            src={image}
-                            width={18}
-                            height={18}
-                            className="rounded-full"
-                          />
-                        )
-                      }
-                      <span className="text-xs font-semibold">
-                        {chainName(chain_data)}
-                      </span>
-                    </div>
-                    <span className=" text-xs font-semibold">
-                      {currency_symbol}
-                      {number_format(
-                        fee,
-                        fee > 10000 ?
-                          '0,0' :
-                          '0,0.000000',
-                      )}
+              const {
+                image,
+              } = { ...chain_data }
+
+              return (
+                <div
+                  key={i}
+                  className="flex items-center justify-between space-x-4"
+                >
+                  <div className="flex items-center space-x-1.5">
+                    {
+                      image &&
+                      (
+                        <Image
+                          src={image}
+                          width={18}
+                          height={18}
+                          className="rounded-full"
+                        />
+                      )
+                    }
+                    <span className="text-xs font-semibold">
+                      {chainName(chain_data)}
                     </span>
                   </div>
-                )
-              })
+                  <DecimalsFormat
+                    values={fee}
+                    prefix={currency_symbol}
+                    noToolip={true}
+                    className="text-xs font-semibold"
+                  />
+                </div>
+              )
+            })
           }
         </div>
       )
@@ -105,8 +98,8 @@ export default (
 ) => {
   const {
     preferences,
-  } = useSelector(state =>
-    (
+  } = useSelector(
+    state => (
       {
         preferences: state.preferences,
       }
@@ -117,88 +110,58 @@ export default (
     theme,
   } = { ...preferences }
 
-  const router = useRouter()
-
   const [data, setData] = useState(null)
   const [xFocus, setXFocus] = useState(null)
 
-  useEffect(() => {
-    if (fees) {
-      const _timeframe = timeframes
-        .find(t =>
-          t?.day === timeframe
-        )
+  useEffect(
+    () => {
+      if (fees) {
+        const _timeframe = timeframes.find(t => t?.day === timeframe)
 
-      setData(
-        fees
-          .map(d => {
-            const {
-              timestamp,
-              fee,
-              fee_by_chains,
-            } = { ...d }
+        setData(
+          fees
+            .map(d => {
+              const {
+                timestamp,
+                fee,
+                fee_by_chains,
+              } = { ...d }
 
-            return {
-              ...d,
-              id: timestamp,
-              time_string:
-                `${
-                  moment(timestamp)
-                    .startOf(_timeframe?.timeframe)
-                    .format('MMM D, YYYY')
-                }${
-                  _timeframe?.timeframe === 'week' ?
-                    ` - ${
-                      moment(timestamp)
-                        .endOf(_timeframe?.timeframe)
-                        .format('MMM D, YYYY')
-                    }` :
-                    ''
-                }`,
-              short_name:
-                moment(timestamp)
-                  .startOf(_timeframe?.timeframe)
-                  .format('D MMM'),
-              value: fee,
-              value_string:
-                number_format(
-                  fee,
-                  fee > 10000 ?
-                    '0,0.00a' :
-                    fee > 1000 ?
-                      '0,0' :
-                      '0,0.00',
+              return {
+                ...d,
+                id: timestamp,
+                time_string: `${moment(timestamp).startOf(_timeframe?.timeframe).format('MMM D, YYYY')}${_timeframe?.timeframe === 'week' ? ` - ${moment(timestamp).endOf(_timeframe?.timeframe).format('MMM D, YYYY')}` : ''}`,
+                short_name: moment(timestamp).startOf(_timeframe?.timeframe).format('D MMM'),
+                value: fee,
+                value_string: numberFormat(fee, fee > 10000 ? '0,0.00a' : fee > 1000 ? '0,0' : '0,0.00'),
+                values: fee_by_chains,
+                ...(
+                  Object.fromEntries(
+                    toArray(fee_by_chains)
+                      .map(v => {
+                        const {
+                          id,
+                          fee,
+                        } = { ...v }
+
+                        return (
+                          [
+                            id,
+                            fee,
+                          ]
+                        )
+                      })
+                  )
                 ),
-              values: fee_by_chains,
-              ...Object.fromEntries(
-                (Array.isArray(fee_by_chains) ?
-                  fee_by_chains :
-                  []
-                )
-                .map(v => {
-                  const {
-                    id,
-                    fee,
-                  } = { ...v }
+              }
+            })
+        )
+      }
+    },
+    [fees],
+  )
 
-                  return [
-                    id,
-                    fee,
-                  ]
-                })
-              ),
-            }
-          })
-      )
-    }
-  }, [fees])
-
-  const d =
-    (data || [])
-      .find(d =>
-        d.id === xFocus
-      ) ||
-    _.last(data)
+  const d = toArray(data).find(d => d.id === xFocus) || _.last(data)
 
   const {
     time_string,
@@ -218,12 +181,7 @@ export default (
               {description}
             </span>
             <span>
-              {
-                timeframes
-                  .find(t =>
-                    t?.day === timeframe
-                  )?.timeframe
-              }
+              {timeframes.find(t => t?.day === timeframe)?.timeframe}
             </span>
           </span>
         </div>
@@ -231,13 +189,12 @@ export default (
           d &&
           (
             <div className="flex flex-col items-end">
-              <span className="uppercase font-bold">
-                {currency_symbol}
-                {number_format(
-                  value,
-                  '0,0',
-                )}
-              </span>
+              <DecimalsFormat
+                value={numberFormat(value, '0,0')}
+                prefix={currency_symbol}
+                noToolip={true}
+                className="uppercase font-bold"
+              />
               <span className="whitespace-nowrap text-slate-400 dark:text-slate-200 text-xs sm:text-sm text-right">
                 {time_string}
               </span>
@@ -250,24 +207,28 @@ export default (
           <ResponsiveContainer>
             <BarChart
               data={data}
-              onMouseEnter={e => {
-                if (e) {
-                  const {
-                    id,
-                  } = { ..._.head(e.activePayload)?.payload }
+              onMouseEnter={
+                e => {
+                  if (e) {
+                    const {
+                      id,
+                    } = { ..._.head(e.activePayload)?.payload }
 
-                  setXFocus(id)
+                    setXFocus(id)
+                  }
                 }
-              }}
-              onMouseMove={e => {
-                if (e) {
-                  const {
-                    id,
-                  } = { ..._.head(e.activePayload)?.payload }
+              }
+              onMouseMove={
+                e => {
+                  if (e) {
+                    const {
+                      id,
+                    } = { ..._.head(e.activePayload)?.payload }
 
-                  setXFocus(id)
+                    setXFocus(id)
+                  }
                 }
-              }}
+              }
               onMouseLeave={() => setXFocus(null)}
               margin={
                 {
@@ -304,68 +265,59 @@ export default (
                 axisLine={false}
                 tickLine={false}
               />
-              {
-                stacked &&
-                values?.length > 0 ?
-                  <>
-                    <Tooltip
-                      content={
-                        <CustomTooltip />
+              {stacked && values?.length > 0 ?
+                <>
+                  <Tooltip
+                    content={<CustomTooltip />}
+                    cursor={
+                      {
+                        fill: 'transparent',
                       }
-                      cursor={
-                        {
-                          fill: 'transparent',
-                        }
-                      }
-                    />
-                    {
-                      _.orderBy(
-                        values,
-                        ['id'],
-                        ['asc'],
-                      )
-                      .map((v, i) => {
-                        const {
-                          id,
-                          color,
-                        } = { ...v }
+                    }
+                  />
+                  {_.orderBy(values, ['id'], ['asc'])
+                    .map((v, i) => {
+                      const {
+                        id,
+                        color,
+                      } = { ...v }
 
-                        return (
-                          <Bar
-                            key={i}
-                            dataKey={id}
-                            minPointSize={5}
-                            stackId={title}
-                            fill={color}
-                          />
-                        )
-                      })
-                    }
-                  </> :
-                  <Bar
-                    dataKey="value"
-                    minPointSize={5}
-                  >
-                    {data
-                      .map((d, i) => {
-                        return (
-                          <Cell
-                            key={i}
-                            fillOpacity={1}
-                            fill="url(#gradient-fee)"
-                          />
-                        )
-                      })
-                    }
-                  </Bar>
+                      return (
+                        <Bar
+                          key={i}
+                          dataKey={id}
+                          minPointSize={5}
+                          stackId={title}
+                          fill={color}
+                        />
+                      )
+                    })
+                  }
+                </> :
+                <Bar
+                  dataKey="value"
+                  minPointSize={5}
+                >
+                  {data
+                    .map((d, i) => {
+                      return (
+                        <Cell
+                          key={i}
+                          fillOpacity={1}
+                          fill="url(#gradient-fee)"
+                        />
+                      )
+                    })
+                  }
+                </Bar>
               }
             </BarChart>
           </ResponsiveContainer> :
           <div className="w-full h-4/5 flex items-center justify-center">
             <TailSpin
-              color={loader_color(theme)}
               width="32"
               height="32"
+              color={loaderColor(theme)}
             />
           </div>
         }

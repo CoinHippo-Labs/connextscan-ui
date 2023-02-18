@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { XTransferStatus } from '@connext/nxtp-utils'
+import { XTransferStatus, XTransferErrorStatus } from '@connext/nxtp-utils'
 
 const STATUSES =
   [
@@ -8,6 +8,9 @@ const STATUSES =
     XTransferStatus.Reconciled,
     XTransferStatus.CompletedFast,
     XTransferStatus.CompletedSlow,
+    XTransferErrorStatus.LowRelayerFee,
+    XTransferErrorStatus.LowSlippage,
+    XTransferErrorStatus.ExecutionError,
   ]
 
 export default (
@@ -22,23 +25,15 @@ export default (
         Xcall Status
       </div>
       <div className="flex flex-wrap pb-1">
-        {
-          _.concat(
-            '',
-            STATUSES,
-          )
+        {_.concat('', STATUSES)
           .map((s, i) => {
             const selected = s === value
 
-            const item =
-              (
-                <span className={`whitespace-nowrap leading-4 ${selected ? 'font-bold': ''}`}>
-                  {
-                    s ||
-                    'Any'
-                  }
-                </span>
-              )
+            const item = (
+              <span className={`whitespace-nowrap leading-4 ${selected ? 'font-bold': ''}`}>
+                {s || 'Any'}
+              </span>
+            )
 
             return (
               <div

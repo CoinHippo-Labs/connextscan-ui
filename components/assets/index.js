@@ -2,20 +2,24 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
+import _ from 'lodash'
 import { constants } from 'ethers'
 import { TailSpin } from 'react-loader-spinner'
 import { TiArrowRight } from 'react-icons/ti'
 
-import Image from '../image'
-import SelectChain from '../select/chain'
-import SelectAsset from '../select/asset'
-import Datatable from '../datatable'
 import AddToken from '../add-token'
 import Copy from '../copy'
+import Datatable from '../datatable'
+import DecimalsFormat from '../decimals-format'
+import Image from '../image'
+import SelectChain from '../select-options/chain'
+import SelectAsset from '../select-options/asset'
 
-import { chainName } from '../../lib/object/chain'
 import { currency_symbol } from '../../lib/object/currency'
-import { number_format, ellipse, equals_ignore_case, loader_color } from '../../lib/utils'
+import { getChain, chainName } from '../../lib/object/chain'
+import { getAsset } from '../../lib/object/asset'
+import { getContract } from '../../lib/object/contract'
+import { toArray, ellipse, equalsIgnoreCase, loaderColor } from '../../lib/utils'
 
 export default (
   {
@@ -26,8 +30,8 @@ export default (
     preferences,
     chains,
     assets,
-  } = useSelector(state =>
-    (
+  } = useSelector(
+    state => (
       {
         preferences: state.preferences,
         chains: state.chains,
@@ -66,133 +70,87 @@ export default (
     [chain],
   )
 
-  const chain_data = (chains_data || [])
-    .find(c =>
-      c?.id === chainSelect
-    )
+  const chain_data = getChain(chainSelect, chains_data)
+
   const {
     chain_id,
   } = { ...chain_data }
 
   const _assets_data =
-    assets_data ?
-      assets_data
-        .filter(a =>
-          !assetSelect ||
-          a?.id === assetSelect
-        )
-        .flatMap(a =>
-          (a?.contracts || [])
-            .filter(c =>
-              (
-                !chain_data ||
-                c?.chain_id === chain_id
-              ) &&
-              (chains_data || [])
-                .findIndex(_c =>
-                  _c?.chain_id === c?.chain_id
-                ) > -1
+    toArray(getAsset(assetSelect, assets_data, chain_id, undefined, undefined, false, false, false, true))
+      .flatMap(a =>
+        toArray(a?.contracts)
+          .filter(c =>
+            getChain(c?.chain_id, chains_data) &&
+            (
+              !chain_data ||
+              getContract(c.chain_id, a.contracts)
             )
-            .map((c, i) => {
-              let asset_data = {
-                ...a,
-                ...c,
-                i,
-                chain_data:
-                  (chains_data || [])
-                    .find(_c =>
-                      _c?.chain_id === c?.chain_id
-                    ),
-              }
+          )
+          .map((c, i) => {
+            let asset_data = {
+              ...a,
+              ...c,
+              i,
+              chain_data: getChain(c?.chain_id, chains_data),
+            }
 
-              if (asset_data.contracts) {
-                delete asset_data.contracts
-              }
+            if (asset_data.contracts) {
+              delete asset_data.contracts
+            }
 
-              const {
-                chain_id,
-                contract_address,
-                next_asset,
-                price,
-              } = { ...asset_data }
+            const {
+              chain_id,
+              contract_address,
+              next_asset,
+              price,
+            } = { ...asset_data }
 
-              const contract_addresses =
-                [
-                  next_asset?.contract_address,
-                  contract_address,
-                ]
-                .filter(a => a)
+            const contract_addresses = toArray(_.concat(next_asset?.contract_address, contract_address))
 
-              let liquidity =
-                !chain &&
-                (data || [])
-                  .find(d =>
-                    d?.chain_id === chain_id &&
-                    contract_addresses
-                      .findIndex(a =>
-                        equals_ignore_case(
-                          d?.contract_address,
-                          a,
-                        )
-                      ) > -1
-                  )
-
-              if (
-                next_asset &&
-                (
-                  !liquidity?.contract_address ||
-                  equals_ignore_case(
-                    next_asset.contract_address,
-                    liquidity.contract_address,
-                  )
+            const _data =
+              toArray(data)
+                .filter(d =>
+                  d?.chain_id === chain_id &&
+                  contract_addresses
+                    .findIndex(a =>
+                      equalsIgnoreCase(
+                        d?.contract_address,
+                        a,
+                      )
+                    ) > -1
                 )
-              ) {
-                asset_data = {
-                  ...asset_data,
-                  ...next_asset,
-                }
 
-                delete asset_data.next_asset
-              }
+            const contract_data = _.head(_data)
 
-              const amount =
-                data ?
-                  chain ?
-                    _.sumBy(
-                      (data || [])
-                        .filter(d =>
-                          d?.chain_id === chain_id &&
-                          contract_addresses
-                            .findIndex(a =>
-                              equals_ignore_case(
-                                d?.contract_address,
-                                a,
-                              )
-                            ) > -1
-                        ),
-                      'amount',
-                    ) :
-                    liquidity?.amount ||
-                    0 :
-                  null
-
-              const value =
-                typeof amount === 'number' ?
-                  amount *
-                  (
-                    price ||
-                    0
-                  ) :
-                  null
-
-              return {
+            if (
+              next_asset &&
+              (
+                !contract_data?.contract_address ||
+                equalsIgnoreCase(
+                  next_asset.contract_address,
+                  contract_data.contract_address,
+                )
+              )
+            ) {
+              asset_data = {
                 ...asset_data,
-                amount,
-                value,
+                ...next_asset,
               }
-            })
-        ) :
-      null
+
+              delete asset_data.next_asset
+            }
+
+            const amount = _.sumBy(_data, 'amount')
+            const value = amount * (price || 0)
+
+            return {
+              ...asset_data,
+              amount,
+              value,
+            }
+          })
+      )
 
   return (
     <div className="space-y-2 mb-6">
@@ -217,7 +175,7 @@ export default (
           />
         </div>
       </div>
-      {_assets_data ?
+      {assets_data ?
         <Datatable
           columns={
             [
@@ -230,13 +188,7 @@ export default (
                     -1,
                 Cell: props => (
                   <span className="font-semibold">
-                    {number_format(
-                      (props.flatRows?.indexOf(props.row) > -1 ?
-                        props.flatRows.indexOf(props.row) :
-                        props.value
-                      ) + 1,
-                      '0,0',
-                    )}
+                    {(props.flatRows?.indexOf(props.row) > -1 ? props.flatRows.indexOf(props.row) : props.value) + 1}
                   </span>
                 ),
               },
@@ -249,12 +201,14 @@ export default (
                     -1,
                 Cell: props => {
                   const {
+                    row,
                     value,
                   } = { ...props }
+
                   const {
                     name,
                     image,
-                  } = { ...props.row.original }
+                  } = { ...row.original }
 
                   return (
                     <div className="min-w-max flex items-start space-x-2 -mt-0.5">
@@ -287,14 +241,18 @@ export default (
                 disableSortBy: true,
                 Cell: props => {
                   const {
+                    row,
                     value,
                   } = { ...props }
+
                   const {
                     chain_data,
-                  } = { ...props.row.original }
+                  } = { ...row.original }
+
                   const {
                     explorer,
                   } = { ...chain_data }
+
                   const {
                     url,
                     icon,
@@ -352,7 +310,7 @@ export default (
                           )
                         }
                         <AddToken
-                          token_data={props.row.original}
+                          token_data={row.original}
                         />
                       </div>
                     )
@@ -368,11 +326,14 @@ export default (
                     -1,
                 Cell: props => {
                   const {
+                    row,
                     value,
                   } = { ...props }
+
                   const {
                     chain_data,
-                  } = { ...props.row.original }
+                  } = { ...row.original }
+
                   const {
                     id,
                     image,
@@ -380,7 +341,7 @@ export default (
 
                   return (
                     <Link href={`/${id || ''}`}>
-                      <a className="min-w-max flex items-center space-x-2">
+                      <div className="min-w-max flex items-center space-x-2">
                         {
                           image &&
                           (
@@ -395,7 +356,7 @@ export default (
                         <div className="text-sm font-semibold">
                           {value}
                         </div>
-                      </a>
+                      </div>
                     </Link>
                   )
                 },
@@ -413,55 +374,32 @@ export default (
                         -1,
                 Cell: props => {
                   const {
+                    row,
+                  } = { ...props }
+
+                  const {
+                    amount,
                     value,
-                  } = { ...props.row.original }
+                  } = { ...row.original }
 
                   return (
-                    typeof props.value === 'number' ?
+                    typeof amount === 'number' ?
                       <div className="flex flex-col items-end space-y-0.5 -mt-0.5">
-                        <span className="uppercase text-base font-bold">
-                          {
-                            props.value <
-                            Math.pow(
-                              10,
-                              -12,
-                            ) ?
-                              '0' :
-                              number_format(
-                                props.value,
-                                props.value > 1000000 ?
-                                  '0,0.00a' :
-                                  props.value > 1000 ?
-                                    '0,0' :
-                                    '0,0.00',
-                              )
-                          }
-                        </span>
-                        <span className="uppercase text-slate-400 dark:text-slate-500 text-xs font-semibold">
-                          {currency_symbol}
-                          {
-                            value <
-                            Math.pow(
-                              10,
-                              -12,
-                            ) ?
-                              '0' :
-                              number_format(
-                                value,
-                                value > 100000 ?
-                                  '0,0.00a' :
-                                  value > 1000 ?
-                                    '0,0' :
-                                    '0,0.00',
-                              )
-                          }
-                        </span>
+                        <DecimalsFormat
+                          value={amount}
+                          className="uppercase text-base font-bold"
+                        />
+                        <DecimalsFormat
+                          value={value}
+                          prefix={currency_symbol}
+                          className="uppercase text-slate-400 dark:text-slate-500 text-xs font-semibold"
+                        />
                       </div> :
                       <div className="flex items-center justify-end">
                         <TailSpin
-                          color={loader_color(theme)}
                           width="24"
                           height="24"
+                          color={loaderColor(theme)}
                         />
                       </div>
                   )
@@ -469,13 +407,7 @@ export default (
                 headerClassName: 'whitespace-nowrap justify-end text-right',
               },
             ]
-            .filter(c =>
-              !chain ||
-              ![
-                'chain_data.name',
-              ]
-              .includes(c.accessor)
-            )
+            .filter(c => !chain || !['chain_data.name'].includes(c.accessor))
           }
           size="small"
           data={_assets_data}
@@ -484,9 +416,9 @@ export default (
           className="no-border"
         /> :
         <TailSpin
-          color={loader_color(theme)}
           width="32"
           height="32"
+          color={loaderColor(theme)}
         />
       }
     </div>
