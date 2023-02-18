@@ -70,7 +70,7 @@ const CustomTooltip = (
                     </span>
                   </div>
                   <DecimalsFormat
-                    values={fee}
+                    value={fee}
                     prefix={currency_symbol}
                     noToolip={true}
                     className="text-xs font-semibold"

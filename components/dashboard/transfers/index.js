@@ -69,7 +69,7 @@ const CustomTooltip = (
                     </span>
                   </div>
                   <DecimalsFormat
-                    values={transfers}
+                    value={transfers}
                     noToolip={true}
                     className="text-xs font-semibold"
                   />
