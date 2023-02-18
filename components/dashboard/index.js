@@ -13,7 +13,7 @@ import TransfersTotal from './transfers/total'
 import Transfers from './transfers'
 import FeeTotal from './fee/total'
 import Fee from './fee'
-import { daily_transfer_metrics, daily_transfer_volume, daily_swap_tvl, daily_router_tvl } from '../../lib/api/metrics'
+import { daily_transfer_metrics, daily_transfer_volume } from '../../lib/api/metrics'
 import { getChain } from '../../lib/object/chain'
 import { getAsset } from '../../lib/object/asset'
 import { getContract } from '../../lib/object/contract'
@@ -52,7 +52,6 @@ export default () => {
 
   const [timeframe, setTimeframe] = useState(null)
   const [data, setData] = useState(null)
-  const [dailyTvlData, setDailyTvlData] = useState(null)
 
   useEffect(
     () => {
@@ -310,145 +309,6 @@ export default () => {
       getData()
     },
     [sdk, timeframe, chains_data, assets_data],
-  )
-
-  useEffect(
-    () => {
-      const getData = async () => {
-        if (sdk && chains_data && assets_data && pools_data) {
-          const _timeframe = timeframes.find(t => t?.day === timeframe)
-
-          const tvl =
-            toArray(await daily_swap_tvl())
-              .filter(t => t.day)
-              .map(t => {
-              const {
-                day,
-                domain,
-                pool_id,
-                balances,
-              } = { ...t }
-
-              const chain_data = chains_data
-                .find(c =>
-                  c?.domain_id === domain
-                )
-
-              // const pool_data = pools_data
-              //   .find(p =>
-              //     p?.pool_id === pool_id
-              //   )
-// console.log ('qqq',chain_data,pool_data)
-              // let asset_data = assets_data
-              //   .find(a =>
-              //     (a?.contracts || [])
-              //       .findIndex(c =>
-              //         c?.chain_id === origin_chain_data?.chain_id &&
-              //         [
-              //           c?.next_asset?.contract_address,
-              //           c?.contract_address,
-              //         ]
-              //         .filter(_a => _a)
-              //         .findIndex(_a =>
-              //           equalsIgnoreCase(
-              //             _a,
-              //             asset,
-              //           )
-              //         ) > -1
-              //       ) > -1
-              //   )
-
-              // asset_data = {
-              //   ...asset_data,
-              //   ...(
-              //     (asset_data?.contracts || [])
-              //       .find(c =>
-              //         c?.chain_id === origin_chain_data?.chain_id &&
-              //         [
-              //           c?.next_asset?.contract_address,
-              //           c?.contract_address,
-              //         ]
-              //         .filter(_a => _a)
-              //         .findIndex(_a =>
-              //           equalsIgnoreCase(
-              //             _a,
-              //             asset,
-              //           )
-              //         ) > -1
-              //       )
-              //   ),
-              // }
-
-              // if (asset_data.contracts) {
-              //   delete asset_data.contracts
-              // }
-
-              // if (
-              //   asset_data.next_asset &&
-              //   equalsIgnoreCase(
-              //     asset_data.next_asset.contract_address,
-              //     asset,
-              //   )
-              // ) {
-              //   asset_data = {
-              //     ...asset_data,
-              //     ...asset_data.next_asset,
-              //   }
-
-              //   delete asset_data.next_asset
-              // }
-
-              // const {
-              //   decimals,
-              //   price,
-              // } = { ...asset_data }
-
-              // const amount =
-              //   Number(
-              //     utils.formatUnits(
-              //       BigNumber.from(
-              //         BigInt(
-              //           volume ||
-              //           0
-              //         )
-              //         .toString()
-              //       ),
-              //       decimals ||
-              //       18,
-              //     )
-              //   )
-
-              // return {
-              //   ...v,
-              //   timestamp:
-              //     moment(
-              //       transfer_date,
-              //       'YYYY-MM-DD',
-              //     )
-              //     .startOf(_timeframe?.timeframe)
-              //     .valueOf(),
-              //   origin_chain_data,
-              //   destination_chain_data,
-              //   asset_data,
-              //   amount,
-              //   volume:
-              //     amount *
-              //     (
-              //       price ||
-              //       0
-              //     ),
-              // }
-            })
-
-          setDailyTvlData(
-            {},
-          )
-        }
-      }
-
-      getData()
-    },
-    [sdk, timeframe, chains_data, assets_data, pools_data],
   )
 
   const {
