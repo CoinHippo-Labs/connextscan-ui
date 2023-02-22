@@ -448,7 +448,7 @@ export default () => {
             const data =
               _.groupBy(
                 response
-                  .filter(d => d?.domain)
+                  .filter(d => d?.address)
                   .map(d => {
                     const {
                       domain,
