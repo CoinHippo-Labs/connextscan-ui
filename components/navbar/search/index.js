@@ -129,13 +129,13 @@ export default () => {
       if (input_type === 'address') {
         const addresses = [input?.toLowerCase()].filter(a => a && !ens_data?.[a])
 
-        const ens_data = await getEns(addresses)
+        const _ens_data = await getEns(addresses)
 
-        if (ens_data) {
+        if (_ens_data) {
           dispatch(
             {
               type: ENS_DATA,
-              value: ens_data,
+              value: _ens_data,
             }
           )
         }
