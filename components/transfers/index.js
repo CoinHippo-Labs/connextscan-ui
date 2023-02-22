@@ -1000,10 +1000,36 @@ export default () => {
                   },
                   headerClassName: 'whitespace-nowrap',
                 },
+                {
+                  Header: 'Error Status',
+                  accessor: 'error_status',
+                  disableSortBy: true,
+                  Cell: props => {
+                    const {
+                      row,
+                      value,
+                    } = { ...props }
+
+                    const {
+                      transfer_id,
+                    } = { ...row.original }
+
+                    return (
+                      <div className="flex flex-col items-start space-y-1 mt-0.5">
+                        <Link href={`/tx/${transfer_id}`}>
+                          <div className="normal-case font-bold">
+                            {value || '-'}
+                          </div>
+                        </Link>
+                      </div>
+                    )
+                  },
+                  headerClassName: 'whitespace-nowrap',
+                },
               ]
               .filter(c =>
                 !address || ['/address/[address]'].includes(pathname) ||
-                !['xcall_timestamp','status', 'xcall_status'].includes(c.accessor)
+                !['xcall_timestamp','status', 'xcall_status', 'error_status'].includes(c.accessor)
               )
             }
             size="small"

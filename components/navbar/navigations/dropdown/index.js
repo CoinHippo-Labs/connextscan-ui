@@ -32,7 +32,7 @@ export default () => {
   const onClick = () => setHidden(!hidden)
 
   return (
-    <div className="block lg:hidden relative">
+    <div className="block xl:hidden relative">
       <button
         ref={buttonRef}
         onClick={onClick}
