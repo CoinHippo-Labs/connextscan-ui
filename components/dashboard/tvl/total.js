@@ -115,6 +115,7 @@ export default () => {
                 <DecimalsFormat
                   value={total}
                   prefix={currency_symbol}
+                  noTooltip={true}
                   className="uppercase text-4xl font-extrabold"
                 />
               </div>

@@ -42,6 +42,7 @@ export default (
                 <DecimalsFormat
                   value={total_fee}
                   prefix={currency_symbol}
+                  noTooltip={true}
                   className="uppercase text-4xl font-extrabold"
                 />
               </div>
