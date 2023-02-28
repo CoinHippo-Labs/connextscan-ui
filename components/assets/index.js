@@ -156,7 +156,7 @@ export default (
     <div className="space-y-2 mb-6">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div className="whitespace-nowrap uppercase text-sm font-semibold">
-          Router Liquidity
+          Routers Liquidity
         </div>
         <div className="flex items-center space-x-2 mt-2 sm:mt-0 mb-4 sm:mb-0">
           {
