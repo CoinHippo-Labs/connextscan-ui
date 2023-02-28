@@ -23,6 +23,7 @@ export default () => {
     preferences,
     chains,
     assets,
+    pools,
     dev,
   } = useSelector(
     state => (
@@ -30,6 +31,7 @@ export default () => {
         preferences: state.preferences,
         chains: state.chains,
         assets: state.assets,
+        pools: state.pools,
         dev: state.dev,
       }
     ),
@@ -44,6 +46,9 @@ export default () => {
   const {
     assets_data,
   } = { ...assets }
+  const {
+    pools_data,
+  } = { ...pools }
   const {
     sdk,
   } = { ...dev }
@@ -132,7 +137,7 @@ export default () => {
 
       return () => clearInterval(interval)
     },
-    [page_visible, chain, sdk, chains_data, assets_data],
+    [page_visible, chain, sdk, chains_data, assets_data, pools_data],
   )
 
   useEffect(
@@ -274,9 +279,9 @@ export default () => {
   } = { ...data }
 
   const metrics =
-    liquidity && data &&
+    liquidity && pools_data && data &&
     {
-      liquidity: _.sumBy(liquidity, 'value'),
+      liquidity: _.sumBy(liquidity, 'value') + (pools_data ? _.sumBy(pools_data.filter(p => p.chain_id === getChain(chain, chains_data)?.chain_id), 'tvl') : 0),
       volume: total_volume,
       transfers: total_transfers,
       // fee: 33.33,
