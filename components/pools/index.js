@@ -7,7 +7,6 @@ import { constants } from 'ethers'
 import { TailSpin } from 'react-loader-spinner'
 import { TiArrowRight } from 'react-icons/ti'
 
-import AddToken from '../add-token'
 import Copy from '../copy'
 import Datatable from '../datatable'
 import DecimalsFormat from '../decimals-format'
@@ -17,25 +16,21 @@ import SelectAsset from '../select-options/asset'
 
 import { currency_symbol } from '../../lib/object/currency'
 import { getChain, chainName } from '../../lib/object/chain'
-import { getAsset } from '../../lib/object/asset'
-import { getContract } from '../../lib/object/contract'
-import { toArray, ellipse, equalsIgnoreCase, loaderColor } from '../../lib/utils'
+import { toArray, ellipse, loaderColor } from '../../lib/utils'
 
-export default (
-  {
-    data,
-  },
-) => {
+export default () => {
   const {
     preferences,
     chains,
     assets,
+    pools,
   } = useSelector(
     state => (
       {
         preferences: state.preferences,
         chains: state.chains,
         assets: state.assets,
+        pools: state.pools,
       }
     ),
     shallowEqual,
@@ -49,6 +44,9 @@ export default (
   const {
     assets_data,
   } = { ...assets }
+  const {
+    pools_data,
+  } = { ...pools }
 
   const router = useRouter()
   const {
@@ -76,87 +74,31 @@ export default (
     chain_id,
   } = { ...chain_data }
 
-  const _assets_data =
-    toArray(getAsset(assetSelect, assets_data, chain_id, undefined, undefined, false, false, false, true))
-      .flatMap(a =>
-        toArray(a?.contracts)
-          .filter(c =>
-            getChain(c?.chain_id, chains_data) &&
-            (
-              !chain_data ||
-              getContract(c.chain_id, a.contracts)?.chain_id === chain_id
-            )
+  const _pools_data =
+    _.orderBy(
+      toArray(pools_data)
+        .filter(d =>
+          d.chain_id === chain_id &&
+          (
+            !assetSelect ||
+            d.asset_data?.id === assetSelect
           )
-          .map((c, i) => {
-            let asset_data = {
-              ...a,
-              ...c,
-              i,
-              chain_data: getChain(c?.chain_id, chains_data),
-            }
-
-            if (asset_data.contracts) {
-              delete asset_data.contracts
-            }
-
-            const {
-              chain_id,
-              contract_address,
-              next_asset,
-              price,
-            } = { ...asset_data }
-
-            const contract_addresses = toArray(_.concat(next_asset?.contract_address, contract_address))
-
-            const _data =
-              toArray(data)
-                .filter(d =>
-                  d?.chain_id === chain_id &&
-                  contract_addresses
-                    .findIndex(a =>
-                      equalsIgnoreCase(
-                        d?.contract_address,
-                        a,
-                      )
-                    ) > -1
-                )
-
-            const contract_data = _.head(_data)
-
-            if (
-              next_asset &&
-              (
-                !contract_data?.contract_address ||
-                equalsIgnoreCase(
-                  next_asset.contract_address,
-                  contract_data.contract_address,
-                )
-              )
-            ) {
-              asset_data = {
-                ...asset_data,
-                ...next_asset,
-              }
-
-              delete asset_data.next_asset
-            }
-
-            const amount = _.sumBy(_data, 'amount')
-            const value = amount * (price || 0)
-
-            return {
-              ...asset_data,
-              amount,
-              value,
-            }
-          })
-      )
+        )
+        .map((d, i) => {
+          return {
+            ...d,
+            i,
+          }
+        }),
+      ['tvl'],
+      ['desc'],
+    )
 
   return (
     <div className="space-y-2 mb-6">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div className="whitespace-nowrap uppercase text-sm font-semibold">
-          Router Liquidity
+          Pools Liquidity
         </div>
         <div className="flex items-center space-x-2 mt-2 sm:mt-0 mb-4 sm:mb-0">
           {
@@ -175,7 +117,7 @@ export default (
           />
         </div>
       </div>
-      {assets_data ?
+      {pools_data ?
         <Datatable
           columns={
             [
@@ -190,9 +132,9 @@ export default (
                 ),
               },
               {
-                Header: 'Asset',
-                accessor: 'symbol',
-                sortType: (a, b) => a.original.symbol > b.original.symbol ? 1 : -1,
+                Header: 'Pool',
+                accessor: 'name',
+                sortType: (a, b) => a.original.name > b.original.name ? 1 : -1,
                 Cell: props => {
                   const {
                     row,
@@ -200,38 +142,49 @@ export default (
                   } = { ...props }
 
                   const {
-                    name,
-                    image,
+                    symbol,
+                    chain_data,
+                    asset_data,
                   } = { ...row.original }
 
+                  const {
+                    image,
+                  } = { ...asset_data }
+
                   return (
-                    <div className="min-w-max flex items-start space-x-2 -mt-0.5">
-                      {
-                        image &&
-                        (
-                          <Image
-                            src={image}
-                            width={24}
-                            height={24}
-                            className="rounded-full"
-                          />
-                        )
-                      }
-                      <div className="space-y-0.5">
-                        <div className="text-base font-semibold">
-                          {value}
-                        </div>
-                        <div className="whitespace-nowrap text-slate-400 dark:text-slate-500 text-xs">
-                          {name}
+                    <a
+                      href={`${process.env.NEXT_PUBLIC_BRIDGE_URL}/pool/${asset_data?.symbol?.toUpperCase()}-on-${chain_data?.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <div className="min-w-max flex items-start space-x-2 -mt-0.5">
+                        {
+                          image &&
+                          (
+                            <Image
+                              src={image}
+                              width={24}
+                              height={24}
+                              className="rounded-full"
+                            />
+                          )
+                        }
+                        <div className="space-y-0.5">
+                          <div className="text-base font-semibold">
+                            {value}
+                          </div>
+                          <div className="whitespace-nowrap text-slate-400 dark:text-slate-500 text-xs">
+                            {symbol}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </a>
                   )
                 },
               },
               {
                 Header: 'Address',
-                accessor: 'contract_address',
+                accessor: 'lpTokenAddress',
                 disableSortBy: true,
                 Cell: props => {
                   const {
@@ -303,9 +256,6 @@ export default (
                             </a>
                           )
                         }
-                        <AddToken
-                          token_data={row.original}
-                        />
                       </div>
                     )
                   )
@@ -354,31 +304,35 @@ export default (
               },
               {
                 Header: 'Liquidity',
-                accessor: 'amount',
-                sortType: (a, b) => a.original.value > b.original.value ? 1 : a.original.value < b.original.value ? -1 : a.original.amount > b.original.amount ? 1 : -1,
+                accessor: 'tvl',
+                sortType: (a, b) => a.original.tvl > b.original.tvl ? 1 : -1,
                 Cell: props => {
                   const {
                     row,
+                    value,
                   } = { ...props }
 
                   const {
-                    amount,
-                    value,
+                    chain_data,
+                    asset_data,
                   } = { ...row.original }
 
                   return (
-                    typeof amount === 'number' ?
-                      <div className="flex flex-col items-end space-y-0.5 -mt-0.5">
-                        <DecimalsFormat
-                          value={amount}
-                          className="uppercase text-base font-bold"
-                        />
-                        <DecimalsFormat
-                          value={value}
-                          prefix={currency_symbol}
-                          className="uppercase text-slate-400 dark:text-slate-500 text-xs font-semibold"
-                        />
-                      </div> :
+                    typeof value === 'number' ?
+                      <a
+                        href={`${process.env.NEXT_PUBLIC_BRIDGE_URL}/pool/${asset_data?.symbol?.toUpperCase()}-on-${chain_data?.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <div className="flex flex-col items-end space-y-0.5 -mt-0.5">
+                          <DecimalsFormat
+                            value={value}
+                            prefix={currency_symbol}
+                            noTooltip={true}
+                            className="uppercase text-base font-bold"
+                          />
+                        </div>
+                      </a> :
                       <div className="flex items-center justify-end">
                         <TailSpin
                           width="24"
@@ -394,8 +348,8 @@ export default (
             .filter(c => !chain || !['chain_data.name'].includes(c.accessor))
           }
           size="small"
-          data={_assets_data}
-          noPagination={_assets_data.length <= 10}
+          data={_pools_data}
+          noPagination={_pools_data.length <= 10}
           defaultPageSize={10}
           className="no-border"
         /> :

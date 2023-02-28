@@ -11,6 +11,7 @@ import Volume from '../dashboard/volume'
 import Transfers from '../dashboard/transfers'
 import Fee from '../dashboard/fee'
 import Assets from '../assets'
+import Pools from '../pools'
 import { daily_transfer_metrics, daily_transfer_volume } from '../../lib/api/metrics'
 import { getChain } from '../../lib/object/chain'
 import { getAsset } from '../../lib/object/asset'
@@ -326,6 +327,9 @@ export default () => {
         <div className="w-full grid grid-flow-row lg:grid-cols-2 gap-4 mb-4">
           <Assets
             data={liquidity}
+          />
+          <Pools
+            data={pools_data}
           />
         </div>
       </div>
