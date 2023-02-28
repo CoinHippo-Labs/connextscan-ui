@@ -355,7 +355,7 @@ export default () => {
   return (
     <div className="space-y-2 mb-6">
       <div className="sm:flex sm:items-center sm:justify-between">
-        <div className="uppercase tracking-wider text-sm font-semibold">
+        <div className="whitespace-nowrap uppercase text-sm font-semibold">
           Latest Transfers
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 space-x-0 sm:space-x-2 mt-2 sm:mt-0 mb-4 sm:mb-0">

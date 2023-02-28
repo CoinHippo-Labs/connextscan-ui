@@ -84,7 +84,7 @@ export default (
             getChain(c?.chain_id, chains_data) &&
             (
               !chain_data ||
-              getContract(c.chain_id, a.contracts)
+              getContract(c.chain_id, a.contracts)?.chain_id === chain_id
             )
           )
           .map((c, i) => {
@@ -155,8 +155,8 @@ export default (
   return (
     <div className="space-y-2 mb-6">
       <div className="sm:flex sm:items-center sm:justify-between">
-        <div className="uppercase tracking-wider text-sm font-medium">
-          Liquidity
+        <div className="whitespace-nowrap uppercase text-sm font-semibold">
+          Router Liquidity
         </div>
         <div className="flex items-center space-x-2 mt-2 sm:mt-0 mb-4 sm:mb-0">
           {
