@@ -1,13 +1,12 @@
 import _ from 'lodash'
-import { XTransferStatus } from '@connext/nxtp-utils'
+import { XTransferErrorStatus } from '@connext/nxtp-utils'
 
-const STATUSES =
+const ERROR_STATUSES =
   [
-    XTransferStatus.XCalled,
-    XTransferStatus.Executed,
-    XTransferStatus.Reconciled,
-    XTransferStatus.CompletedFast,
-    XTransferStatus.CompletedSlow,
+    XTransferErrorStatus.LowRelayerFee,
+    XTransferErrorStatus.LowSlippage,
+    XTransferErrorStatus.ExecutionError,
+    XTransferErrorStatus.NoBidsReceived,
   ]
 
 export default (
@@ -18,7 +17,7 @@ export default (
 ) => {
   return (
     <div className="flex flex-wrap pb-1">
-      {_.concat('', STATUSES)
+      {_.concat('', ERROR_STATUSES)
         .map(s => {
           const selected = s === value
 

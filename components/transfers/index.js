@@ -24,6 +24,7 @@ import Image from '../image'
 import SelectChain from '../select-options/chain'
 import SelectAsset from '../select-options/asset'
 import SelectStatus from '../select-options/status'
+import SelectErrorStatus from '../select-options/error-status'
 import TimeSpent from '../time-spent'
 import { getChain } from '../../lib/object/chain'
 import { getAsset } from '../../lib/object/asset'
@@ -81,6 +82,7 @@ export default () => {
   const [toChainSelect, setToChainSelect] = useState('')
   const [assetSelect, setAssetSelect] = useState('')
   const [statusSelect, setStatusSelect] = useState('')
+  const [errorStatusSelect, setErrorStatusSelect] = useState('')
 
   useEffect(
     () => {
@@ -118,7 +120,7 @@ export default () => {
 
       return () => clearInterval(interval)
     },
-    [sdk, pathname, address, statusSelect],
+    [sdk, pathname, address, statusSelect, errorStatusSelect],
   )
 
   useEffect(
@@ -135,8 +137,8 @@ export default () => {
 
           let response
 
-          const status = statusSelect && !XTransferErrorStatus[statusSelect] ? statusSelect : undefined
-          const errorStatus = statusSelect && XTransferErrorStatus[statusSelect] ? statusSelect : undefined
+          const status = statusSelect
+          const errorStatus = errorStatusSelect
           const _data = toArray(!fetchTrigger ? [] : data)
           const limit = LIMIT
           const offset = fetchTrigger ? _data.length : 0
@@ -384,6 +386,10 @@ export default () => {
             <SelectStatus
               value={statusSelect}
               onSelect={s => setStatusSelect(s)}
+            />
+            <SelectErrorStatus
+              value={errorStatusSelect}
+              onSelect={s => setErrorStatusSelect(s)}
             />
           </div>
         </div>
@@ -1007,12 +1013,19 @@ export default () => {
                   Cell: props => {
                     const {
                       row,
+                    } = { ...props }
+                    let {
                       value,
                     } = { ...props }
 
                     const {
                       transfer_id,
+                      status,
                     } = { ...row.original }
+
+                    if (value === XTransferErrorStatus.ExecutionError && status === XTransferStatus.CompletedSlow) {
+                      value = 'AuthenticationCheck'
+                    }
 
                     return (
                       <div className="flex flex-col items-start space-y-1 mt-0.5">
