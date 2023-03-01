@@ -1014,6 +1014,7 @@ export default () => {
                     const {
                       row,
                     } = { ...props }
+
                     let {
                       value,
                     } = { ...props }

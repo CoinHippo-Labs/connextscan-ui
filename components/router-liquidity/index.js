@@ -291,6 +291,7 @@ export default () => {
               status: 'pending',
               message: `Waiting for ${symbol} approval`,
               tx_hash: hash,
+              chain_data,
             }
           )
 
@@ -309,6 +310,7 @@ export default () => {
                 status: 'failed',
                 message: `Failed to approve ${symbol}`,
                 tx_hash: hash,
+                chain_data,
               }
           )
 
@@ -327,6 +329,7 @@ export default () => {
           {
             status: 'failed',
             ...response,
+            chain_data,
           }
         )
 
@@ -352,6 +355,7 @@ export default () => {
                 status: 'pending',
                 message: `Waiting for add ${symbol} liquidity`,
                 tx_hash: hash,
+                chain_data,
               }
             )
 
@@ -370,6 +374,7 @@ export default () => {
                 status: failed ? 'failed' : 'success',
                 message: failed ? `Failed to add ${symbol} liquidity` : `Add ${symbol} liquidity successful`,
                 tx_hash: hash,
+                chain_data,
               }
             )
 
@@ -384,6 +389,7 @@ export default () => {
             {
               status: 'failed',
               ...response,
+              chain_data,
             }
           )
 
@@ -459,6 +465,7 @@ export default () => {
                 status: 'pending',
                 message: `Waiting for remove ${symbol} liquidity`,
                 tx_hash: hash,
+                chain_data,
               }
             )
 
@@ -477,6 +484,7 @@ export default () => {
                 status: failed ? 'failed' : 'success',
                 message: failed ? `Failed to remove ${symbol} liquidity` : `Remove ${symbol} liquidity successful`,
                 tx_hash: hash,
+                chain_data,
               }
             )
 
@@ -491,6 +499,7 @@ export default () => {
             {
               status: 'failed',
               ...response,
+              chain_data,
             }
           )
 
@@ -514,13 +523,7 @@ export default () => {
 
   const {
     chain_id,
-    explorer,
   } = { ...chain_data }
-
-  const {
-    url,
-    transaction_path,
-  } = { ...explorer }
 
   const asset_data = getAsset(asset, assets_data)
 
@@ -622,6 +625,15 @@ export default () => {
     message,
     tx_hash,
   } = { ...notificationResponse }
+
+  const {
+    explorer,
+  } = { ...notificationResponse?.chain_data }
+
+  const {
+    url,
+    transaction_path,
+  } = { ...explorer }
 
   const disabled = adding || removing || approving
 
