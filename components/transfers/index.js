@@ -1027,6 +1027,9 @@ export default () => {
                     if (value === XTransferErrorStatus.ExecutionError && status === XTransferStatus.CompletedSlow) {
                       value = 'AuthenticationCheck'
                     }
+                    else if (value && ![XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status)) {
+                      value = null
+                    }
 
                     return (
                       <div className="flex flex-col items-start space-y-1 mt-0.5">
