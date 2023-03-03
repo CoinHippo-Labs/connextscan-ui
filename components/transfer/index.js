@@ -639,8 +639,7 @@ export default () => {
                               (
                                 <>
                                   {
-                                    call_data &&
-                                    call_data !== '0x' &&
+                                    call_data && call_data !== '0x' &&
                                     (
                                       <Tooltip
                                         placement="top"
@@ -746,18 +745,21 @@ export default () => {
                         {
                           data[`${s}_transaction_hash`] &&
                           (
-                            [
-                              'transaction_hash',
-                              'block_number',
-                              'timestamp',
-                              'caller',
-                              ['xcall'].includes(s) ? 'to' : undefined,
-                              s === 'xcall' ? 'recovery' : s === 'execute' ? 'origin_sender' : undefined,
-                              ['xcall'].includes(s) ? 'relayer_fee' : undefined,
-                              'gas_price',
-                              'gas_limit',
-                              ['xcall'].includes(s) && call_data && call_data !== '0x' ? 'call_data' : undefined,
-                            ]
+                            _.concat(
+                              [
+                                'transaction_hash',
+                                'block_number',
+                                'timestamp',
+                                'caller',
+                                ['xcall'].includes(s) ? 'to' : undefined,
+                                ['xcall'].includes(s) ? 'recovery' : s === 'execute' ? 'origin_sender' : undefined,
+                                ['xcall'].includes(s) ? 'relayer_fee' : undefined,
+                                'gas_price',
+                                'gas_limit',
+                                ['xcall'].includes(s) && call_data && call_data !== '0x' ? 'call_data' : undefined,
+                              ],
+                              ['execute'].includes(s) ? ['simulation_input', 'simulation_from', 'simulation_to', 'simulation_network'] : undefined,
+                            )
                             .filter(f => f)
                             .map(((f, j) => (
                               <div
@@ -768,62 +770,133 @@ export default () => {
                                   {split(f, 'normal', '_').join(' ')}
                                 </div>
                                 <div className="form-element">
-                                  {
-                                    data[['recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f : `${s}_${f}`] === null ?
-                                      <span className="text-slate-600 dark:text-slate-200">
-                                        -
-                                      </span> :
-                                      toArray(data[['recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f : `${s}_${f}`])
-                                        .map((v, k) => {
-                                          const chain_data = s === 'xcall' ? source_chain_data : destination_chain_data
+                                  {[undefined, null].includes(data[['recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f : `${s}_${f}`]) ?
+                                    <span className="text-slate-600 dark:text-slate-200">
+                                      -
+                                    </span> :
+                                    toArray(data[['recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f : `${s}_${f}`])
+                                      .map((v, k) => {
+                                        const chain_data = s === 'xcall' ? source_chain_data : destination_chain_data
 
-                                          const {
-                                            provider_params,
-                                            explorer,
-                                          } = { ...chain_data }
+                                        const {
+                                          provider_params,
+                                          explorer,
+                                        } = { ...chain_data }
 
-                                          const {
-                                            nativeCurrency,
-                                          } = { ..._.head(provider_params) }
+                                        const {
+                                          nativeCurrency,
+                                        } = { ..._.head(provider_params) }
 
-                                          const {
-                                            url,
-                                            block_path,
-                                            transaction_path,
-                                            address_path,
-                                          } = { ...explorer }
+                                        const {
+                                          url,
+                                          block_path,
+                                          transaction_path,
+                                          address_path,
+                                        } = { ...explorer }
 
-                                          const {
-                                            symbol,
-                                            decimals,
-                                          } = { ...nativeCurrency }
+                                        const {
+                                          symbol,
+                                          decimals,
+                                        } = { ...nativeCurrency }
 
-                                          let _v, component
+                                        let _v, component
 
-                                          switch (f) {
-                                            case 'transaction_hash':
-                                              _v = (
-                                                <>
-                                                  <span className="lg:hidden">
-                                                    {ellipse(
-                                                      v,
-                                                      14,
-                                                    )}
-                                                  </span>
-                                                  <span className="hidden lg:block">
-                                                    {ellipse(
-                                                      v,
-                                                      16,
-                                                    )}
-                                                  </span>
-                                                </>
+                                        switch (f) {
+                                          case 'transaction_hash':
+                                            _v = (
+                                              <>
+                                                <span className="lg:hidden">
+                                                  {ellipse(
+                                                    v,
+                                                    14,
+                                                  )}
+                                                </span>
+                                                <span className="hidden lg:block">
+                                                  {ellipse(
+                                                    v,
+                                                    16,
+                                                  )}
+                                                </span>
+                                              </>
+                                            )
+
+                                            component = (
+                                              <div className="flex items-center space-x-2">
+                                                {url ?
+                                                  <a
+                                                    href={`${url}${transaction_path?.replace('{tx}', v)}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-500 dark:text-blue-600"
+                                                  >
+                                                    {_v}
+                                                  </a> :
+                                                  _v
+                                                }
+                                                <Copy
+                                                  size={20}
+                                                  value={v}
+                                                />
+                                              </div>
+                                            )
+                                            break
+                                          case 'block_number':
+                                            _v = (
+                                              <DecimalsFormat
+                                                value={v}
+                                                className="text-base font-medium"
+                                              />
+                                            )
+
+                                            component =
+                                              url ?
+                                                <a
+                                                  href={`${explorer.url}${block_path?.replace('{block}', v)}`}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="text-blue-500 dark:text-blue-600"
+                                                >
+                                                  {_v}
+                                                </a> :
+                                                _v
+                                            break
+                                          case 'timestamp':
+                                            component = moment(v * 1000).format('MMM D, YYYY H:mm:ss A')
+                                            break
+                                          case 'caller':
+                                          case 'origin_sender':
+                                          case 'recovery':
+                                          case 'simulation_to':
+                                            _v =
+                                              (
+                                                <EnsProfile
+                                                  address={v}
+                                                  noCopy={true}
+                                                  fallback={
+                                                    <>
+                                                      <span className="lg:hidden">
+                                                        {ellipse(
+                                                          v,
+                                                          10,
+                                                        )}
+                                                      </span>
+                                                      <span className="hidden lg:block">
+                                                        {ellipse(
+                                                          v,
+                                                          12,
+                                                        )}
+                                                      </span>
+                                                    </>
+                                                  }
+                                                />
                                               )
 
-                                              component = (
+                                            component =
+                                              v ?
                                                 <div className="flex items-center space-x-2">
                                                   {url ?
                                                     <a
-                                                      href={`${url}${transaction_path?.replace('{tx}', v)}`}
+                                                      href={`${url}${address_path?.replace('{address}', v)}`}
                                                       target="_blank"
                                                       rel="noopener noreferrer"
                                                       className="text-blue-500 dark:text-blue-600"
@@ -836,195 +909,172 @@ export default () => {
                                                     size={20}
                                                     value={v}
                                                   />
-                                                </div>
-                                              )
-                                              break
-                                            case 'block_number':
-                                              _v = (
-                                                <DecimalsFormat
-                                                  value={v}
-                                                  className="text-base font-medium"
+                                                </div> :
+                                                <span>
+                                                  -
+                                                </span>
+                                            break
+                                          case 'to':
+                                            _v =
+                                              (
+                                                <EnsProfile
+                                                  address={v}
+                                                  noCopy={true}
+                                                  fallback={
+                                                    <>
+                                                      <span className="lg:hidden">
+                                                        {ellipse(
+                                                          v,
+                                                          10,
+                                                        )}
+                                                      </span>
+                                                      <span className="hidden lg:block">
+                                                        {ellipse(
+                                                          v,
+                                                          12,
+                                                        )}
+                                                      </span>
+                                                    </>
+                                                  }
                                                 />
                                               )
 
-                                              component =
-                                                url ?
-                                                  <a
-                                                    href={`${explorer.url}${block_path?.replace('{block}', v)}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-500 dark:text-blue-600"
-                                                  >
-                                                    {_v}
-                                                  </a> :
-                                                  _v
-                                              break
-                                            case 'timestamp':
-                                              component = moment(v * 1000).format('MMM D, YYYY H:mm:ss A')
-                                              break
-                                            case 'caller':
-                                            case 'origin_sender':
-                                            case 'recovery':
-                                              _v =
-                                                (
-                                                  <EnsProfile
-                                                    address={v}
-                                                    noCopy={true}
-                                                    fallback={
-                                                      <>
-                                                        <span className="lg:hidden">
-                                                          {ellipse(
-                                                            v,
-                                                            10,
-                                                          )}
-                                                        </span>
-                                                        <span className="hidden lg:block">
-                                                          {ellipse(
-                                                            v,
-                                                            12,
-                                                          )}
-                                                        </span>
-                                                      </>
-                                                    }
-                                                  />
-                                                )
-
-                                              component =
-                                                v ?
-                                                  <div className="flex items-center space-x-2">
-                                                    {url ?
-                                                      <a
-                                                        href={`${url}${address_path?.replace('{address}', v)}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-blue-500 dark:text-blue-600"
-                                                      >
-                                                        {_v}
-                                                      </a> :
-                                                      _v
-                                                    }
-                                                    <Copy
-                                                      size={20}
-                                                      value={v}
-                                                    />
-                                                  </div> :
-                                                  <span>
-                                                    -
-                                                  </span>
-                                              break
-                                            case 'to':
-                                              _v =
-                                                (
-                                                  <EnsProfile
-                                                    address={v}
-                                                    noCopy={true}
-                                                    fallback={
-                                                      <>
-                                                        <span className="lg:hidden">
-                                                          {ellipse(
-                                                            v,
-                                                            10,
-                                                          )}
-                                                        </span>
-                                                        <span className="hidden lg:block">
-                                                          {ellipse(
-                                                            v,
-                                                            12,
-                                                          )}
-                                                        </span>
-                                                      </>
-                                                    }
-                                                  />
-                                                )
-
-                                              component =
-                                                v ?
-                                                  <div className="flex items-center space-x-2">
-                                                    {destination_chain_data?.explorer?.url ?
-                                                      <a
-                                                        href={`${destination_chain_data.explorer.url}${destination_chain_data.explorer.address_path?.replace('{address}', v)}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-blue-500 dark:text-blue-600"
-                                                      >
-                                                        {_v}
-                                                      </a> :
-                                                      _v
-                                                    }
-                                                    <Copy
-                                                      size={20}
-                                                      value={v}
-                                                    />
-                                                  </div> :
-                                                  <span>
-                                                    -
-                                                  </span>
-                                              break
-                                            case 'relayer_fee':
-                                              _v = utils.formatUnits(BigInt(v || '0'), decimals || 18),
-
-                                              component = (
-                                                <div className="flex items-center space-x-1">
-                                                  <DecimalsFormat
-                                                    value={Number(_v) <= 0 ? 0 : _v}
-                                                    className="text-base"
-                                                  />
-                                                  <span>
-                                                    {symbol}
-                                                  </span>
-                                                </div>
-                                              )
-                                              break
-                                            case 'gas_price':
-                                              component = (
-                                                <div className="flex items-center space-x-1">
-                                                  <span>
-                                                    {utils.formatUnits(v, 'gwei')}
-                                                  </span>
-                                                  <span>
-                                                    Gwei
-                                                  </span>
-                                                </div>
-                                              )
-                                              break
-                                            case 'call_data':
-                                              component =
-                                                v ?
-                                                  <div className="flex items-start space-x-1">
-                                                    <div className="bg-slate-50 dark:bg-slate-800 rounded break-all p-2">
-                                                      {v}
-                                                    </div>
-                                                    <div className="mt-2.5">
-                                                      <Copy
-                                                        size={20}
-                                                        value={v}
-                                                      />
-                                                    </div>
-                                                  </div> :
-                                                  <span>
-                                                    -
-                                                  </span>
-                                              break
-                                            default:
-                                              component =
-                                                !isNaN(v) ?
-                                                  <DecimalsFormat
+                                            component =
+                                              v ?
+                                                <div className="flex items-center space-x-2">
+                                                  {destination_chain_data?.explorer?.url ?
+                                                    <a
+                                                      href={`${destination_chain_data.explorer.url}${destination_chain_data.explorer.address_path?.replace('{address}', v)}`}
+                                                      target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      className="text-blue-500 dark:text-blue-600"
+                                                    >
+                                                      {_v}
+                                                    </a> :
+                                                    _v
+                                                  }
+                                                  <Copy
+                                                    size={20}
                                                     value={v}
-                                                    className="text-base"
-                                                  /> :
-                                                  v
-                                              break
-                                          }
+                                                  />
+                                                </div> :
+                                                <span>
+                                                  -
+                                                </span>
+                                            break
+                                          case 'simulation_from':
+                                            _v =
+                                              (
+                                                <EnsProfile
+                                                  address={v}
+                                                  noCopy={true}
+                                                  fallback={
+                                                    <>
+                                                      <span className="lg:hidden">
+                                                        {ellipse(
+                                                          v,
+                                                          10,
+                                                        )}
+                                                      </span>
+                                                      <span className="hidden lg:block">
+                                                        {ellipse(
+                                                          v,
+                                                          12,
+                                                        )}
+                                                      </span>
+                                                    </>
+                                                  }
+                                                />
+                                              )
 
-                                          return (
-                                            <div
-                                              key={k}
-                                              className="text-base font-medium"
-                                            >
-                                              {component}
-                                            </div>
-                                          )
-                                        })
+                                            component =
+                                              v ?
+                                                <div className="flex items-center space-x-2">
+                                                  {source_chain_data?.explorer?.url ?
+                                                    <a
+                                                      href={`${source_chain_data.explorer.url}${source_chain_data.explorer.address_path?.replace('{address}', v)}`}
+                                                      target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      className="text-blue-500 dark:text-blue-600"
+                                                    >
+                                                      {_v}
+                                                    </a> :
+                                                    _v
+                                                  }
+                                                  <Copy
+                                                    size={20}
+                                                    value={v}
+                                                  />
+                                                </div> :
+                                                <span>
+                                                  -
+                                                </span>
+                                            break
+                                          case 'relayer_fee':
+                                            _v = utils.formatUnits(BigInt(v || '0'), decimals || 18),
+
+                                            component = (
+                                              <div className="flex items-center space-x-1">
+                                                <DecimalsFormat
+                                                  value={Number(_v) <= 0 ? 0 : _v}
+                                                  className="text-base"
+                                                />
+                                                <span>
+                                                  {symbol}
+                                                </span>
+                                              </div>
+                                            )
+                                            break
+                                          case 'gas_price':
+                                            component = (
+                                              <div className="flex items-center space-x-1">
+                                                <span>
+                                                  {utils.formatUnits(v, 'gwei')}
+                                                </span>
+                                                <span>
+                                                  Gwei
+                                                </span>
+                                              </div>
+                                            )
+                                            break
+                                          case 'call_data':
+                                            component =
+                                              v ?
+                                                <div className="flex items-start space-x-1">
+                                                  <div className="bg-slate-50 dark:bg-slate-800 rounded break-all p-2">
+                                                    {v}
+                                                  </div>
+                                                  <div className="mt-2.5">
+                                                    <Copy
+                                                      size={20}
+                                                      value={v}
+                                                    />
+                                                  </div>
+                                                </div> :
+                                                <span>
+                                                  -
+                                                </span>
+                                            break
+                                          default:
+                                            component =
+                                              !isNaN(v) ?
+                                                <DecimalsFormat
+                                                  value={v}
+                                                  className="text-base"
+                                                /> :
+                                                v
+                                            break
+                                        }
+
+                                        return (
+                                          <div
+                                            key={k}
+                                            className="text-base font-medium"
+                                          >
+                                            {component}
+                                          </div>
+                                        )
+                                      })
                                   }
                                 </div>
                               </div>
