@@ -280,7 +280,7 @@ export default () => {
                     source_decimals,
                     destination_decimals,
                     pending: ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status),
-                    errored: error_status && !execute_transaction_hash && ![XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status),
+                    errored: error_status && !execute_transaction_hash && [XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status),
                   }
                 })
                 .map(t => {
@@ -486,6 +486,7 @@ export default () => {
                               <div className="flex-col items-start space-y-1">
                                 {errored ?
                                   <ActionRequired
+                                    forceDisabled={[XTransferErrorStatus.ExecutionError].includes(error_status)}
                                     transferData={row.original}
                                     buttonTitle={
                                       <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
@@ -614,6 +615,7 @@ export default () => {
                       <div className="flex flex-col items-start space-y-1 mt-0.5">
                         {errored ?
                           <ActionRequired
+                            forceDisabled={[XTransferErrorStatus.ExecutionError].includes(error_status)}
                             transferData={row.original}
                             buttonTitle={
                               <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
@@ -1027,7 +1029,8 @@ export default () => {
                     if (value === XTransferErrorStatus.ExecutionError && status === XTransferStatus.CompletedSlow) {
                       value = 'AuthenticationCheck'
                     }
-                    else if (value && ![XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status)) {
+
+                    if (value && ![XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status)) {
                       value = null
                     }
 

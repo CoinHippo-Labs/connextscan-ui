@@ -5,7 +5,7 @@ import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import moment from 'moment'
 import { constants, utils } from 'ethers'
-import { XTransferStatus } from '@connext/nxtp-utils'
+import { XTransferStatus, XTransferErrorStatus } from '@connext/nxtp-utils'
 import { TailSpin } from 'react-loader-spinner'
 import { Tooltip } from '@material-tailwind/react'
 import { HiCheckCircle } from 'react-icons/hi'
@@ -184,7 +184,7 @@ export default () => {
                 source_decimals,
                 destination_decimals,
                 pending: ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status),
-                errored: error_status && !execute_transaction_hash && ![XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status),
+                errored: error_status && !execute_transaction_hash && [XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status),
               }
             )
           }
@@ -420,7 +420,8 @@ export default () => {
                     {data ?
                       errored ?
                         <ActionRequired
-                          initialHidden={false}
+                          forceDisabled={[XTransferErrorStatus.ExecutionError].includes(error_status)}
+                          initialHidden={[XTransferErrorStatus.ExecutionError].includes(error_status)}
                           transferData={data}
                           buttonTitle={
                             <Tooltip
@@ -433,7 +434,10 @@ export default () => {
                                   size={24}
                                 />
                                 <span className="normal-case text-base font-bold">
-                                  Action required
+                                  {[XTransferErrorStatus.ExecutionError].includes(error_status) ?
+                                    error_status :
+                                    'Action required'
+                                  }
                                 </span>
                               </div>
                             </Tooltip>
@@ -691,6 +695,8 @@ export default () => {
                               errored ?
                                 s === 'execute' ?
                                   <ActionRequired
+                                    forceDisabled={[XTransferErrorStatus.ExecutionError].includes(error_status)}
+                                    initialHidden={[XTransferErrorStatus.ExecutionError].includes(error_status)}
                                     transferData={data}
                                     buttonTitle={
                                       <Tooltip
