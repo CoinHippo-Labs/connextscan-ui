@@ -426,6 +426,7 @@ export default () => {
                       pending,
                       errored,
                       xcall_timestamp,
+                      execute_transaction_hash,
                       execute_timestamp,
                       status,
                       error_status,
@@ -526,7 +527,7 @@ export default () => {
                                 }
                                 <div className="flex items-center space-x-2">
                                   {
-                                    call_data === '0x' &&
+                                    call_data === '0x' && (routers?.length > 0 || !(execute_transaction_hash || errored)) &&
                                     (
                                       <Tooltip
                                         placement="bottom"
@@ -605,6 +606,7 @@ export default () => {
                       pending,
                       errored,
                       xcall_timestamp,
+                      execute_transaction_hash,
                       execute_timestamp,
                       error_status,
                       routers,
@@ -655,7 +657,7 @@ export default () => {
                         }
                         <div className="flex items-center space-x-2">
                           {
-                            call_data === '0x' &&
+                            call_data === '0x' && (routers?.length > 0 || !(execute_transaction_hash || errored)) &&
                             (
                               <Tooltip
                                 placement="bottom"

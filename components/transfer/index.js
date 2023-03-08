@@ -664,7 +664,7 @@ export default () => {
                                     )
                                   }
                                   {
-                                    call_data === '0x' &&
+                                    call_data === '0x' && (routers?.length > 0 || !(execute_transaction_hash || errored)) &&
                                     (
                                       <Tooltip
                                         placement="top"
