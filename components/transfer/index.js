@@ -420,13 +420,13 @@ export default () => {
                     {data ?
                       errored ?
                         <ActionRequired
-                          forceDisabled={[XTransferErrorStatus.ExecutionError].includes(error_status)}
-                          initialHidden={[XTransferErrorStatus.ExecutionError].includes(error_status)}
+                          forceDisabled={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status)}
+                          initialHidden={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status)}
                           transferData={data}
                           buttonTitle={
                             <Tooltip
                               placement="top"
-                              content={error_status}
+                              content={error_status === XTransferErrorStatus.NoBidsReceived ? 'Please wait 1-2 hours for slow path' : error_status}
                               className="z-50 bg-dark text-white text-xs"
                             >
                               <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
@@ -434,10 +434,7 @@ export default () => {
                                   size={24}
                                 />
                                 <span className="normal-case text-base font-bold">
-                                  {[XTransferErrorStatus.ExecutionError].includes(error_status) ?
-                                    error_status :
-                                    'Action required'
-                                  }
+                                  {[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) ? error_status : 'Action required'}
                                 </span>
                               </div>
                             </Tooltip>
@@ -695,8 +692,8 @@ export default () => {
                               errored ?
                                 s === 'execute' ?
                                   <ActionRequired
-                                    forceDisabled={[XTransferErrorStatus.ExecutionError].includes(error_status)}
-                                    initialHidden={[XTransferErrorStatus.ExecutionError].includes(error_status)}
+                                    forceDisabled={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status)}
+                                    initialHidden={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status)}
                                     transferData={data}
                                     buttonTitle={
                                       <Tooltip

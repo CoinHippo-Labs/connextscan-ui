@@ -487,7 +487,7 @@ export default () => {
                               <div className="flex-col items-start space-y-1">
                                 {errored ?
                                   <ActionRequired
-                                    forceDisabled={[XTransferErrorStatus.ExecutionError].includes(error_status)}
+                                    forceDisabled={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status)}
                                     transferData={row.original}
                                     buttonTitle={
                                       <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
@@ -617,7 +617,7 @@ export default () => {
                       <div className="flex flex-col items-start space-y-1 mt-0.5">
                         {errored ?
                           <ActionRequired
-                            forceDisabled={[XTransferErrorStatus.ExecutionError].includes(error_status)}
+                            forceDisabled={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status)}
                             transferData={row.original}
                             buttonTitle={
                               <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
