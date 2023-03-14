@@ -303,7 +303,7 @@ export default () => {
                 />
               </div> :
               <>
-                <div className="max-w-8xl bg-slate-200 dark:bg-slate-900 bg-opacity-40 dark:bg-opacity-75 rounded-lg sm:flex sm:items-center sm:justify-between space-y-8 sm:space-y-0 sm:space-x-8 mx-auto py-10 px-3 sm:py-8 sm:px-6">
+                <div className="max-w-8xl bg-slate-200 dark:bg-slate-900 bg-opacity-40 dark:bg-opacity-75 overflow-x-auto rounded-lg sm:flex sm:items-center sm:justify-between space-y-8 sm:space-y-0 sm:space-x-8 mx-auto py-10 px-3 sm:py-8 sm:px-6">
                   <div className="space-y-2">
                     {source_chain_data ?
                       <div className="flex items-center justify-center sm:justify-start space-x-3">
