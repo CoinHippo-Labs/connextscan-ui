@@ -278,6 +278,20 @@ export default (
 
   const relayer_fee_to_bump = relayer_fee && newRelayerFee ? Number(newRelayerFee) - Number(relayer_fee) : null
 
+  if (error_status === XTransferErrorStatus.LowRelayerFee) {
+    console.log(
+      '[debug]',
+      '[relayerFee]',
+      {
+        relayerFeeAssetType,
+        relayer_fees,
+        relayer_fee,
+        newRelayerFee,
+        relayer_fee_to_bump,
+      },
+    )
+  }
+
   const reset = () => {
     setHidden(true)
     setData(null)
