@@ -121,7 +121,22 @@ export default (
         setLoaded(true)
       }
     },
-    [transferData, data, loaded, relayerFeeAssetType],
+    [transferData, data, loaded],
+  )
+
+  useEffect(
+    () => {
+      if (loaded) {
+        switch (error_status) {
+          case XTransferErrorStatus.LowRelayerFee:
+            estimate()
+            break
+          default:
+            break
+        }
+      }
+    },
+    [loaded, relayerFeeAssetType],
   )
 
   const {
