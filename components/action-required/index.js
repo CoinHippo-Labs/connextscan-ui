@@ -126,14 +126,12 @@ export default (
 
   useEffect(
     () => {
-      if (loaded) {
-        switch (error_status) {
-          case XTransferErrorStatus.LowRelayerFee:
-            estimate()
-            break
-          default:
-            break
-        }
+      switch (error_status) {
+        case XTransferErrorStatus.LowRelayerFee:
+          estimate()
+          break
+        default:
+          break
       }
     },
     [loaded, relayerFeeAssetType],
