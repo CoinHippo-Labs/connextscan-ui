@@ -4,6 +4,7 @@ export const PAGE_VISIBLE = 'page_visible'
 
 // chains
 export const CHAINS_DATA = 'chains_data'
+export const GAS_TOKENS_PRICE_DATA = 'gas_tokens_price_data'
 
 // assets
 export const ASSETS_DATA = 'assets_data'
