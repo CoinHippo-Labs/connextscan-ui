@@ -304,116 +304,118 @@ export default () => {
               </div> :
               <>
                 <div className="max-w-8xl bg-slate-200 dark:bg-slate-900 bg-opacity-40 dark:bg-opacity-75 overflow-x-auto rounded-lg sm:flex sm:items-center sm:justify-between space-y-8 sm:space-y-0 sm:space-x-8 mx-auto py-10 px-3 sm:py-8 sm:px-6">
-                  <div className="space-y-2">
-                    {source_chain_data ?
-                      <div className="flex items-center justify-center sm:justify-start space-x-3">
+                  <div className="grid grid-cols-1 xl:grid-cols-2 items-center gap-8 sm:gap-4 xl:gap-8">
+                    <div className="space-y-2">
+                      {source_chain_data ?
+                        <div className="flex items-center justify-center sm:justify-start space-x-3">
+                          {
+                            source_chain_data.image &&
+                            (
+                              <Image
+                                src={source_chain_data.image}
+                                width={32}
+                                height={32}
+                                className="rounded-full"
+                              />
+                            )
+                          }
+                          <span className="text-lg font-semibold">
+                            {source_chain_data.name}
+                          </span>
+                        </div> :
+                        <div className="flex items-center justify-center sm:justify-start">
+                          <TailSpin
+                            width="32"
+                            height="32"
+                            color={loaderColor(theme)}
+                          />
+                        </div>
+                      }
+                      {
+                        xcall_caller &&
+                        (
+                          <div className="flex items-center justify-center sm:justify-start space-x-1.5">
+                            <a
+                              href={source_chain_data?.explorer?.url ? `${source_chain_data.explorer.url}${source_chain_data.explorer.address_path?.replace('{address}', xcall_caller)}` : `/address/${xcall_caller}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <EnsProfile
+                                address={xcall_caller}
+                                noCopy={true}
+                                fallback={
+                                  <span className="text-slate-400 dark:text-slate-600 font-semibold">
+                                    <span className="sm:hidden">
+                                      {ellipse(
+                                        xcall_caller,
+                                        8,
+                                      )}
+                                    </span>
+                                    <span className="hidden sm:block">
+                                      {ellipse(
+                                        xcall_caller,
+                                        12,
+                                      )}
+                                    </span>
+                                  </span>
+                                }
+                              />
+                            </a>
+                            <Copy
+                              size={20}
+                              value={xcall_caller}
+                            />
+                          </div>
+                        )
+                      }
+                    </div>
+                    <div className="flex flex-col">
+                      <div className="flex items-center justify-center sm:justify-start xl:justify-center space-x-1 sm:space-x-2">
                         {
-                          source_chain_data.image &&
+                          source_asset_image &&
                           (
                             <Image
-                              src={source_chain_data.image}
-                              width={32}
-                              height={32}
+                              src={source_asset_image}
+                              width={24}
+                              height={24}
                               className="rounded-full"
                             />
                           )
                         }
-                        <span className="text-lg font-semibold">
-                          {source_chain_data.name}
-                        </span>
-                      </div> :
-                      <div className="flex items-center justify-center sm:justify-start">
-                        <TailSpin
-                          width="32"
-                          height="32"
-                          color={loaderColor(theme)}
-                        />
-                      </div>
-                    }
-                    {
-                      xcall_caller &&
-                      (
-                        <div className="flex items-center justify-center sm:justify-start space-x-1.5">
-                          <a
-                            href={source_chain_data?.explorer?.url ? `${source_chain_data.explorer.url}${source_chain_data.explorer.address_path?.replace('{address}', xcall_caller)}` : `/address/${xcall_caller}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <EnsProfile
-                              address={xcall_caller}
-                              noCopy={true}
-                              fallback={
-                                <span className="text-slate-400 dark:text-slate-600 font-semibold">
-                                  <span className="sm:hidden">
-                                    {ellipse(
-                                      xcall_caller,
-                                      8,
-                                    )}
+                        {source_amount >= 0 ?
+                          <DecimalsFormat
+                            value={source_amount}
+                            className="text-lg font-semibold"
+                          /> :
+                          <TailSpin
+                            width="32"
+                            height="32"
+                            color={loaderColor(theme)}
+                          />
+                        }
+                        {
+                          source_asset_data &&
+                          (
+                            <>
+                              {
+                                source_symbol &&
+                                (
+                                  <span className="text-base font-medium">
+                                    {source_symbol}
                                   </span>
-                                  <span className="hidden sm:block">
-                                    {ellipse(
-                                      xcall_caller,
-                                      12,
-                                    )}
-                                  </span>
-                                </span>
+                                )
                               }
-                            />
-                          </a>
-                          <Copy
-                            size={20}
-                            value={xcall_caller}
-                          />
-                        </div>
-                      )
-                    }
-                  </div>
-                  <div className="flex flex-col">
-                    <div className="flex items-center justify-center space-x-1 sm:space-x-2">
-                      {
-                        source_asset_image &&
-                        (
-                          <Image
-                            src={source_asset_image}
-                            width={24}
-                            height={24}
-                            className="rounded-full"
-                          />
-                        )
-                      }
-                      {source_amount >= 0 ?
-                        <DecimalsFormat
-                          value={source_amount}
-                          className="text-lg font-semibold"
-                        /> :
-                        <TailSpin
-                          width="32"
-                          height="32"
-                          color={loaderColor(theme)}
-                        />
-                      }
-                      {
-                        source_asset_data &&
-                        (
-                          <>
-                            {
-                              source_symbol &&
-                              (
-                                <span className="text-base font-medium">
-                                  {source_symbol}
-                                </span>
-                              )
-                            }
-                            <AddToken
-                              token_data={
-                                {
-                                  ...source_asset_data,
+                              <AddToken
+                                token_data={
+                                  {
+                                    ...source_asset_data,
+                                  }
                                 }
-                              }
-                            />
-                          </>
-                        )
-                      }
+                              />
+                            </>
+                          )
+                        }
+                      </div>
                     </div>
                   </div>
                   <div className="flex flex-col items-center space-y-1.5">
@@ -495,120 +497,122 @@ export default () => {
                       className={`${errored ? 'text-red-600 dark:text-red-500' : pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}
                     />
                   </div>
-                  <div className="flex flex-col sm:items-end">
-                    <div className="flex items-center justify-center space-x-1 sm:space-x-2">
-                      {
-                        destination_asset_image &&
-                        (
-                          <Image
-                            src={destination_asset_image}
-                            width={24}
-                            height={24}
-                            className="rounded-full"
-                          />
-                        )
-                      }
-                      {destination_amount >= 0 ?
-                        <DecimalsFormat
-                          value={destination_amount}
-                          className="text-lg font-semibold"
-                        /> :
-                        <TailSpin
-                          width="32"
-                          height="32"
-                          color={loaderColor(theme)}
-                        />
-                      }
-                      {
-                        destination_asset_data &&
-                        (
-                          <>
-                            {
-                              destination_symbol &&
-                              (
-                                <span className="text-base font-medium">
-                                  {destination_symbol}
-                                </span>
-                              )
-                            }
-                            <AddToken
-                              token_data={
-                                {
-                                  ...destination_asset_data,
-                                }
-                              }
-                            />
-                          </>
-                        )
-                      }
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    {destination_chain_data ?
-                      <div className="flex items-center justify-center sm:justify-end space-x-3">
+                  <div className="grid grid-cols-1 xl:grid-cols-2 items-center gap-8 sm:gap-4 xl:gap-8">
+                    <div className="order-1 sm:order-2 xl:order-1 flex flex-col sm:items-end">
+                      <div className="flex items-center justify-center sm:justify-end xl:justify-center space-x-1 sm:space-x-2">
                         {
-                          destination_chain_data?.image &&
+                          destination_asset_image &&
                           (
                             <Image
-                              src={destination_chain_data.image}
-                              width={32}
-                              height={32}
+                              src={destination_asset_image}
+                              width={24}
+                              height={24}
                               className="rounded-full"
                             />
                           )
                         }
-                        <span className="text-lg font-semibold">
-                          {destination_chain_data.name}
-                        </span>
-                      </div> :
-                      <div className="flex items-center justify-center sm:justify-end">
-                        <TailSpin
-                          width="32"
-                          height="32"
-                          color={loaderColor(theme)}
-                        />
-                      </div>
-                    }
-                    {
-                      to &&
-                      (
-                        <div className="flex items-center justify-center sm:justify-end space-x-1.5">
-                          <a
-                            href={destination_chain_data?.explorer?.url ? `${destination_chain_data.explorer.url}${destination_chain_data.explorer.address_path?.replace('{address}', to)}` : `/address/${to}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <EnsProfile
-                              address={to}
-                              noCopy={true}
-                              fallback={
-                                <span className="text-slate-400 dark:text-slate-600 font-semibold">
-                                  <span className="sm:hidden">
-                                    {ellipse(
-                                      to,
-                                      8,
-                                    )}
+                        {destination_amount >= 0 ?
+                          <DecimalsFormat
+                            value={destination_amount}
+                            className="text-lg font-semibold"
+                          /> :
+                          <TailSpin
+                            width="32"
+                            height="32"
+                            color={loaderColor(theme)}
+                          />
+                        }
+                        {
+                          destination_asset_data &&
+                          (
+                            <>
+                              {
+                                destination_symbol &&
+                                (
+                                  <span className="text-base font-medium">
+                                    {destination_symbol}
                                   </span>
-                                  <span className="hidden sm:block">
-                                    {ellipse(
-                                      to,
-                                      12,
-                                    )}
-                                  </span>
-                                </span>
+                                )
                               }
-                            />
-                          </a>
-                          <Copy
-                            size={20}
-                            value={to}
+                              <AddToken
+                                token_data={
+                                  {
+                                    ...destination_asset_data,
+                                  }
+                                }
+                              />
+                            </>
+                          )
+                        }
+                      </div>
+                    </div>
+                    <div className="order-2 sm:order-1 xl:order-2 space-y-2">
+                      {destination_chain_data ?
+                        <div className="flex items-center justify-center sm:justify-end space-x-3">
+                          {
+                            destination_chain_data?.image &&
+                            (
+                              <Image
+                                src={destination_chain_data.image}
+                                width={32}
+                                height={32}
+                                className="rounded-full"
+                              />
+                            )
+                          }
+                          <span className="text-lg font-semibold">
+                            {destination_chain_data.name}
+                          </span>
+                        </div> :
+                        <div className="flex items-center justify-center sm:justify-end">
+                          <TailSpin
+                            width="32"
+                            height="32"
+                            color={loaderColor(theme)}
                           />
                         </div>
-                      )
-                    }
+                      }
+                      {
+                        to &&
+                        (
+                          <div className="flex items-center justify-center sm:justify-end space-x-1.5">
+                            <a
+                              href={destination_chain_data?.explorer?.url ? `${destination_chain_data.explorer.url}${destination_chain_data.explorer.address_path?.replace('{address}', to)}` : `/address/${to}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <EnsProfile
+                                address={to}
+                                noCopy={true}
+                                fallback={
+                                  <span className="text-slate-400 dark:text-slate-600 font-semibold">
+                                    <span className="sm:hidden">
+                                      {ellipse(
+                                        to,
+                                        8,
+                                      )}
+                                    </span>
+                                    <span className="hidden sm:block">
+                                      {ellipse(
+                                        to,
+                                        12,
+                                      )}
+                                    </span>
+                                  </span>
+                                }
+                              />
+                            </a>
+                            <Copy
+                              size={20}
+                              value={to}
+                            />
+                          </div>
+                        )
+                      }
+                    </div>
                   </div>
                 </div>
-                <div className="grid grid-flow-row md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+                <div className="grid grid-flow-row md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6">
                   {details
                     .filter(s => data[`${s}_transaction_hash`] || !['reconcile'].includes(s))
                     .map((s, i) => (
