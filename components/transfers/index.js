@@ -499,7 +499,7 @@ export default () => {
                                         </span>
                                       </div>
                                     }
-                                    onTransferBumped={relayer_fee => setFetchTrigger(moment().valueOf())}
+                                    onTransferBumped={relayer_fee_data => setFetchTrigger(moment().valueOf())}
                                     onSlippageUpdated={slippage => setFetchTrigger(moment().valueOf())}
                                   /> :
                                   <Link href={`/tx/${value}`}>
@@ -629,7 +629,7 @@ export default () => {
                                 </span>
                               </div>
                             }
-                            onTransferBumped={relayer_fee => setFetchTrigger(moment().valueOf())}
+                            onTransferBumped={relayer_fee_data => setFetchTrigger(moment().valueOf())}
                             onSlippageUpdated={slippage => setFetchTrigger(moment().valueOf())}
                           /> :
                           <Link href={`/tx/${transfer_id}`}>

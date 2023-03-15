@@ -707,7 +707,14 @@ export default (
               )
 
               if (!failed && onTransferBumped) {
-                onTransferBumped(params.relayerFee)
+                onTransferBumped(
+                  {
+                    relayer_fee: params.relayerFee,
+                    relayer_fees: {
+                      [params.asset]: params.relayerFee,
+                    },
+                  }
+                )
               }
             }
           } catch (error) {
