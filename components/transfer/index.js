@@ -434,7 +434,7 @@ export default () => {
                                   size={24}
                                 />
                                 <span className="normal-case text-base font-bold">
-                                  {[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) ? error_status : 'Action required'}
+                                  {[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) ? error_status : error_status}
                                 </span>
                               </div>
                             </Tooltip>
