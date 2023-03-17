@@ -23,8 +23,12 @@
   "homepage": "https://github.com/CoinHippo-Labs/connextscan-ui#readme",
   "dependencies": {
     "@connext/sdk": "1.1.0-alpha.0",
+    "@eth-optimism/sdk": "^2.0.1",
     "@material-tailwind/react": "^1.4.2",
     "@redux-devtools/extension": "^3.2.5",
+    "chai": "4.3.7",
+    "chai-as-promised": "7.1.1",
+    "chai-subset": "1.6.0",
     "env-cmd": "^10.1.0",
     "ethers": "^5.7.2",
     "lodash": "^4.17.21",
@@ -50,6 +54,7 @@
     "react-table": "^7.8.0",
     "recharts": "2.1.11",
     "redux": "^4.2.0",
+    "sinon-chai": "3.7.0",
     "web3": "^1.8.2",
     "web3modal": "^1.9.12"
   },
