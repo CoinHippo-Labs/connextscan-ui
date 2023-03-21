@@ -146,7 +146,7 @@ export default () => {
             href={process.env.NEXT_PUBLIC_BUILD_BY_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 dark:text-white font-semibold"
+            className="font-semibold"
           >
             {process.env.NEXT_PUBLIC_BUILD_BY}
           </a>
