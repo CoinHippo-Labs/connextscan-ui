@@ -27,7 +27,7 @@ export default () => {
 
   return (
     <div className={`${theme} footer flex flex-col md:flex-row items-center space-y-2.5 sm:space-y-0 p-3`}>
-      <div className="w-full md:w-1/2 lg:w-1/3 min-w-max flex items-center justify-center md:justify-start space-x-2">
+      <div className="w-full md:w-1/2 lg:w-1/3 min-w-max flex items-center justify-center md:justify-start text-slate-400 dark:text-slate-500 font-medium space-x-2">
         <span>
           Built with
         </span>
@@ -65,7 +65,6 @@ export default () => {
               href="https://github.com/connext/monorepo"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 dark:text-white font-medium"
             >
               SDK v{dependencies['@connext/sdk'].replace('^', '')}
             </a>
@@ -134,7 +133,7 @@ export default () => {
           )
         }
       </div>
-      <div className="w-full md:w-1/2 lg:w-1/3 min-w-max flex items-center justify-center md:justify-end text-slate-400 dark:text-white space-x-1">
+      <div className="w-full md:w-1/2 lg:w-1/3 min-w-max flex items-center justify-center md:justify-end text-slate-400 dark:text-slate-500 space-x-1">
         <span>
           © {moment().format('YYYY')} made with
         </span>
