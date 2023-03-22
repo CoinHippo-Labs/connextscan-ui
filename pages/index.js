@@ -27,8 +27,7 @@ export default () => {
   }
 
   return (
-    !ssr &&
-    ['/'].includes(_asPath) &&
+    !ssr && ['/'].includes(_asPath) &&
     (
       <div className="max-w-8xl mx-auto">
         <Dashboard />
