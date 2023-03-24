@@ -151,7 +151,7 @@ export default function BlockchainIndex() {
 
     const getDaily = async (chain, data, today) => {
       if (chain && today && tokens_data?.findIndex(t => t?.chain_id === chain.chain_id) > -1) {
-        const response = await daily({ chain_id: chain.chain_id, where: `{ dayStartTimestamp_gte: ${moment(today).subtract((data?.[`${chain.chain_id}`] || []).length > 0 ? 1 : 3000, 'days').unix()} }` })
+        const response = await daily({ chain_id: chain.chain_id, where: `{ dayStartTimestamp_gte: ${moment(today).subtract((data?.[`${chain.chain_id}`] || []).length > 0 ? 1 : 1000, 'days').unix()} }` })
         const _data = Object.entries(_.groupBy(response?.data || [], 'dayStartTimestamp')).map(([key, value]) => {
           value =  value.map(v => {
             const token = tokens_data.find(t => t?.chain_id === chain.chain_id && t?.contract_address === v?.assetId?.toLowerCase())
