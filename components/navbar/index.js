@@ -231,7 +231,13 @@ export default function Navbar() {
           value: { [`${chain.chain_id}`]: data },
         })
 
-        const contractAddresses = _.uniq(data?.map(a => a?.contract_address).filter(a => a && !(tokens_data?.findIndex(t => t?.chain_id === chain.chain_id && t?.contract_address === a) > -1)) || [])
+        const contractAddresses = _.uniq(
+          _.concat(
+            (data || []).map(a => a?.contract_address).filter(a => a && !(tokens_data?.findIndex(t => t?.chain_id === chain.chain_id && t?.contract_address === a) > -1)),
+            (assets_data || []).flatMap(a => (a.contracts || []).filter(c => c?.chain_id === chain.chain_id).map(c => c?.contract_address)),
+          ),
+        )
+
         let tokenContracts
 
         if (contractAddresses.length > 0) {
