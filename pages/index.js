@@ -105,7 +105,7 @@ export default function Index() {
 
     const getDaily = async (chain, data, today) => {
       if (chain && today && tokens_data?.findIndex(t => t?.chain_id === chain.chain_id) > -1) {
-        const response = await daily({ chain_id: chain.chain_id, where: `{ dayStartTimestamp_gte: ${moment(today).subtract((data?.[`${chain.chain_id}`] || []).length > 0 ? 1 : 30, 'days').unix()} }` })
+        const response = await daily({ chain_id: chain.chain_id, where: `{ dayStartTimestamp_gte: ${moment(today).subtract((data?.[`${chain.chain_id}`] || []).length > 0 ? 1 : 3000, 'days').unix()} }` })
 
         const _data = Object.entries(_.groupBy(response?.data || [], 'dayStartTimestamp')).map(([key, value]) => {
           value =  value.map(v => {
@@ -193,7 +193,7 @@ export default function Index() {
       if (_data) {
         data = []
 
-        const since = moment('2021-08-22').unix() // _.minBy(_data, 'time')?.time
+        const since = _.minBy(_data, 'time')?.time
         const diffSince = moment(today).diff(moment(since * 1000), 'days')
         const startTime = moment(today).subtract(timeframeSelect?.day || diffSince, 'days').startOf(timeframeSelect?.day ? 'day' : 'week').unix()
 
