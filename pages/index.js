@@ -193,7 +193,7 @@ export default function Index() {
       if (_data) {
         data = []
 
-        const since = _.minBy(_data, 'time')?.time
+        const since = moment('2021-08-22').unix() // _.minBy(_data, 'time')?.time
         const diffSince = moment(today).diff(moment(since * 1000), 'days')
         const startTime = moment(today).subtract(timeframeSelect?.day || diffSince, 'days').startOf(timeframeSelect?.day ? 'day' : 'week').unix()
 
