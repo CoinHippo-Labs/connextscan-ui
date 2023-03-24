@@ -26,11 +26,10 @@ import { numberFormat } from '../../lib/utils'
 BigNumber.config({ DECIMAL_PLACES: Number(process.env.NEXT_PUBLIC_MAX_BIGNUMBER_EXPONENTIAL_AT), EXPONENTIAL_AT: [-7, Number(process.env.NEXT_PUBLIC_MAX_BIGNUMBER_EXPONENTIAL_AT)] })
 
 export default function BlockchainIndex() {
-  const { chains, tokens, routers_assets, sdk } = useSelector(state => ({ chains: state.chains, tokens: state.tokens, routers_assets: state.routers_assets, sdk: state.sdk }), shallowEqual)
+  const { chains, tokens, routers_assets } = useSelector(state => ({ chains: state.chains, tokens: state.tokens, routers_assets: state.routers_assets }), shallowEqual)
   const { chains_data } = { ...chains }
   const { tokens_data } = { ...tokens }
   const { routers_assets_data } = { ...routers_assets }
-  const { sdk_data } = { ...sdk }
 
   const router = useRouter()
   const { query } = { ...router }
@@ -152,7 +151,7 @@ export default function BlockchainIndex() {
 
     const getDaily = async (chain, data, today) => {
       if (chain && today && tokens_data?.findIndex(t => t?.chain_id === chain.chain_id) > -1) {
-        const response = await daily(sdk_data, { chain_id: chain.chain_id, where: `{ dayStartTimestamp_gte: ${moment(today).subtract((data?.[`${chain.chain_id}`] || []).length > 0 ? 1 : 3000, 'days').unix()} }` })
+        const response = await daily({ chain_id: chain.chain_id, where: `{ dayStartTimestamp_gte: ${moment(today).subtract((data?.[`${chain.chain_id}`] || []).length > 0 ? 1 : 3000, 'days').unix()} }` })
         const _data = Object.entries(_.groupBy(response?.data || [], 'dayStartTimestamp')).map(([key, value]) => {
           value =  value.map(v => {
             const token = tokens_data.find(t => t?.chain_id === chain.chain_id && t?.contract_address === v?.assetId?.toLowerCase())
@@ -200,7 +199,7 @@ export default function BlockchainIndex() {
     }
 
     const getData = () => {
-      if (sdk_data && chains_data && tokens_data && dayMetricsData) {
+      if (chains_data && tokens_data && dayMetricsData) {
         const today = moment().utc().startOf('day')
         const c = chains_data?.find(c => c?.id === blockchain_id)
         getDaily(c, dayMetricsData, today)
@@ -214,7 +213,7 @@ export default function BlockchainIndex() {
       controller?.abort()
       clearInterval(interval)
     }
-  }, [blockchain_id, chains_data, tokens_data, dayMetricsData, sdk_data])
+  }, [blockchain_id, chains_data, tokens_data, dayMetricsData])
 
   useEffect(() => {
     if (statsData) {

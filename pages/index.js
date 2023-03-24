@@ -31,11 +31,10 @@ BigNumber.config({ DECIMAL_PLACES: Number(process.env.NEXT_PUBLIC_MAX_BIGNUMBER_
 
 export default function Index() {
   const dispatch = useDispatch()
-  const { chains, tokens, stats, sdk } = useSelector(state => ({ chains: state.chains, tokens: state.tokens, stats: state.stats, sdk: state.sdk }), shallowEqual)
+  const { chains, tokens, stats } = useSelector(state => ({ chains: state.chains, tokens: state.tokens, stats: state.stats }), shallowEqual)
   const { chains_data } = { ...chains }
   const { tokens_data } = { ...tokens }
   const { stats_data } = { ...stats }
-  const { sdk_data } = { ...sdk }
 
   const router = useRouter()
   const { pathname, asPath } = { ...router }
@@ -106,7 +105,7 @@ export default function Index() {
 
     const getDaily = async (chain, data, today) => {
       if (chain && today && tokens_data?.findIndex(t => t?.chain_id === chain.chain_id) > -1) {
-        const response = await daily(sdk_data, { chain_id: chain.chain_id, where: `{ dayStartTimestamp_gte: ${moment(today).subtract((data?.[`${chain.chain_id}`] || []).length > 0 ? 1 : 3000, 'days').unix()} }` })
+        const response = await daily({ chain_id: chain.chain_id, where: `{ dayStartTimestamp_gte: ${moment(today).subtract((data?.[`${chain.chain_id}`] || []).length > 0 ? 1 : 3000, 'days').unix()} }` })
 
         const _data = Object.entries(_.groupBy(response?.data || [], 'dayStartTimestamp')).map(([key, value]) => {
           value =  value.map(v => {
@@ -152,7 +151,7 @@ export default function Index() {
     }
 
     const getData = async () => {
-      if (sdk_data && chains_data && tokens_data && dayMetricsData && chains_data.filter(c => !c?.disabled && !c?.is_staging && Object.keys(dayMetricsData).includes(c?.chain_id)).length <= Object.keys(_.groupBy(tokens_data, 'chain_id')).length) {
+      if (chains_data && tokens_data && dayMetricsData && chains_data.filter(c => !c?.disabled && !c?.is_staging && Object.keys(dayMetricsData).includes(c?.chain_id)).length <= Object.keys(_.groupBy(tokens_data, 'chain_id')).length) {
         const today = moment().utc().startOf('day')
         chains_data.forEach(c => getDaily(c, dayMetricsData, today))
       }
@@ -165,7 +164,7 @@ export default function Index() {
       controller?.abort()
       clearInterval(interval)
     }
-  }, [chains_data, tokens_data, dayMetricsData, sdk_data])
+  }, [chains_data, tokens_data, dayMetricsData])
 
   useEffect(() => {
     if (stats_data) {
