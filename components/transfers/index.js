@@ -40,6 +40,7 @@ export default () => {
     chains,
     assets,
     dev,
+    latest_bumped_transfers,
   } = useSelector(
     state => (
       {
@@ -47,6 +48,7 @@ export default () => {
         chains: state.chains,
         assets: state.assets,
         dev: state.dev,
+        latest_bumped_transfers: state.latest_bumped_transfers,
       }
     ),
     shallowEqual,
@@ -63,6 +65,9 @@ export default () => {
   const {
     sdk,
   } = { ...dev }
+  const {
+    latest_bumped_transfers_data,
+  } = { ...latest_bumped_transfers }
 
   const router = useRouter()
   const {
@@ -115,7 +120,7 @@ export default () => {
       const interval =
         setInterval(
           () => triggering(true),
-          0.25 * 60 * 1000,
+          0.3 * 60 * 1000,
         )
 
       return () => clearInterval(interval)
@@ -434,6 +439,8 @@ export default () => {
                       call_data,
                     } = { ...row.original }
 
+                    const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, value) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
+
                     return (
                       value &&
                       (
@@ -486,22 +493,24 @@ export default () => {
                             (
                               <div className="flex-col items-start space-y-1">
                                 {errored ?
-                                  <ActionRequired
-                                    forceDisabled={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status)}
-                                    transferData={row.original}
-                                    buttonTitle={
-                                      <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
-                                        <IoWarning
-                                          size={20}
-                                        />
-                                        <span className="normal-case font-bold">
-                                          {error_status}
-                                        </span>
-                                      </div>
-                                    }
-                                    onTransferBumped={relayer_fee_data => setFetchTrigger(moment().valueOf())}
-                                    onSlippageUpdated={slippage => setFetchTrigger(moment().valueOf())}
-                                  /> :
+                                  <Link href={`/tx/${value}`}>
+                                    <ActionRequired
+                                      forceDisabled={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) || bumped || true}
+                                      transferData={row.original}
+                                      buttonTitle={
+                                        <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
+                                          <IoWarning
+                                            size={20}
+                                          />
+                                          <span className="normal-case font-bold">
+                                            {bumped ? 'Waiting for bump' : error_status}
+                                          </span>
+                                        </div>
+                                      }
+                                      onTransferBumped={relayer_fee_data => setFetchTrigger(moment().valueOf())}
+                                      onSlippageUpdated={slippage => setFetchTrigger(moment().valueOf())}
+                                    />
+                                  </Link> :
                                   <Link href={`/tx/${value}`}>
                                     {pending ?
                                       <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-1.5">
@@ -613,25 +622,29 @@ export default () => {
                       call_data,
                     } = { ...row.original }
 
+                    const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, transfer_id) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
+
                     return (
                       <div className="flex flex-col items-start space-y-1 mt-0.5">
                         {errored ?
-                          <ActionRequired
-                            forceDisabled={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status)}
-                            transferData={row.original}
-                            buttonTitle={
-                              <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
-                                <IoWarning
-                                  size={20}
-                                />
-                                <span className="normal-case font-bold">
-                                  {error_status}
-                                </span>
-                              </div>
-                            }
-                            onTransferBumped={relayer_fee_data => setFetchTrigger(moment().valueOf())}
-                            onSlippageUpdated={slippage => setFetchTrigger(moment().valueOf())}
-                          /> :
+                          <Link href={`/tx/${transfer_id}`}>
+                            <ActionRequired
+                              forceDisabled={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) || bumped || true}
+                              transferData={row.original}
+                              buttonTitle={
+                                <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
+                                  <IoWarning
+                                    size={20}
+                                  />
+                                  <span className="normal-case font-bold">
+                                    {bumped ? 'Waiting for bump' : error_status}
+                                  </span>
+                                </div>
+                              }
+                              onTransferBumped={relayer_fee_data => setFetchTrigger(moment().valueOf())}
+                              onSlippageUpdated={slippage => setFetchTrigger(moment().valueOf())}
+                            />
+                          </Link> :
                           <Link href={`/tx/${transfer_id}`}>
                             {pending ?
                               <div className="flex items-center text-blue-500 dark:text-blue-300 space-x-1.5">
@@ -1036,11 +1049,13 @@ export default () => {
                       value = null
                     }
 
+                    const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(value) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, transfer_id) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
+
                     return (
                       <div className="flex flex-col items-start space-y-1 mt-0.5">
                         <Link href={`/tx/${transfer_id}`}>
                           <div className="normal-case font-bold">
-                            {value || '-'}
+                            {(bumped ? 'Waiting for bump' : value) || '-'}
                           </div>
                         </Link>
                       </div>

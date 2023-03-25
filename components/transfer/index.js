@@ -34,6 +34,7 @@ export default () => {
     chains,
     assets,
     dev,
+    latest_bumped_transfers,
   } = useSelector(
     state => (
       {
@@ -41,6 +42,7 @@ export default () => {
         chains: state.chains,
         assets: state.assets,
         dev: state.dev,
+        latest_bumped_transfers: state.latest_bumped_transfers,
       }
     ),
     shallowEqual,
@@ -58,6 +60,9 @@ export default () => {
   const {
     sdk,
   } = { ...dev }
+  const {
+    latest_bumped_transfers_data,
+  } = { ...latest_bumped_transfers }
 
   const router = useRouter()
   const {
@@ -233,6 +238,8 @@ export default () => {
 
   const source_symbol = source_asset_data?.symbol
   const source_asset_image = source_asset_data?.image
+  const source_gas_native_token = _.head(source_chain_data?.provider_params)?.nativeCurrency
+  const source_gas_decimals = source_gas_native_token?.decimals || 18
 
   const destination_symbol = destination_asset_data?.symbol
   const destination_asset_image = destination_asset_data?.image
@@ -267,21 +274,17 @@ export default () => {
 
   const id = transfer_id || tx
 
+  const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, transfer_id) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
+
   return (
     <div className="space-y-4 -mt-1 mb-6">
       <div className="flex items-center text-sm space-x-2">
         <div className="text-slate-400 dark:text-slate-600">
           <span className="xl:hidden">
-            {ellipse(
-              id,
-              16,
-            )}
+            {ellipse(id, 16)}
           </span>
           <span className="hidden xl:block">
-            {ellipse(
-              id,
-              24,
-            )}
+            {ellipse(id, 24)}
           </span>
         </div>
         <Copy
@@ -346,16 +349,10 @@ export default () => {
                                 fallback={
                                   <span className="text-slate-400 dark:text-slate-600 font-semibold">
                                     <span className="sm:hidden">
-                                      {ellipse(
-                                        xcall_caller,
-                                        8,
-                                      )}
+                                      {ellipse(xcall_caller, 8)}
                                     </span>
                                     <span className="hidden sm:block">
-                                      {ellipse(
-                                        xcall_caller,
-                                        12,
-                                      )}
+                                      {ellipse(xcall_caller, 12)}
                                     </span>
                                   </span>
                                 }
@@ -422,13 +419,13 @@ export default () => {
                     {data ?
                       errored ?
                         <ActionRequired
-                          forceDisabled={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status)}
-                          initialHidden={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status)}
+                          forceDisabled={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) || bumped}
+                          initialHidden={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) || bumped}
                           transferData={data}
                           buttonTitle={
                             <Tooltip
                               placement="top"
-                              content={error_status === XTransferErrorStatus.NoBidsReceived ? 'Please wait 1-2 hours for slow path' : error_status}
+                              content={error_status === XTransferErrorStatus.NoBidsReceived ? 'Please wait 1-2 hours for slow path' : bumped ? 'Waiting for bump' : error_status}
                               className="z-50 bg-dark text-white text-xs"
                             >
                               <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
@@ -436,7 +433,7 @@ export default () => {
                                   size={24}
                                 />
                                 <span className="normal-case text-base font-bold">
-                                  {[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) ? error_status : error_status}
+                                  {[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) ? error_status : bumped ? 'Waiting for bump' : error_status}
                                 </span>
                               </div>
                             </Tooltip>
@@ -587,16 +584,10 @@ export default () => {
                                 fallback={
                                   <span className="text-slate-400 dark:text-slate-600 font-semibold">
                                     <span className="sm:hidden">
-                                      {ellipse(
-                                        to,
-                                        8,
-                                      )}
+                                      {ellipse(to, 8)}
                                     </span>
                                     <span className="hidden sm:block">
-                                      {ellipse(
-                                        to,
-                                        12,
-                                      )}
+                                      {ellipse(to, 12)}
                                     </span>
                                   </span>
                                 }
@@ -696,13 +687,13 @@ export default () => {
                               errored ?
                                 s === 'execute' ?
                                   <ActionRequired
-                                    forceDisabled={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status)}
-                                    initialHidden={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status)}
+                                    forceDisabled={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) || bumped}
+                                    initialHidden={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) || bumped}
                                     transferData={data}
                                     buttonTitle={
                                       <Tooltip
                                         placement="top"
-                                        content={error_status}
+                                        content={bumped ? 'Waiting for bump' : error_status}
                                         className="z-50 bg-dark text-white text-xs"
                                       >
                                         <div>
@@ -777,11 +768,11 @@ export default () => {
                                   {split(f, 'normal', '_').join(' ')}
                                 </div>
                                 <div className="form-element">
-                                  {[undefined, null].includes(data[['recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f : `${s}_${f}`]) ?
+                                  {[undefined, null].includes(data[['recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f === 'relayer_fee' && Object.keys({ ...data[`${f}s`] }).length > 0 ? `${f}s` : f : `${s}_${f}`]) ?
                                     <span className="text-slate-600 dark:text-slate-200">
                                       -
                                     </span> :
-                                    toArray(data[['recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f : `${s}_${f}`])
+                                    toArray(data[['recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f === 'relayer_fee' && Object.keys({ ...data[`${f}s`] }).length > 0 ? `${f}s` : f : `${s}_${f}`])
                                       .map((v, k) => {
                                         const chain_data = s === 'xcall' ? source_chain_data : destination_chain_data
 
@@ -813,16 +804,10 @@ export default () => {
                                             _v = (
                                               <>
                                                 <span className="lg:hidden">
-                                                  {ellipse(
-                                                    v,
-                                                    14,
-                                                  )}
+                                                  {ellipse(v, 14)}
                                                 </span>
                                                 <span className="hidden lg:block">
-                                                  {ellipse(
-                                                    v,
-                                                    16,
-                                                  )}
+                                                  {ellipse(v, 16)}
                                                 </span>
                                               </>
                                             )
@@ -882,16 +867,10 @@ export default () => {
                                                   fallback={
                                                     <>
                                                       <span className="lg:hidden">
-                                                        {ellipse(
-                                                          v,
-                                                          10,
-                                                        )}
+                                                        {ellipse(v, 10)}
                                                       </span>
                                                       <span className="hidden lg:block">
-                                                        {ellipse(
-                                                          v,
-                                                          12,
-                                                        )}
+                                                        {ellipse(v, 12)}
                                                       </span>
                                                     </>
                                                   }
@@ -930,16 +909,10 @@ export default () => {
                                                   fallback={
                                                     <>
                                                       <span className="lg:hidden">
-                                                        {ellipse(
-                                                          v,
-                                                          10,
-                                                        )}
+                                                        {ellipse(v, 10)}
                                                       </span>
                                                       <span className="hidden lg:block">
-                                                        {ellipse(
-                                                          v,
-                                                          12,
-                                                        )}
+                                                        {ellipse(v, 12)}
                                                       </span>
                                                     </>
                                                   }
@@ -978,16 +951,10 @@ export default () => {
                                                   fallback={
                                                     <>
                                                       <span className="lg:hidden">
-                                                        {ellipse(
-                                                          v,
-                                                          10,
-                                                        )}
+                                                        {ellipse(v, 10)}
                                                       </span>
                                                       <span className="hidden lg:block">
-                                                        {ellipse(
-                                                          v,
-                                                          12,
-                                                        )}
+                                                        {ellipse(v, 12)}
                                                       </span>
                                                     </>
                                                   }
@@ -1018,19 +985,45 @@ export default () => {
                                                 </span>
                                             break
                                           case 'relayer_fee':
-                                            _v = utils.formatUnits(BigInt(v || '0'), decimals || 18),
+                                            if (Object.keys({ ...data[`${f}s`] }).length > 0) {
+                                              component = (
+                                                <div className="flex flex-col space-y-2">
+                                                  {Object.entries(data[`${f}s`])
+                                                    .map(([k, v]) => {
+                                                      return (
+                                                        <span
+                                                          key={k}
+                                                          className="whitespace-nowrap text-slate-800 dark:text-slate-200 font-semibold space-x-1.5"
+                                                        >
+                                                          <DecimalsFormat
+                                                            value={utils.formatUnits(v || '0', k === constants.AddressZero ? source_gas_decimals : source_decimals)}
+                                                            className="text-sm"
+                                                          />
+                                                          <span>
+                                                            {k === constants.AddressZero ? source_gas_native_token?.symbol : source_symbol}
+                                                          </span>
+                                                        </span>
+                                                      )
+                                                    })
+                                                  }
+                                                </div>
+                                              )
+                                            }
+                                            else {
+                                              _v = utils.formatUnits(BigInt(v || '0'), decimals || 18),
 
-                                            component = (
-                                              <div className="flex items-center space-x-1">
-                                                <DecimalsFormat
-                                                  value={Number(_v) <= 0 ? 0 : _v}
-                                                  className="text-base"
-                                                />
-                                                <span>
-                                                  {symbol}
-                                                </span>
-                                              </div>
-                                            )
+                                              component = (
+                                                <div className="flex items-center space-x-1">
+                                                  <DecimalsFormat
+                                                    value={Number(_v) <= 0 ? 0 : _v}
+                                                    className="text-base"
+                                                  />
+                                                  <span>
+                                                    {symbol}
+                                                  </span>
+                                                </div>
+                                              )
+                                            }
                                             break
                                           case 'gas_price':
                                             component = (

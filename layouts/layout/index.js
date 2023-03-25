@@ -8,7 +8,7 @@ import Navbar from '../../components/navbar'
 import Footer from '../../components/footer'
 import meta from '../../lib/meta'
 import { equalsIgnoreCase } from '../../lib/utils'
-import { THEME, PAGE_VISIBLE } from '../../reducers/types'
+import { THEME, PAGE_VISIBLE, LATEST_BUMPED_TRANSFERS_DATA } from '../../reducers/types'
 
 export default (
   {
@@ -37,17 +37,24 @@ export default (
 
   useEffect(
     () => {
-      if (
-        typeof window !== 'undefined' &&
-        localStorage.getItem(THEME) &&
-        localStorage.getItem(THEME) !== theme
-      ) {
-        dispatch(
-          {
-            type: THEME,
-            value: localStorage.getItem(THEME),
-          }
-        )
+      if (typeof window !== 'undefined') {
+        if (localStorage.getItem(THEME) && localStorage.getItem(THEME) !== theme) {
+          dispatch(
+            {
+              type: THEME,
+              value: localStorage.getItem(THEME),
+            }
+          )
+        }
+
+        if (localStorage.getItem(LATEST_BUMPED_TRANSFERS_DATA)) {
+          dispatch(
+            {
+              type: LATEST_BUMPED_TRANSFERS_DATA,
+              value: localStorage.getItem(LATEST_BUMPED_TRANSFERS_DATA),
+            }
+          )
+        }
       }
     },
     [theme],

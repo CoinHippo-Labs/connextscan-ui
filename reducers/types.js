@@ -29,3 +29,6 @@ export const SDK = 'sdk'
 export const WALLET_DATA = 'wallet_data'
 export const WALLET_RESET = 'wallet_reset'
 export const CHAIN_ID = 'chain_id'
+
+// transfers
+export const LATEST_BUMPED_TRANSFERS_DATA = 'latest_bumped_transfers_data'
