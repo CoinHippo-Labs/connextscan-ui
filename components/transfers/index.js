@@ -194,6 +194,7 @@ export default () => {
                     destination_domain,
                     destination_transacting_asset,
                     destination_local_asset,
+                    to,
                     execute_transaction_hash,
                     receive_local,
                     status,
@@ -250,21 +251,21 @@ export default () => {
                     delete destination_contract_data.next_asset
                   }
                   // native asset
-                  if (!destination_contract_data && equalsIgnoreCase(constants.AddressZero, destination_transacting_asset)) {
-                    const {
-                      nativeCurrency,
-                    } = { ..._.head(destination_chain_data?.provider_params) }
+                  const {
+                    nativeCurrency,
+                  } = { ..._.head(destination_chain_data?.provider_params) }
 
-                    const {
-                      symbol,
-                    } = { ...nativeCurrency }
+                  const {
+                    symbol,
+                  } = { ...nativeCurrency }
 
-                    const _destination_asset_data = getAsset(symbol, assets_data)
+                  const _destination_asset_data = getAsset(symbol?.endsWith('ETH') ? 'ETH' : symbol, assets_data)
 
+                  if ((!destination_contract_data && equalsIgnoreCase(constants.AddressZero, destination_transacting_asset)) || (destination_asset_data?.id === 'eth' && _destination_asset_data?.id === 'eth' && equalsIgnoreCase(to, destination_chain_data?.unwrapper_contract))) {
                     destination_contract_data = {
                       ...getContract(destination_chain_data?.chain_id, _destination_asset_data?.contracts),
                       ...nativeCurrency,
-                      contract_address: destination_transacting_asset,
+                      contract_address: constants.AddressZero,
                     }
                   }
 
@@ -449,16 +450,10 @@ export default () => {
                             <Link href={`/tx/${value}`}>
                               <div className="text-blue-500 dark:text-white font-semibold">
                                 <span className="sm:hidden">
-                                  {ellipse(
-                                    value,
-                                    address ? 6 : 8,
-                                  )}
+                                  {ellipse(value, address ? 6 : 8)}
                                 </span>
                                 <span className="hidden sm:block">
-                                  {ellipse(
-                                    value,
-                                    address ? 8 : 12,
-                                  )}
+                                  {ellipse(value, address ? 8 : 12)}
                                 </span>
                               </div>
                             </Link>
@@ -824,16 +819,10 @@ export default () => {
                                   fallback={
                                     <span className="text-slate-400 dark:text-slate-600 text-xs font-semibold">
                                       <span className="sm:hidden">
-                                        {ellipse(
-                                          xcall_caller,
-                                          6,
-                                        )}
+                                        {ellipse(xcall_caller, 6)}
                                       </span>
                                       <span className="hidden sm:block">
-                                        {ellipse(
-                                          xcall_caller,
-                                          8,
-                                        )}
+                                        {ellipse(xcall_caller, 8)}
                                       </span>
                                     </span>
                                   }
@@ -972,16 +961,10 @@ export default () => {
                                   fallback={
                                     <span className="text-slate-400 dark:text-slate-600 text-xs font-semibold">
                                       <span className="sm:hidden">
-                                        {ellipse(
-                                          to,
-                                          6,
-                                        )}
+                                        {ellipse(to, 6)}
                                       </span>
                                       <span className="hidden sm:block">
-                                        {ellipse(
-                                          to,
-                                          8,
-                                        )}
+                                        {ellipse(to, 8)}
                                       </span>
                                     </span>
                                   }
