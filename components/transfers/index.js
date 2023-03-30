@@ -493,14 +493,20 @@ export default () => {
                                       forceDisabled={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) || bumped || true}
                                       transferData={row.original}
                                       buttonTitle={
-                                        <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
-                                          <IoWarning
-                                            size={20}
-                                          />
-                                          <span className="normal-case font-bold">
-                                            {bumped ? 'Waiting for bump' : error_status}
-                                          </span>
-                                        </div>
+                                        <Tooltip
+                                          placement="top"
+                                          content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transfer is not getting boosted by routers (fast path) and will complete in slow path eventually, if no new bids are received till the end.' : bumped ? 'Waiting for bump' : error_status}
+                                          className="z-50 bg-dark text-white text-xs"
+                                        >
+                                          <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
+                                            <IoWarning
+                                              size={20}
+                                            />
+                                            <span className="normal-case font-bold">
+                                              {bumped ? 'Waiting for bump' : error_status}
+                                            </span>
+                                          </div>
+                                        </Tooltip>
                                       }
                                       onTransferBumped={relayer_fee_data => setFetchTrigger(moment().valueOf())}
                                       onSlippageUpdated={slippage => setFetchTrigger(moment().valueOf())}
@@ -627,14 +633,20 @@ export default () => {
                               forceDisabled={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) || bumped || true}
                               transferData={row.original}
                               buttonTitle={
-                                <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
-                                  <IoWarning
-                                    size={20}
-                                  />
-                                  <span className="normal-case font-bold">
-                                    {bumped ? 'Waiting for bump' : error_status}
-                                  </span>
-                                </div>
+                                <Tooltip
+                                  placement="top"
+                                  content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transfer is not getting boosted by routers (fast path) and will complete in slow path eventually, if no new bids are received till the end.' : bumped ? 'Waiting for bump' : error_status}
+                                  className="z-50 bg-dark text-white text-xs"
+                                >
+                                  <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
+                                    <IoWarning
+                                      size={20}
+                                    />
+                                    <span className="normal-case font-bold">
+                                      {bumped ? 'Waiting for bump' : error_status}
+                                    </span>
+                                  </div>
+                                </Tooltip>
                               }
                               onTransferBumped={relayer_fee_data => setFetchTrigger(moment().valueOf())}
                               onSlippageUpdated={slippage => setFetchTrigger(moment().valueOf())}
