@@ -132,6 +132,7 @@ export default () => {
 
           setData(
             {
+              raw_volumes: volumes,
               volumes:
                 _.orderBy(
                   Object.entries(_.groupBy(volumes, 'router'))
@@ -144,6 +145,7 @@ export default () => {
                   ['volume'],
                   ['desc'],
                 ),
+              raw_transfers: transfers,
               transfers:
                 _.orderBy(
                   Object.entries(_.groupBy(transfers, 'router'))
@@ -165,6 +167,10 @@ export default () => {
     },
     [sdk, chains_data, assets_data],
   )
+
+  const {
+    raw_volumes,
+  } = { ...data }
 
   const routers =
     _.orderBy(
@@ -193,12 +199,55 @@ export default () => {
             total_transfers: _.sumBy(toArray(transfers).filter(d => equalsIgnoreCase(d.router, router_address)), 'transfers'),
             // total_fee: 33.33,
             supported_chains: _.uniq(assets.map(a => a.chain_id)),
+            liquidity_by_chains: _.orderBy(Object.entries(_.groupBy(assets.filter(a => a.chain_data?.id), 'chain_data.id')).map(([k, v]) => { return { chain: k, value: _.sumBy(v, 'value'), i: chains_data.findIndex(c => c.id === k) } }), ['i'], ['asc']),
+            liquidity_by_assets: _.orderBy(Object.entries(_.groupBy(assets.filter(a => a.asset_data?.id), 'asset_data.id')).map(([k, v]) => { return { asset: k, value: _.sumBy(v, 'value'), i: assets_data.findIndex(a => a.id === k) } }), ['i'], ['asc']),
+          }
+        })
+        .map(r => {
+          const {
+            total_value,
+            total_volume,
+            liquidity_by_chains,
+            liquidity_by_assets,
+          } = { ...r }
+
+          return {
+            ...r,
+            liquidity_utilization: total_value && total_volume ? total_volume / total_value : 0,
+            liquidity_utilization_by_chains:
+              liquidity_by_chains.map(d => {
+                const {
+                  chain,
+                } = { ...d }
+                let {
+                  value,
+                } = { ...d }
+
+                const volume = _.sumBy(toArray(raw_volumes).filter(d => d.destination_chain_data?.id === chain), 'volume')
+                value = value && volume ? volume / value : 0
+
+                return { chain, value }
+              }),
+            liquidity_utilization_by_assets:
+              liquidity_by_assets.map(d => {
+                const {
+                  asset,
+                } = { ...d }
+                let {
+                  value,
+                } = { ...d }
+
+                const volume = _.sumBy(toArray(raw_volumes).filter(d => d.asset_data?.id === asset), 'volume')
+                value = value && volume ? volume / value : 0
+
+                return { asset, value }
+              }),
           }
         }),
       ['total_value'],
       ['desc'],
     )
-
+console.log('qqq',routers)
   const metrics =
     router_asset_balances_data &&
     {
