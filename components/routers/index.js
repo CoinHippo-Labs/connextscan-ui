@@ -247,7 +247,7 @@ export default () => {
       ['total_value'],
       ['desc'],
     )
-console.log('qqq',routers)
+
   const metrics =
     router_asset_balances_data &&
     {
