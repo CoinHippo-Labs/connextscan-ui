@@ -134,6 +134,7 @@ export default (
           />
         </Layout>
       </Provider>
+      <div className="lg:grid-cols-3" />
     </>
   )
 }

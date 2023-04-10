@@ -189,28 +189,8 @@ export default () => {
           return {
             ...r,
             total_value: _.sumBy(assets, 'value'),
-            total_volume:
-              _.sumBy(
-                toArray(volumes)
-                  .filter(d =>
-                    equalsIgnoreCase(
-                      d?.router,
-                      router_address,
-                    )
-                  ),
-                'volume',
-              ),
-            total_transfers:
-              _.sumBy(
-                toArray(transfers)
-                  .filter(d =>
-                    equalsIgnoreCase(
-                      d?.router,
-                      router_address,
-                    )
-                  ),
-                'transfers',
-              ),
+            total_volume: _.sumBy(toArray(volumes).filter(d => equalsIgnoreCase(d.router, router_address)), 'volume'),
+            total_transfers: _.sumBy(toArray(transfers).filter(d => equalsIgnoreCase(d.router, router_address)), 'transfers'),
             // total_fee: 33.33,
             supported_chains: _.uniq(assets.map(a => a.chain_id)),
           }
@@ -226,7 +206,7 @@ export default () => {
       volume: _.sumBy(routers, 'total_volume'),
       transfers: _.sumBy(routers, 'total_transfers'),
       // fee: 33.33,
-      supported_chains: _.uniq(routers.flatMap(r => r?.supported_chains)),
+      supported_chains: _.uniq(routers.flatMap(r => r.supported_chains)),
     }
 
   return (
@@ -244,10 +224,7 @@ export default () => {
                 {
                   Header: '#',
                   accessor: 'i',
-                  sortType: (a, b) =>
-                    a.original.i > b.original.i ?
-                      1 :
-                      -1,
+                  sortType: (a, b) => a.original.i > b.original.i ? 1 : -1,
                   Cell: props => (
                     <span className="font-semibold">
                       {(props.flatRows?.indexOf(props.row) > -1 ? props.flatRows.indexOf(props.row) : props.value) + 1}
@@ -274,16 +251,10 @@ export default () => {
                               fallback={
                                 <span className="text-slate-400 dark:text-slate-200 text-sm font-semibold">
                                   <span className="xl:hidden">
-                                    {ellipse(
-                                      value,
-                                      8,
-                                    )}
+                                    {ellipse(value, 8)}
                                   </span>
                                   <span className="hidden xl:block">
-                                    {ellipse(
-                                      value,
-                                      12,
-                                    )}
+                                    {ellipse(value, 12)}
                                   </span>
                                 </span>
                               }
@@ -300,10 +271,7 @@ export default () => {
                 {
                   Header: 'Liquidity',
                   accessor: 'total_value',
-                  sortType: (a, b) =>
-                    a.original.total_value > b.original.total_value ?
-                      1 :
-                      -1,
+                  sortType: (a, b) => a.original.total_value > b.original.total_value ?  1 : -1,
                   Cell: props => {
                     const {
                       value,
@@ -329,10 +297,7 @@ export default () => {
                 {
                   Header: 'Transfers',
                   accessor: 'total_transfers',
-                  sortType: (a, b) =>
-                    a.original.total_transfers > b.original.total_transfers ?
-                      1 :
-                      -1,
+                  sortType: (a, b) => a.original.total_transfers > b.original.total_transfers ? 1 : -1,
                   Cell: props => {
                     const {
                       value,
@@ -357,10 +322,7 @@ export default () => {
                 {
                   Header: 'Volume',
                   accessor: 'total_volume',
-                  sortType: (a, b) =>
-                    a.original.total_volume > b.original.total_volume ?
-                      1 :
-                      -1,
+                  sortType: (a, b) => a.original.total_volume > b.original.total_volume ? 1 : -1,
                   Cell: props => {
                     const {
                       value,
@@ -386,10 +348,7 @@ export default () => {
                 {
                   Header: 'Fee',
                   accessor: 'total_fee',
-                  sortType: (a, b) =>
-                    a.original.total_fee > b.original.total_fee ?
-                      1 :
-                      -1,
+                  sortType: (a, b) => a.original.total_fee > b.original.total_fee ? 1 : -1,
                   Cell: props => {
                     const {
                       value,
@@ -415,10 +374,7 @@ export default () => {
                 {
                   Header: 'Supported Chains',
                   accessor: 'supported_chains',
-                  sortType: (a, b) =>
-                    a.original.supported_chains?.length > b.original.supported_chains?.length ?
-                      1 :
-                      -1,
+                  sortType: (a, b) => a.original.supported_chains?.length > b.original.supported_chains?.length ? 1 : -1,
                   Cell: props => {
                     const {
                       value,

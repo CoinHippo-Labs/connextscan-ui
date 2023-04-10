@@ -355,22 +355,24 @@ export default () => {
   const data_filtered =
     toArray(data)
       .filter(t =>
-        (!source_chain_data || source_chain_data?.id === t?.source_chain_data?.id) &&
-        (!destination_chain_data || destination_chain_data?.id === t?.destination_chain_data?.id) &&
-        (!asset_data || [t?.source_asset_data?.id, t?.destination_asset_data?.id].includes(asset_data.id))
+        (!source_chain_data || source_chain_data?.id === t.source_chain_data?.id) &&
+        (!destination_chain_data || destination_chain_data?.id === t.destination_chain_data?.id) &&
+        (!asset_data || [t.source_asset_data?.id, t.destination_asset_data?.id].includes(asset_data.id))
       )
 
   return (
     <div className="space-y-2 mb-6">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div className="whitespace-nowrap uppercase text-sm font-semibold">
-          Latest Transfers
+          Transfers
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 space-x-0 sm:space-x-2 mt-2 sm:mt-0 mb-4 sm:mb-0">
           <div className="flex items-center space-x-2">
-            <span className="font-semibold">
-              From
-            </span>
+            {/*
+              <span className="font-semibold">
+                From
+              </span>
+            */}
             <SelectChain
               value={fromChainSelect}
               onSelect={c => setFromChainSelect(c)}
