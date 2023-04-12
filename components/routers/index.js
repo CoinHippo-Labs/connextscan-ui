@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
@@ -53,6 +54,14 @@ export default () => {
   const {
     router_asset_balances_data,
   } = { ...router_asset_balances }
+
+  const router = useRouter()
+  const {
+    query,
+  } = { ...router }
+  const {
+    mode,
+  } = { ...query }
 
   const [data, setData] = useState(null)
 
@@ -170,6 +179,7 @@ export default () => {
 
   const {
     raw_volumes,
+    transfers,
   } = { ...data }
 
   const routers =
@@ -253,7 +263,7 @@ export default () => {
     {
       liquidity: _.sumBy(routers, 'total_value'),
       volume: _.sumBy(routers, 'total_volume'),
-      transfers: _.sumBy(routers, 'total_transfers'),
+      transfers: _.sumBy(transfers, 'transfers'),
       // fee: 33.33,
       supported_chains: _.uniq(routers.flatMap(r => r.supported_chains)),
     }
@@ -469,7 +479,7 @@ export default () => {
                   headerClassName: 'whitespace-nowrap justify-end text-right',
                 },
               ]
-              .filter(c => !['total_fee'].includes(c.accessor))
+              .filter(c => !mode ? !['total_transfers', 'total_fee'].includes(c.accessor) : !['total_transfers', 'total_fee'].includes(c.accessor))
             }
             data={routers}
             noPagination={routers.length <= 10}
