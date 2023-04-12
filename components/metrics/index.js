@@ -44,7 +44,7 @@ export default (
   const valueClassName = 'uppercase text-3xl font-bold'
 
   return (
-    <div className={`w-full grid grid-flow-row sm:grid-cols-2 lg:grid-cols-${(supported_chains ? 4 : 3) + (typeof fee === 'number' ? 1 : 0)} gap-5`}>
+    <div className={`w-full grid grid-flow-row sm:grid-cols-2 lg:grid-cols-${3 + (transfers ? 1 : 0) + (typeof fee === 'number' ? 1 : 0)} gap-5`}>
       <div className={metricClassName}>
         <span className={titleClassName}>
           Liquidity
@@ -83,24 +83,29 @@ export default (
           }
         </div>
       </div>
-      <div className={metricClassName}>
-        <span className={titleClassName}>
-          Transfers
-        </span>
-        <div>
-          {data ?
-            <DecimalsFormat
-              value={transfers}
-              className={valueClassName}
-            /> :
-            <TailSpin
-              width="32"
-              height="32"
-              color={loaderColor(theme)}
-            />
-          }
-        </div>
-      </div>
+      {
+        transfers > 0 &&
+        (
+          <div className={metricClassName}>
+            <span className={titleClassName}>
+              Transfers
+            </span>
+            <div>
+              {data ?
+                <DecimalsFormat
+                  value={transfers}
+                  className={valueClassName}
+                /> :
+                <TailSpin
+                  width="32"
+                  height="32"
+                  color={loaderColor(theme)}
+                />
+              }
+            </div>
+          </div>
+        )
+      }
       {
         typeof fee === 'number' &&
         (
@@ -125,54 +130,49 @@ export default (
           </div>
         )
       }
-      {
-        supported_chains &&
-        (
-          <div className={metricClassName}>
-            <span className={titleClassName}>
-              Supported Chains
-            </span>
-            <div className={valueClassName}>
-              {data ?
-                <div className="flex items-center mt-1">
-                  {supported_chains
-                    .map((id, i) => {
-                      const {
-                        name,
-                        image,
-                      } = { ...getChain(id, chains_data) }
+      <div className={metricClassName}>
+        <span className={titleClassName}>
+          Supported Chains
+        </span>
+        <div className={valueClassName}>
+          {data ?
+            <div className="flex items-center mt-1">
+              {supported_chains
+                .map((id, i) => {
+                  const {
+                    name,
+                    image,
+                  } = { ...getChain(id, chains_data) }
 
-                      return (
-                        image &&
-                        (
-                          <div
-                            key={i}
-                            title={name}
-                            className="mr-1"
-                          >
-                            <Image
-                              src={image}
-                              width={24}
-                              height={24}
-                              className="rounded-full"
-                            />
-                          </div>
-                        )
-                      )
-                    })
-                    .filter(c => c)
-                  }
-                </div> :
-                <TailSpin
-                  width="32"
-                  height="32"
-                  color={loaderColor(theme)}
-                />
+                  return (
+                    image &&
+                    (
+                      <div
+                        key={i}
+                        title={name}
+                        className="mr-1"
+                      >
+                        <Image
+                          src={image}
+                          width={24}
+                          height={24}
+                          className="rounded-full"
+                        />
+                      </div>
+                    )
+                  )
+                })
+                .filter(c => c)
               }
-            </div>
-          </div>
-        )
-      }
+            </div> :
+            <TailSpin
+              width="32"
+              height="32"
+              color={loaderColor(theme)}
+            />
+          }
+        </div>
+      </div>
     </div>
   )
 }
