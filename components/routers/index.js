@@ -342,6 +342,7 @@ export default () => {
                           <DecimalsFormat
                             value={value}
                             prefix={currency_symbol}
+                            noTooltip={true}
                             className="uppercase"
                           /> :
                           <span className="text-slate-400 dark:text-slate-500">
@@ -352,6 +353,176 @@ export default () => {
                     )
                   },
                   headerClassName: 'whitespace-nowrap justify-end text-right',
+                },
+                {
+                  Header: 'By Asset',
+                  accessor: 'liquidity_by_assets',
+                  sortType: (a, b) => a.original.total_value > b.original.total_value ?  1 : -1,
+                  Cell: props => {
+                    const {
+                      value,
+                      row,
+                    } = { ...props }
+
+                    const {
+                      liquidity_utilization_by_assets,
+                    } = { ...row.original }
+
+                    return (
+                      <div className="grid grid-cols-2 gap-2">
+                        {toArray(value)
+                          .map((v, i) => {
+                            const {
+                              asset,
+                              value,
+                            } = { ...v }
+
+                            const utilization = toArray(liquidity_utilization_by_assets).find(d => d.asset === asset)?.value
+
+                            const asset_data = getAsset(asset, assets_data)
+
+                            const {
+                              symbol,
+                              image,
+                            } = { ...asset_data }
+
+                            return (
+                              <div
+                                key={i}
+                                className="flex items-start space-x-2 mt-0.5"
+                              >
+                                <Image
+                                  src={image}
+                                  width={18}
+                                  height={18}
+                                  className="rounded-full"
+                                />
+                                <div className="flex flex-col space-y-0.5">
+                                  <span className="text-xs font-semibold">
+                                    {symbol}
+                                  </span>
+                                  <div className="flex flex-col">
+                                    <div className="h-4 flex items-center space-x-1">
+                                      <span className="text-slate-400 dark:text-slate-500 text-2xs font-medium">
+                                        Liquidity:
+                                      </span>
+                                      <DecimalsFormat
+                                        value={value}
+                                        prefix={currency_symbol}
+                                        noTooltip={true}
+                                        className="uppercase text-2xs font-semibold"
+                                      />
+                                    </div>
+                                    {
+                                      raw_volumes &&
+                                      (
+                                        <div className="h-4 flex items-center space-x-1">
+                                          <span className="text-slate-400 dark:text-slate-500 text-2xs font-medium">
+                                            Utilization:
+                                          </span>
+                                          <DecimalsFormat
+                                            value={utilization}
+                                            noTooltip={true}
+                                            className="uppercase text-2xs font-semibold"
+                                          />
+                                        </div>
+                                      )
+                                    }
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          })
+                        }
+                      </div>
+                    )
+                  },
+                  headerClassName: 'whitespace-nowrap justify-start',
+                },
+                {
+                  Header: 'By Chain',
+                  accessor: 'liquidity_by_chains',
+                  sortType: (a, b) => a.original.total_value > b.original.total_value ?  1 : -1,
+                  Cell: props => {
+                    const {
+                      value,
+                      row,
+                    } = { ...props }
+
+                    const {
+                      liquidity_utilization_by_chains,
+                    } = { ...row.original }
+
+                    return (
+                      <div className="grid grid-cols-2 gap-2">
+                        {toArray(value)
+                          .map((v, i) => {
+                            const {
+                              chain,
+                              value,
+                            } = { ...v }
+
+                            const utilization = toArray(liquidity_utilization_by_chains).find(d => d.chain === chain)?.value
+
+                            const chain_data = getChain(chain, chains_data)
+
+                            const {
+                              name,
+                              image,
+                            } = { ...chain_data }
+
+                            return (
+                              <div
+                                key={i}
+                                className="flex items-start space-x-2 mt-0.5"
+                              >
+                                <Image
+                                  src={image}
+                                  width={18}
+                                  height={18}
+                                  className="rounded-full"
+                                />
+                                <div className="flex flex-col space-y-0.5">
+                                  <span className="text-xs font-semibold">
+                                    {name}
+                                  </span>
+                                  <div className="flex flex-col">
+                                    <div className="h-4 flex items-center space-x-1">
+                                      <span className="text-slate-400 dark:text-slate-500 text-2xs font-medium">
+                                        Liquidity:
+                                      </span>
+                                      <DecimalsFormat
+                                        value={value}
+                                        prefix={currency_symbol}
+                                        noTooltip={true}
+                                        className="uppercase text-2xs font-semibold"
+                                      />
+                                    </div>
+                                    {
+                                      raw_volumes &&
+                                      (
+                                        <div className="h-4 flex items-center space-x-1">
+                                          <span className="text-slate-400 dark:text-slate-500 text-2xs font-medium">
+                                            Utilization:
+                                          </span>
+                                          <DecimalsFormat
+                                            value={utilization}
+                                            noTooltip={true}
+                                            className="uppercase text-2xs font-semibold"
+                                          />
+                                        </div>
+                                      )
+                                    }
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          })
+                        }
+                      </div>
+                    )
+                  },
+                  headerClassName: 'whitespace-nowrap justify-start',
                 },
                 {
                   Header: 'Transfers',
@@ -389,15 +560,23 @@ export default () => {
 
                     return (
                       <div className="text-base font-bold text-right">
-                        {typeof value === 'number' ?
-                          <DecimalsFormat
-                            value={value}
-                            prefix={currency_symbol}
-                            className="uppercase"
-                          /> :
-                          <span className="text-slate-400 dark:text-slate-500">
-                            -
-                          </span>
+                        {raw_volumes ?
+                          typeof value === 'number' ?
+                            <DecimalsFormat
+                              value={value}
+                              prefix={currency_symbol}
+                              className="uppercase"
+                            /> :
+                            <span className="text-slate-400 dark:text-slate-500">
+                              -
+                            </span> :
+                            <div className="flex justify-end mt-1">
+                              <TailSpin
+                                width="18"
+                                height="18"
+                                color={loaderColor(theme)}
+                              />
+                            </div>
                         }
                       </div>
                     )
@@ -479,7 +658,7 @@ export default () => {
                   headerClassName: 'whitespace-nowrap justify-end text-right',
                 },
               ]
-              .filter(c => !mode ? !['total_transfers', 'total_fee'].includes(c.accessor) : !['total_transfers', 'total_fee'].includes(c.accessor))
+              .filter(c => !mode ? !['liquidity_by_assets', 'liquidity_by_chains', 'total_transfers', 'total_fee'].includes(c.accessor) : !['total_transfers', 'total_fee'].includes(c.accessor))
             }
             data={routers}
             noPagination={routers.length <= 10}
