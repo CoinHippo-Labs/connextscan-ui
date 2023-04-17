@@ -147,12 +147,12 @@ export default () => {
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between space-x-2">
-              <span className="uppercase text-slate-400 dark:text-slate-200 font-bold">
+              <span className="whitespace-nowrap uppercase text-slate-400 dark:text-slate-200 font-bold">
                 Top 3 chains
               </span>
               <div className="flex items-center space-x-1.5">
                 {toArray(top_chains)
-                  .filter(c => c?.image)
+                  .filter(c => c.image)
                   .map((c, i) => {
                     const {
                       id,
@@ -181,12 +181,12 @@ export default () => {
               </div>
             </div>
             <div className="flex items-center justify-between space-x-2">
-              <span className="uppercase text-slate-400 dark:text-slate-200 font-bold">
+              <span className="whitespace-nowrap uppercase text-slate-400 dark:text-slate-200 font-bold">
                 Top 3 tokens
               </span>
-              <div className="flex items-center space-x-1.5">
+              <div className="flex items-center space-x-1">
                 {toArray(top_assets)
-                  .filter(a => a?.symbol)
+                  .filter(a => a.symbol)
                   .map((a, i) => {
                     const {
                       image,
@@ -196,7 +196,7 @@ export default () => {
                     return (
                       <div
                         key={i}
-                        className="bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center space-x-1 py-0.5 px-1.5"
+                        className="min-w-max bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center space-x-1 py-0.5 px-1.5"
                       >
                         <Image
                           src={image}

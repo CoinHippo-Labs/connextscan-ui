@@ -70,10 +70,7 @@ export default (
 
   useEffect(
     () => {
-      if (
-        connectChainId &&
-        connectChainId !== defaultChainId
-      ) {
+      if (connectChainId && connectChainId !== defaultChainId) {
         setDefaultChainId(connectChainId)
       }
     },
