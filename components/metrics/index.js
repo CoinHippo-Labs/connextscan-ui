@@ -5,7 +5,7 @@ import DecimalsFormat from '../decimals-format'
 import Image from '../image'
 import { currency_symbol } from '../../lib/object/currency'
 import { getChain } from '../../lib/object/chain'
-import { numberFormat, loaderColor } from '../../lib/utils'
+import { numberFormat, toArray, loaderColor } from '../../lib/utils'
 
 export default (
   {
@@ -137,7 +137,7 @@ export default (
         <div className={valueClassName}>
           {data ?
             <div className="flex items-center mt-1">
-              {supported_chains
+              {toArray(supported_chains)
                 .map((id, i) => {
                   const {
                     name,
