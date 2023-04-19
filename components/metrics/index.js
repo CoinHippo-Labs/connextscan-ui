@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router'
 import { useSelector, shallowEqual } from 'react-redux'
 import { TailSpin } from 'react-loader-spinner'
 
@@ -31,6 +32,14 @@ export default (
     chains_data,
   } = { ...chains }
 
+  const router = useRouter()
+  const {
+    query,
+  } = { ...router }
+  const {
+    chain,
+  } = { ...query }
+
   const {
     liquidity,
     volume,
@@ -44,7 +53,7 @@ export default (
   const valueClassName = 'uppercase text-3xl font-bold'
 
   return (
-    <div className={`w-full grid grid-flow-row sm:grid-cols-2 lg:grid-cols-${3 + (transfers ? 1 : 0) + (typeof fee === 'number' ? 1 : 0)} gap-5`}>
+    <div className={`w-full grid grid-flow-row sm:grid-cols-2 lg:grid-cols-${2 + (transfers ? 1 : 0) + (chain ? 0 : 1) + (typeof fee === 'number' ? 1 : 0)} gap-5`}>
       <div className={metricClassName}>
         <span className={titleClassName}>
           Liquidity
@@ -130,49 +139,54 @@ export default (
           </div>
         )
       }
-      <div className={metricClassName}>
-        <span className={titleClassName}>
-          Supported Chains
-        </span>
-        <div className={valueClassName}>
-          {data ?
-            <div className="flex items-center mt-1">
-              {toArray(supported_chains)
-                .map((id, i) => {
-                  const {
-                    name,
-                    image,
-                  } = { ...getChain(id, chains_data) }
+      {
+        !chain &&
+        (
+          <div className={metricClassName}>
+            <span className={titleClassName}>
+              Supported Chains
+            </span>
+            <div className={valueClassName}>
+              {data ?
+                <div className="flex items-center mt-1">
+                  {toArray(supported_chains)
+                    .map((id, i) => {
+                      const {
+                        name,
+                        image,
+                      } = { ...getChain(id, chains_data) }
 
-                  return (
-                    image &&
-                    (
-                      <div
-                        key={i}
-                        title={name}
-                        className="mr-1"
-                      >
-                        <Image
-                          src={image}
-                          width={24}
-                          height={24}
-                          className="rounded-full"
-                        />
-                      </div>
-                    )
-                  )
-                })
-                .filter(c => c)
+                      return (
+                        image &&
+                        (
+                          <div
+                            key={i}
+                            title={name}
+                            className="mr-1"
+                          >
+                            <Image
+                              src={image}
+                              width={24}
+                              height={24}
+                              className="rounded-full"
+                            />
+                          </div>
+                        )
+                      )
+                    })
+                    .filter(c => c)
+                  }
+                </div> :
+                <TailSpin
+                  width="32"
+                  height="32"
+                  color={loaderColor(theme)}
+                />
               }
-            </div> :
-            <TailSpin
-              width="32"
-              height="32"
-              color={loaderColor(theme)}
-            />
-          }
-        </div>
-      </div>
+            </div>
+          </div>
+        )
+      }
     </div>
   )
 }
