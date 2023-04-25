@@ -55,6 +55,7 @@ export default () => {
   )
   const {
     theme,
+    page_visible,
   } = { ...preferences }
   const {
     chains_data,
@@ -110,7 +111,7 @@ export default () => {
   useEffect(
     () => {
       const triggering = is_interval => {
-        if (sdk) {
+        if (page_visible && sdk) {
           setFetchTrigger(is_interval ? moment().valueOf() : typeof fetchTrigger === 'number' ? null : 0)
         }
       }
@@ -125,7 +126,7 @@ export default () => {
 
       return () => clearInterval(interval)
     },
-    [sdk, pathname, address, statusSelect, errorStatusSelect],
+    [page_visible, sdk, pathname, address, statusSelect, errorStatusSelect],
   )
 
   useEffect(
