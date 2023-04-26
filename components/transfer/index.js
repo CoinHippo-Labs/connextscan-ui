@@ -748,6 +748,7 @@ export default () => {
                               'transaction_hash',
                               'block_number',
                               'timestamp',
+                              ['reconcile'].includes(s) ? 'message_status' : undefined,
                               'caller',
                               ['xcall'].includes(s) ? 'to' : undefined,
                               ['xcall'].includes(s) ? 'recovery' : s === 'execute' ? 'origin_sender' : undefined,
@@ -768,11 +769,11 @@ export default () => {
                                 {split(f, 'normal', '_').join(' ')}
                               </div>
                               <div className="form-element">
-                                {[undefined, null].includes(data[['recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f === 'relayer_fee' && Object.keys({ ...data[`${f}s`] }).length > 0 ? `${f}s` : f : `${s}_${f}`]) ?
+                                {[undefined, null].includes(data[['message_status', 'recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f === 'relayer_fee' && Object.keys({ ...data[`${f}s`] }).length > 0 ? `${f}s` : f : `${s}_${f}`]) ?
                                   <span className="text-slate-600 dark:text-slate-200">
                                     -
                                   </span> :
-                                  toArray(data[['recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f === 'relayer_fee' && Object.keys({ ...data[`${f}s`] }).length > 0 ? `${f}s` : f : `${s}_${f}`])
+                                  toArray(data[['message_status', 'recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f === 'relayer_fee' && Object.keys({ ...data[`${f}s`] }).length > 0 ? `${f}s` : f : `${s}_${f}`])
                                     .map((v, k) => {
                                       const chain_data = s === 'xcall' ? source_chain_data : destination_chain_data
 
