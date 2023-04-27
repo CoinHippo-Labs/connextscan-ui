@@ -227,7 +227,6 @@ export default () => {
     to,
     xcall_timestamp,
     reconcile_transaction_hash,
-    reconcile_timestamp,
     execute_transaction_hash,
     execute_timestamp,
     status,
@@ -491,7 +490,7 @@ export default () => {
                   <TimeSpent
                     title="Time spent"
                     fromTime={xcall_timestamp}
-                    toTime={_.min(toArray([execute_timestamp, reconcile_timestamp]))}
+                    toTime={execute_timestamp}
                     className={`${errored ? 'text-red-600 dark:text-red-500' : pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}
                   />
                 </div>
