@@ -63,7 +63,6 @@ export default (
   const {
     chain_id,
     provider,
-    browser_provider,
   } = { ...wallet_data }
 
   const [defaultChainId, setDefaultChainId] = useState(null)
@@ -80,7 +79,7 @@ export default (
   useEffect(
     () => {
       if (typeof window !== 'undefined') {
-        if (browser_provider) {
+        if (provider) {
           dispatch(
             {
               type: WALLET_DATA,
@@ -261,7 +260,7 @@ export default (
     !hidden &&
     (
       <>
-        {browser_provider ?
+        {provider ?
           !mainController && connectChainId && connectChainId !== chain_id ?
             <button
               disabled={disabled}
