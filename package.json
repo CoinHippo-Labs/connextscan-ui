@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/CoinHippo-Labs/connextscan-ui#readme",
   "dependencies": {
-    "@connext/sdk": "2.0.2",
+    "@connext/sdk": "2.0.3-alpha.7",
     "@material-tailwind/react": "^1.4.2",
     "@redux-devtools/extension": "^3.2.5",
     "env-cmd": "^10.1.0",
