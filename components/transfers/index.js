@@ -32,7 +32,7 @@ import { getContract } from '../../lib/object/contract'
 import { toArray, ellipse, equalsIgnoreCase, loaderColor } from '../../lib/utils'
 
 const ROUTER_FEE_PERCENT = Number(process.env.NEXT_PUBLIC_ROUTER_FEE_PERCENT)
-const LIMIT = 100
+const LIMIT = 250
 
 export default () => {
   const {
@@ -55,7 +55,6 @@ export default () => {
   )
   const {
     theme,
-    page_visible,
   } = { ...preferences }
   const {
     chains_data,
@@ -111,32 +110,42 @@ export default () => {
   useEffect(
     () => {
       const triggering = is_interval => {
-        if (page_visible && sdk) {
+        if (sdk) {
           setFetchTrigger(is_interval ? moment().valueOf() : typeof fetchTrigger === 'number' ? null : 0)
         }
       }
 
       triggering()
 
-      const interval =
-        setInterval(
-          () => triggering(true),
-          0.3 * 60 * 1000,
-        )
-
+      const interval = setInterval(() => triggering(true), 0.3 * 60 * 1000)
       return () => clearInterval(interval)
     },
-    [page_visible, sdk, pathname, address, statusSelect, errorStatusSelect],
+    [sdk, pathname, address, statusSelect, errorStatusSelect],
+  )
+
+  useEffect(
+    () => {
+      const triggering = is_interval => {
+        if (sdk && (fromChainSelect || toChainSelect || assetSelect)) {
+          setFetchTrigger(`${[fromChainSelect, toChainSelect, assetSelect].join('_')}`)
+        }
+      }
+
+      triggering()
+    },
+    [fromChainSelect, toChainSelect, assetSelect],
   )
 
   useEffect(
     () => {
       const getData = async () => {
         if (sdk) {
-          setFetching(true)
+          setFetching(!fetchTrigger || typeof fetchTrigger === 'string' || toArray(data).length < 1)
 
-          if (!fetchTrigger) {
-            setData(null)
+          if (!fetchTrigger || (![true, 1].includes(fetchTrigger) && typeof fetchTrigger !== 'string')) {
+            if (!fetchTrigger) {
+              setData(null)
+            }
             setOffset(0)
             setNoMore(false)
           }
@@ -146,8 +155,8 @@ export default () => {
           const status = statusSelect
           const errorStatus = errorStatusSelect
           const _data = toArray(!fetchTrigger ? [] : data)
-          const limit = LIMIT
-          const offset = fetchTrigger ? _data.length : 0
+          const limit = LIMIT * (typeof fetchTrigger === 'string' || (fromChainSelect || toChainSelect || assetSelect) ? 3 : 1)
+          const offset = [true, 1].includes(fetchTrigger) ? _data.length : 0
 
           switch (pathname) {
             case '/address/[address]':
@@ -333,7 +342,7 @@ export default () => {
                 })
 
             setData(response)
-            setNoMore(response.length <= _data.length)
+            setNoMore(!offset ? response.length < _data.length : response.length <= _data.length)
           }
           else if (!fetchTrigger) {
             setData([])
@@ -435,6 +444,7 @@ export default () => {
                       pending,
                       errored,
                       xcall_timestamp,
+                      reconcile_timestamp,
                       execute_transaction_hash,
                       execute_timestamp,
                       status,
@@ -563,7 +573,7 @@ export default () => {
                                   <TimeSpent
                                     title="Time spent"
                                     fromTime={xcall_timestamp}
-                                    toTime={execute_timestamp}
+                                    toTime={_.min(toArray([execute_timestamp, reconcile_timestamp]))}
                                     className={`${errored ? 'text-red-600 dark:text-red-500' : pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}
                                   />
                                 </div>
