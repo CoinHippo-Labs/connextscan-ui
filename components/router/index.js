@@ -66,27 +66,8 @@ export default () => {
     () => {
       let _address = address
 
-      if (
-        type(_address) === 'ens' &&
-        Object.values({ ...ens_data })
-          .findIndex(d =>
-            equalsIgnoreCase(
-              d?.name,
-              _address,
-            )
-          ) > -1
-      ) {
-        _address =
-          _.head(
-            Object.entries(ens_data)
-              .find(([k, v]) =>
-                equalsIgnoreCase(
-                  v?.name,
-                  _address,
-                )
-              )
-          )
-
+      if (type(_address) === 'ens' && Object.values({ ...ens_data }).findIndex(d => equalsIgnoreCase(d?.name, _address)) > -1) {
+        _address = _.head(Object.entries(ens_data).find(([k, v]) => equalsIgnoreCase(v?.name, _address)))
         router.push(`/router/${_address}`)
       }
     },
@@ -101,13 +82,7 @@ export default () => {
 
           const data =
             response
-              .filter(d =>
-                equalsIgnoreCase(
-                  d?.address,
-                  address,
-                ) &&
-                getChain(d?.domain, chains_data)
-              )
+              .filter(d => equalsIgnoreCase(d.address, address) && getChain(d.domain, chains_data))
               .map(d => {
                 const {
                   domain,
@@ -167,12 +142,7 @@ export default () => {
 
       getData()
 
-      const interval =
-        setInterval(
-          () => getData(),
-          0.5 * 60 * 1000,
-        )
-
+      const interval = setInterval(() => getData(), 0.5 * 60 * 1000)
       return () => clearInterval(interval)
     },
     [page_visible, address, sdk, chains_data, assets_data, action],
