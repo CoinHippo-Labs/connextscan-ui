@@ -14,7 +14,7 @@ import Chains from './chains'
 import Theme from './theme'
 import SubNavbar from './sub-navbar'
 import { getChains, getAssets } from '../../lib/api/config'
-import { assetsPrice } from '../../lib/api/assets'
+import { getTokensPrice } from '../../lib/api/tokens'
 import { ens as getEns } from '../../lib/api/ens'
 import { getChain } from '../../lib/object/chain'
 import { getAsset } from '../../lib/object/asset'
@@ -164,7 +164,7 @@ export default () => {
             const assets = assets_data.filter(a => !updated_ids.includes(a.id)).map(a => a.id)
 
             if (assets.length > 0) {
-              const response = toArray(await assetsPrice({ assets }))
+              const response = toArray(await getTokensPrice({ assets }))
 
               response.forEach(d => {
                 const index = assets_data.findIndex(a => equalsIgnoreCase(a.id, d?.asset_id))
@@ -228,7 +228,7 @@ export default () => {
             const assets = gas_tokens.filter(t => !updated_ids.includes(t))
 
             if (assets.length > 0) {
-              const response = toArray(await assetsPrice({ assets }))
+              const response = toArray(await getTokensPrice({ assets }))
 
               let data = _.cloneDeep(gas_tokens_price_data)
 
