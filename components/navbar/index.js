@@ -112,18 +112,12 @@ export default () => {
   useEffect(
     () => {
       const getData = async () => {
-        const {
-          evm,
-        } = { ...await getChains() }
-
-        if (evm) {
-          dispatch(
-            {
-              type: CHAINS_DATA,
-              value: evm,
-            }
-          )
-        }
+        dispatch(
+          {
+            type: CHAINS_DATA,
+            value: toArray(await getChains()),
+          }
+        )
       }
 
       getData()
