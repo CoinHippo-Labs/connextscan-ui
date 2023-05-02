@@ -199,7 +199,6 @@
     "unwrapper_contract": "0x2Eee7cB087c0430e40991f7E37De44Ec248a9F45",
     "coingecko_id": "",
     "gas_coingecko_id": "ethereum",
-    "gas_price": "1500000000",
     "rpc_urls": null
   },
   {
