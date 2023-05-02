@@ -36,7 +36,8 @@
     "image": "/logos/chains/ethereum.png",
     "color": "#636890",
     "unwrapper_contract": "0x268682b7D9992aE7e2ca4A8bCc9D9655FB06056F",
-    "coingecko_id" : "ethereum"
+    "coingecko_id" : "ethereum",
+    "rpc_urls": null
   },
   {
     "id": "binance",
@@ -76,7 +77,8 @@
     "image": "/logos/chains/binance.png",
     "color": "#e8b30b",
     "unwrapper_contract": "0x2c7B8c1a13F2a7854B9299E4d22809A8B1E05De5",
-    "coingecko_id" : "binancecoin"
+    "coingecko_id" : "binancecoin",
+    "rpc_urls": null
   },
   {
     "id": "polygon",
@@ -118,7 +120,8 @@
     "image": "/logos/chains/polygon.png",
     "color": "#8247e5",
     "unwrapper_contract": "0x7E8F8B2dA3dc5Ad9c9Dfd1A832331A039d4f3f74",
-    "coingecko_id" : "matic-network"
+    "coingecko_id" : "matic-network",
+    "rpc_urls": null
   },
   {
     "id": "optimism",
@@ -159,7 +162,8 @@
     "color": "#dc2626",
     "unwrapper_contract": "0x7Fe09d217d646a6213e51b237670Bc326188cB93",
     "coingecko_id" : "optimism",
-    "gas_coingecko_id" : "ethereum"
+    "gas_coingecko_id" : "ethereum",
+    "rpc_urls": null
   },
   {
     "id": "arbitrum",
@@ -201,7 +205,8 @@
     "color": "#28a0f0",
     "unwrapper_contract": "0x429b9eb01362b2799131EfCC44319689b662999D",
     "coingecko_id" : "arbitrum",
-    "gas_coingecko_id" : "ethereum"
+    "gas_coingecko_id" : "ethereum",
+    "rpc_urls": null
   },
   {
     "id": "gnosis",
@@ -245,6 +250,7 @@
     "color": "#48a9a6",
     "unwrapper_contract": "0x642c27a96dFFB6f21443A89b789a3194Ff8399fa",
     "coingecko_id" : "gnosis",
-    "gas_coingecko_id" : "xdai"
+    "gas_coingecko_id" : "xdai",
+    "rpc_urls": null
   }
 ]

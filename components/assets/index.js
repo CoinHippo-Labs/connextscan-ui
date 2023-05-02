@@ -107,32 +107,10 @@ export default (
             } = { ...asset_data }
 
             const contract_addresses = toArray(_.concat(next_asset?.contract_address, contract_address))
-
-            const _data =
-              toArray(data)
-                .filter(d =>
-                  d?.chain_id === chain_id &&
-                  contract_addresses
-                    .findIndex(a =>
-                      equalsIgnoreCase(
-                        d?.contract_address,
-                        a,
-                      )
-                    ) > -1
-                )
-
+            const _data = toArray(data).filter(d => d.chain_id === chain_id && contract_addresses.findIndex(a => equalsIgnoreCase(d.contract_address, a)) > -1)
             const contract_data = _.head(_data)
 
-            if (
-              next_asset &&
-              (
-                !contract_data?.contract_address ||
-                equalsIgnoreCase(
-                  next_asset.contract_address,
-                  contract_data.contract_address,
-                )
-              )
-            ) {
+            if (next_asset && (!contract_data?.contract_address || equalsIgnoreCase(next_asset.contract_address, contract_data.contract_address))) {
               asset_data = {
                 ...asset_data,
                 ...next_asset,
