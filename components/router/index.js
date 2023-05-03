@@ -153,7 +153,7 @@ export default () => {
       const getData = async () => {
         if (sdk && chains_data && assets_data) {
           const volumes =
-            toArray(await daily_transfer_volume({ router: `eq.${address}` }))
+            toArray(await daily_transfer_volume({ router: `eq.${address?.toLowerCase()}` }))
               .filter(v => v.transfer_date)
               .map(v => {
                 const {
@@ -204,7 +204,7 @@ export default () => {
               })
 
           const transfers =
-            toArray(await daily_transfer_metrics({ router: `eq.${address}` }))
+            toArray(await daily_transfer_metrics({ router: `eq.${address?.toLowerCase()}` }))
               .filter(t => t.transfer_date)
               .map(t => {
                 const {
