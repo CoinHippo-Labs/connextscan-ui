@@ -78,6 +78,7 @@ export default () => {
                   destination_chain,
                   asset,
                   volume,
+                  usd_volume,
                 } = { ...v }
 
                 const origin_chain_data = getChain(origin_chain, chains_data)
@@ -116,7 +117,7 @@ export default () => {
                   destination_chain_data,
                   asset_data,
                   amount,
-                  volume: amount * (price || 0),
+                  volume: usd_volume || (amount * (price || 0)),
                 }
               })
 
