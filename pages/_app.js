@@ -98,7 +98,7 @@ export default (
           name="theme-color"
           content="#050707"
         />
-        {/*
+        {
           process.env.NEXT_PUBLIC_GA_TRACKING_ID &&
           (
             <>
@@ -122,7 +122,7 @@ export default (
               />
             </>
           )
-        */}
+        }
       </Head>
       <Provider store={store}>
         <Layout>
