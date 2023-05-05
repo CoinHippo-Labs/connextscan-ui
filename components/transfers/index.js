@@ -188,10 +188,7 @@ export default () => {
           if (Array.isArray(response)) {
             response =
               _.orderBy(
-                _.uniqBy(
-                  _.concat(_data, response),
-                  'transfer_id',
-                ),
+                _.uniqBy(_.concat(_data, response), 'transfer_id'),
                 ['xcall_timestamp'],
                 ['desc'],
               )
@@ -311,24 +308,8 @@ export default () => {
                     destination_decimals,
                   } = { ...t }
 
-                  const source_amount =
-                    origin_transacting_amount &&
-                    Number(
-                      utils.formatUnits(
-                        BigInt(origin_transacting_amount).toString(),
-                        source_decimals,
-                      )
-                    )
-
-                  const destination_amount =
-                    destination_transacting_amount ?
-                      Number(
-                        utils.formatUnits(
-                          BigInt(destination_transacting_amount).toString(),
-                          destination_decimals,
-                        )
-                      ) :
-                      source_amount * (1 - ROUTER_FEE_PERCENT / 100)
+                  const source_amount = origin_transacting_amount && Number(utils.formatUnits(BigInt(origin_transacting_amount).toString(), source_decimals))
+                  const destination_amount = destination_transacting_amount ? Number(utils.formatUnits(BigInt(destination_transacting_amount).toString(), destination_decimals)) : source_amount * (1 - ROUTER_FEE_PERCENT / 100)
 
                   return {
                     ...t,
@@ -422,10 +403,7 @@ export default () => {
                 {
                   Header: '#',
                   accessor: 'i',
-                  sortType: (a, b) =>
-                    a.original.i > b.original.i ?
-                      1 :
-                      -1,
+                  sortType: (a, b) => a.original.i > b.original.i ? 1 : -1,
                   Cell: props => (
                     <div className="font-semibold mt-0.5">
                       {(props.flatRows?.indexOf(props.row) > -1 ? props.flatRows.indexOf(props.row) : props.value) + 1}
@@ -816,13 +794,7 @@ export default () => {
                                 {
                                   source_asset_data.contract_address &&
                                   (
-                                    <AddToken
-                                      token_data={
-                                        {
-                                          ...source_asset_data,
-                                        }
-                                      }
-                                    />
+                                    <AddToken token_data={{ ...source_asset_data }} />
                                   )
                                 }
                               </>
@@ -958,13 +930,7 @@ export default () => {
                                 {
                                   destination_asset_data.contract_address &&
                                   (
-                                    <AddToken
-                                      token_data={
-                                        {
-                                          ...destination_asset_data,
-                                        }
-                                      }
-                                    />
+                                    <AddToken token_data={{ ...destination_asset_data }} />
                                   )
                                 }
                               </>
@@ -1073,10 +1039,7 @@ export default () => {
                   headerClassName: 'whitespace-nowrap',
                 },
               ]
-              .filter(c =>
-                !address || ['/address/[address]'].includes(pathname) ||
-                !['xcall_timestamp','status', 'xcall_status', 'error_status'].includes(c.accessor)
-              )
+              .filter(c => !address || ['/address/[address]'].includes(pathname) || !['xcall_timestamp', 'status', 'xcall_status', 'error_status'].includes(c.accessor))
             }
             size="small"
             data={data_filtered}

@@ -82,7 +82,7 @@ export default () => {
           status,
         } = { ...data }
 
-        if (page_visible && sdk && tx && (!is_interval || !data || ![XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status))) {
+        if (page_visible && sdk && tx && (is_interval || !data || ![XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status))) {
           let response = toArray(await sdk.sdkUtils.getTransfers({ transferId: tx }))
           let _data = _.head(response)
 
@@ -204,12 +204,7 @@ export default () => {
 
       getData()
 
-      const interval =
-        setInterval(
-          () => getData(true),
-          0.25 * 60 * 1000,
-        )
-
+      const interval = setInterval(() => getData(true), 0.25 * 60 * 1000)
       return () => clearInterval(interval)
     },
     [page_visible, sdk, tx]
@@ -247,34 +242,10 @@ export default () => {
   const destination_symbol = destination_asset_data?.symbol
   const destination_asset_image = destination_asset_data?.image
 
-  const source_amount =
-    origin_transacting_amount &&
-    Number(
-      utils.formatUnits(
-        BigInt(origin_transacting_amount).toString(),
-        source_decimals,
-      )
-    )
+  const source_amount = origin_transacting_amount && Number(utils.formatUnits(BigInt(origin_transacting_amount).toString(), source_decimals))
+  const destination_amount = destination_transacting_amount ? Number(utils.formatUnits(BigInt(destination_transacting_amount).toString(), destination_decimals)) : source_amount * (1 - ROUTER_FEE_PERCENT / 100)
 
-  const destination_amount =
-    destination_transacting_amount ?
-      Number(
-        utils.formatUnits(
-          BigInt(destination_transacting_amount).toString(),
-          destination_decimals,
-        )
-      ) :
-      source_amount * (1 - ROUTER_FEE_PERCENT / 100)
-
-  const details =
-    _.concat(
-      ['xcall'],
-      routers?.length > 0 ?
-        ['execute', 'reconcile'] :
-        ['reconcile', 'execute'],
-    )
-    .filter(s => s !== 'reconcile' || reconcile_transaction_hash || execute_transaction_hash)
-
+  const details = _.concat('xcall', routers?.length > 0 ? ['execute', 'reconcile'] : ['reconcile', 'execute']).filter(s => s !== 'reconcile' || reconcile_transaction_hash || execute_transaction_hash)
   const id = transfer_id || tx
   const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, transfer_id) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
 
@@ -403,13 +374,7 @@ export default () => {
                                 </span>
                               )
                             }
-                            <AddToken
-                              token_data={
-                                {
-                                  ...source_asset_data,
-                                }
-                              }
-                            />
+                            <AddToken token_data={{ ...source_asset_data }} />
                           </>
                         )
                       }
@@ -537,13 +502,7 @@ export default () => {
                                 </span>
                               )
                             }
-                            <AddToken
-                              token_data={
-                                {
-                                  ...destination_asset_data,
-                                }
-                              }
-                            />
+                            <AddToken token_data={{ ...destination_asset_data }} />
                           </>
                         )
                       }
@@ -915,23 +874,22 @@ export default () => {
                                               </span>
                                           break
                                         case 'to':
-                                          _v =
-                                            (
-                                              <EnsProfile
-                                                address={v}
-                                                noCopy={true}
-                                                fallback={
-                                                  <>
-                                                    <span className="lg:hidden">
-                                                      {ellipse(v, 10)}
-                                                    </span>
-                                                    <span className="hidden lg:block">
-                                                      {ellipse(v, 12)}
-                                                    </span>
-                                                  </>
-                                                }
-                                              />
-                                            )
+                                          _v = (
+                                            <EnsProfile
+                                              address={v}
+                                              noCopy={true}
+                                              fallback={
+                                                <>
+                                                  <span className="lg:hidden">
+                                                    {ellipse(v, 10)}
+                                                  </span>
+                                                  <span className="hidden lg:block">
+                                                    {ellipse(v, 12)}
+                                                  </span>
+                                                </>
+                                              }
+                                            />
+                                          )
 
                                           component =
                                             v ?
@@ -957,23 +915,22 @@ export default () => {
                                               </span>
                                           break
                                         case 'simulation_from':
-                                          _v =
-                                            (
-                                              <EnsProfile
-                                                address={v}
-                                                noCopy={true}
-                                                fallback={
-                                                  <>
-                                                    <span className="lg:hidden">
-                                                      {ellipse(v, 10)}
-                                                    </span>
-                                                    <span className="hidden lg:block">
-                                                      {ellipse(v, 12)}
-                                                    </span>
-                                                  </>
-                                                }
-                                              />
-                                            )
+                                          _v = (
+                                            <EnsProfile
+                                              address={v}
+                                              noCopy={true}
+                                              fallback={
+                                                <>
+                                                  <span className="lg:hidden">
+                                                    {ellipse(v, 10)}
+                                                  </span>
+                                                  <span className="hidden lg:block">
+                                                    {ellipse(v, 12)}
+                                                  </span>
+                                                </>
+                                              }
+                                            />
+                                          )
 
                                           component =
                                             v ?
