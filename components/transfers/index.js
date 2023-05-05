@@ -281,6 +281,7 @@ export default () => {
                   }
 
                   const destination_decimals = destination_contract_data?.decimals || 18
+                  const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, value) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
 
                   return {
                     ...t,
@@ -297,7 +298,7 @@ export default () => {
                     source_decimals,
                     destination_decimals,
                     pending: ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status),
-                    errored: error_status && !execute_transaction_hash && [XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status),
+                    errored: error_status && !execute_transaction_hash && [XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status) && !(bumped && error_status === XTransferErrorStatus.ExecutionError),
                   }
                 })
                 .map(t => {
@@ -508,15 +509,15 @@ export default () => {
                                       buttonTitle={
                                         <Tooltip
                                           placement="top"
-                                          content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transfer is not getting boosted by routers (fast path) and will complete in slow path eventually, if no new bids are received till the end.' : bumped ? 'Waiting for bump' : error_status}
+                                          content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transfer is not getting boosted by routers (fast path) and will complete in slow path eventually, if no new bids are received till the end.' : bumped ? 'Processing' : error_status}
                                           className="z-50 bg-dark text-white text-xs"
                                         >
                                           <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
                                             <IoWarning
                                               size={20}
                                             />
-                                            <span className="normal-case font-bold">
-                                              {bumped ? 'Waiting for bump' : error_status}
+                                            <span className={`normal-case ${bumped ? 'text-blue-500 dark:text-blue-300' : ''} font-bold`}>
+                                              {bumped ? 'Processing' : error_status}
                                             </span>
                                           </div>
                                         </Tooltip>
@@ -648,15 +649,15 @@ export default () => {
                               buttonTitle={
                                 <Tooltip
                                   placement="top"
-                                  content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transfer is not getting boosted by routers (fast path) and will complete in slow path eventually, if no new bids are received till the end.' : bumped ? 'Waiting for bump' : error_status}
+                                  content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transfer is not getting boosted by routers (fast path) and will complete in slow path eventually, if no new bids are received till the end.' : bumped ? 'Processing' : error_status}
                                   className="z-50 bg-dark text-white text-xs"
                                 >
                                   <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
                                     <IoWarning
                                       size={20}
                                     />
-                                    <span className="normal-case font-bold">
-                                      {bumped ? 'Waiting for bump' : error_status}
+                                    <span className={`normal-case ${bumped ? 'text-blue-500 dark:text-blue-300' : ''} font-bold`}>
+                                      {bumped ? 'Processing' : error_status}
                                     </span>
                                   </div>
                                 </Tooltip>
@@ -1063,7 +1064,7 @@ export default () => {
                       <div className="flex flex-col items-start space-y-1 mt-0.5">
                         <Link href={`/tx/${transfer_id}`}>
                           <div className="normal-case font-bold">
-                            {(bumped ? 'Waiting for bump' : value) || '-'}
+                            {(bumped ? 'Processing' : value) || '-'}
                           </div>
                         </Link>
                       </div>

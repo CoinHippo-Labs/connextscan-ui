@@ -174,6 +174,7 @@ export default () => {
             }
 
             const destination_decimals = destination_contract_data?.decimals || 18
+            const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, transfer_id) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
 
             setData(
               {
@@ -191,7 +192,7 @@ export default () => {
                 source_decimals,
                 destination_decimals,
                 pending: ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status),
-                errored: error_status && !execute_transaction_hash && [XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status),
+                errored: error_status && !execute_transaction_hash && [XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status) && !(bumped && error_status === XTransferErrorStatus.ExecutionError),
               }
             )
           }
@@ -275,7 +276,6 @@ export default () => {
     .filter(s => s !== 'reconcile' || reconcile_transaction_hash || execute_transaction_hash)
 
   const id = transfer_id || tx
-
   const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, transfer_id) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
 
   return (
@@ -426,15 +426,20 @@ export default () => {
                         buttonTitle={
                           <Tooltip
                             placement="top"
-                            content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transfer is not getting boosted by routers (fast path) and will complete in slow path eventually, if no new bids are received till the end.' : bumped ? 'Waiting for bump' : error_status}
+                            content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transfer is not getting boosted by routers (fast path) and will complete in slow path eventually, if no new bids are received till the end.' : bumped ? 'Processing' : error_status}
                             className="z-50 bg-dark text-white text-xs"
                           >
                             <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
-                              <IoWarning
-                                size={24}
-                              />
-                              <span className="normal-case text-base font-bold">
-                                {[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) ? error_status : bumped ? 'Waiting for bump' : error_status}
+                              {
+                                !bumped &&
+                                (
+                                  <IoWarning
+                                    size={24}
+                                  />
+                                )
+                              }
+                              <span className={`normal-case ${bumped ? 'text-blue-500 dark:text-blue-300' : ''} text-base font-bold`}>
+                                {[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) ? error_status : bumped ? 'Processing' : error_status}
                               </span>
                             </div>
                           </Tooltip>
@@ -694,14 +699,21 @@ export default () => {
                                   buttonTitle={
                                     <Tooltip
                                       placement="top"
-                                      content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transfer is not getting boosted by routers (fast path) and will complete in slow path eventually, if no new bids are received till the end.' : bumped ? 'Waiting for bump' : error_status}
+                                      content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transfer is not getting boosted by routers (fast path) and will complete in slow path eventually, if no new bids are received till the end.' : bumped ? 'Processing' : error_status}
                                       className="z-50 bg-dark text-white text-xs"
                                     >
                                       <div>
-                                        <IoWarning
-                                          size={32}
-                                          className="text-red-600 dark:text-red-500"
-                                        />
+                                        {bumped ?
+                                          <TailSpin
+                                            width="32"
+                                            height="32"
+                                            color={loaderColor(theme)}
+                                          /> :
+                                          <IoWarning
+                                            size={32}
+                                            className="text-red-600 dark:text-red-500"
+                                          />
+                                        }
                                       </div>
                                     </Tooltip>
                                   }
