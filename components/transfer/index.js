@@ -82,7 +82,7 @@ export default () => {
           status,
         } = { ...data }
 
-        if (page_visible && sdk && tx && (is_interval || !data || ![XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status))) {
+        if (page_visible && sdk && tx && (!data || ![XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status))) {
           let response = toArray(await sdk.sdkUtils.getTransfers({ transferId: tx }))
           let _data = _.head(response)
 
