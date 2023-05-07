@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
+import moment from 'moment'
 import { utils } from 'ethers'
 import { TailSpin } from 'react-loader-spinner'
 
@@ -19,6 +20,8 @@ import { getChain } from '../../lib/object/chain'
 import { getAsset } from '../../lib/object/asset'
 import { getContract } from '../../lib/object/contract'
 import { toArray, ellipse, equalsIgnoreCase, loaderColor } from '../../lib/utils'
+
+const NUM_STATS_DAYS = Number(process.env.NEXT_PUBLIC_NUM_STATS_DAYS)
 
 export default () => {
   const {
@@ -69,8 +72,10 @@ export default () => {
     () => {
       const getData = async () => {
         if (sdk && chains_data && assets_data) {
+          const transfer_date = `gt.${moment().subtract(NUM_STATS_DAYS, 'days').startOf('day').format('YYYY-MM-DD')}`
+
           const volumes =
-            toArray(await daily_transfer_volume())
+            toArray(await daily_transfer_volume({ transfer_date }))
               .filter(v => v.transfer_date)
               .map(v => {
                 const {
@@ -122,7 +127,7 @@ export default () => {
               })
 
           const transfers =
-            toArray(await daily_transfer_metrics())
+            toArray(await daily_transfer_metrics({ transfer_date }))
               .filter(t => t.transfer_date)
               .map(t => {
                 const {
@@ -551,7 +556,7 @@ export default () => {
                   headerClassName: 'whitespace-nowrap justify-end text-right',
                 },
                 {
-                  Header: 'Volume',
+                  Header: `Volume ${NUM_STATS_DAYS}D`,
                   accessor: 'total_volume',
                   sortType: (a, b) => a.original.total_volume > b.original.total_volume ? 1 : -1,
                   Cell: props => {

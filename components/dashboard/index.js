@@ -50,17 +50,27 @@ export default () => {
     sdk,
   } = { ...dev }
 
-  const [timeframe, setTimeframe] = useState(null)
+  const [timeframe, setTimeframe] = useState(timeframes[1].day)
   const [data, setData] = useState(null)
 
   useEffect(
     () => {
       const getData = async () => {
         if (sdk && chains_data && assets_data) {
+          if (data) {
+            setData(null)
+          }
+
           const _timeframe = timeframes.find(t => t?.day === timeframe)
 
+          const filters = {}
+
+          if (_timeframe?.day) {
+            filters.transfer_date = `gt.${moment().subtract(_timeframe.day, 'days').startOf('day').format('YYYY-MM-DD')}`
+          }
+
           const volumes =
-            toArray(await daily_transfer_volume())
+            toArray(await daily_transfer_volume(filters))
               .filter(v => v.transfer_date)
               .map((v, i) => {
                 const {
@@ -114,7 +124,7 @@ export default () => {
               })
 
           const transfers =
-            toArray(await daily_transfer_metrics())
+            toArray(await daily_transfer_metrics(filters))
               .filter(t => t.transfer_date)
               .map(t => {
                 const {

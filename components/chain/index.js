@@ -63,7 +63,7 @@ export default () => {
   } = { ...query }
 
   const [liquidity, setLiquidity] = useState(null)
-  const [timeframe, setTimeframe] = useState(null)
+  const [timeframe, setTimeframe] = useState(timeframes[1].day)
   const [data, setData] = useState(null)
 
   useEffect(
@@ -130,12 +130,7 @@ export default () => {
 
       getData()
 
-      const interval =
-        setInterval(
-          () => getData(),
-          0.5 * 60 * 1000,
-        )
-
+      const interval = setInterval(() => getData(), 0.5 * 60 * 1000)
       return () => clearInterval(interval)
     },
     [page_visible, chain, sdk, chains_data, assets_data, pools_data],
@@ -145,16 +140,25 @@ export default () => {
     () => {
       const getData = async () => {
         if (page_visible && chain && sdk && chains_data && assets_data) {
-          const _timeframe = timeframes.find(t => t?.day === timeframe)
+          if (data) {
+            setData(null)
+          }
 
+          const _timeframe = timeframes.find(t => t?.day === timeframe)
           const chain_data = getChain(chain, chains_data)
 
           const {
             domain_id,
           } = { ...chain_data }
 
+          const filters = { destination_chain: `eq.${domain_id}` }
+
+          if (_timeframe?.day) {
+            filters.transfer_date = `gt.${moment().subtract(_timeframe.day, 'days').startOf('day').format('YYYY-MM-DD')}`
+          }
+
           const volumes =
-            toArray(await daily_transfer_volume({ destination_chain: `eq.${domain_id}` }))
+            toArray(await daily_transfer_volume(filters))
               .filter(v => v.transfer_date)
               .map(v => {
                 const {
@@ -208,7 +212,7 @@ export default () => {
               })
 
           const transfers =
-            toArray(await daily_transfer_metrics({ destination_chain: `eq.${domain_id}` }))
+            toArray(await daily_transfer_metrics(filters))
               .filter(t => t.transfer_date)
               .map(t => {
                 const {
@@ -294,6 +298,7 @@ export default () => {
       <div className="mb-6">
         <Metrics
           data={metrics}
+          num_stats_days={timeframe}
         />
       </div>
       <div className="grid lg:grid-cols-4 gap-4 mt-2 mb-6 mx-auto">

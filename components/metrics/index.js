@@ -8,9 +8,12 @@ import { currency_symbol } from '../../lib/object/currency'
 import { getChain } from '../../lib/object/chain'
 import { numberFormat, toArray, loaderColor } from '../../lib/utils'
 
+const NUM_STATS_DAYS = Number(process.env.NEXT_PUBLIC_NUM_STATS_DAYS)
+
 export default (
   {
     data,
+    num_stats_days = NUM_STATS_DAYS,
   },
 ) => {
   const {
@@ -75,7 +78,7 @@ export default (
       </div>
       <div className={metricClassName}>
         <span className={titleClassName}>
-          Volume
+          Volume {num_stats_days ? `${num_stats_days}D` : ''}
         </span>
         <div>
           {data ?

@@ -2,6 +2,7 @@ import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
+import moment from 'moment'
 import { utils } from 'ethers'
 
 import Metrics from '../metrics'
@@ -14,6 +15,8 @@ import { getChain } from '../../lib/object/chain'
 import { getAsset } from '../../lib/object/asset'
 import { getContract } from '../../lib/object/contract'
 import { toArray, equalsIgnoreCase } from '../../lib/utils'
+
+const NUM_STATS_DAYS = Number(process.env.NEXT_PUBLIC_NUM_STATS_DAYS)
 
 export default () => {
   const {
@@ -152,8 +155,10 @@ export default () => {
     () => {
       const getData = async () => {
         if (sdk && chains_data && assets_data) {
+          const transfer_date = `gt.${moment().subtract(NUM_STATS_DAYS, 'days').startOf('day').format('YYYY-MM-DD')}`
+
           const volumes =
-            toArray(await daily_transfer_volume({ router: `eq.${address?.toLowerCase()}` }))
+            toArray(await daily_transfer_volume({ router: `eq.${address?.toLowerCase()}`, transfer_date }))
               .filter(v => v.transfer_date)
               .map(v => {
                 const {
@@ -204,7 +209,7 @@ export default () => {
               })
 
           const transfers =
-            toArray(await daily_transfer_metrics({ router: `eq.${address?.toLowerCase()}` }))
+            toArray(await daily_transfer_metrics({ router: `eq.${address?.toLowerCase()}`, transfer_date }))
               .filter(t => t.transfer_date)
               .map(t => {
                 const {
