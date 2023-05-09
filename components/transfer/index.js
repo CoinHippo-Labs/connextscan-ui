@@ -653,7 +653,6 @@ export default () => {
                               s === 'execute' ?
                                 <ActionRequired
                                   forceDisabled={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) || bumped}
-                                  initialHidden={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) || bumped}
                                   transferData={data}
                                   buttonTitle={
                                     <Tooltip
