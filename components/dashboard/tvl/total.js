@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
+import { Tooltip } from '@material-tailwind/react'
 import { TailSpin } from 'react-loader-spinner'
 
 import DecimalsFormat from '../../decimals-format'
@@ -65,7 +66,7 @@ export default () => {
                   ['desc'],
                 ),
                 0,
-                3,
+                5,
               ),
             top_assets:
               _.slice(
@@ -90,7 +91,7 @@ export default () => {
                   ['desc'],
                 ),
                 0,
-                3,
+                5,
               ),
           }
         )
@@ -148,7 +149,7 @@ export default () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between space-x-2">
               <span className="whitespace-nowrap uppercase text-slate-400 dark:text-slate-200 font-bold">
-                Top 3 chains
+                Top 5 chains
               </span>
               <div className="flex items-center space-x-1.5">
                 {toArray(top_chains)
@@ -165,15 +166,16 @@ export default () => {
                         key={i}
                         href={`/${id}`}
                       >
-                        <div className="flex items-center">
-                          <Image
-                            src={image}
-                            title={name}
-                            width={20}
-                            height={20}
-                            className="rounded-full"
-                          />
-                        </div>
+                        <Tooltip content={name}>
+                          <div className="flex items-center">
+                            <Image
+                              src={image}
+                              width={20}
+                              height={20}
+                              className="rounded-full"
+                            />
+                          </div>
+                        </Tooltip>
                       </Link>
                     )
                   })
@@ -182,9 +184,9 @@ export default () => {
             </div>
             <div className="flex items-center justify-between space-x-2">
               <span className="whitespace-nowrap uppercase text-slate-400 dark:text-slate-200 font-bold">
-                Top 3 tokens
+                Top 5 tokens
               </span>
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center space-x-1.5">
                 {toArray(top_assets)
                   .filter(a => a.symbol)
                   .map((a, i) => {
@@ -194,7 +196,19 @@ export default () => {
                     } = { ...a }
 
                     return (
-                      <div
+                      <div key={i}>
+                        <Tooltip content={symbol}>
+                          <div className="flex items-center">
+                            <Image
+                              src={image}
+                              width={20}
+                              height={20}
+                              className="rounded-full"
+                            />
+                          </div>
+                        </Tooltip>
+                      </div>
+                      /*<div
                         key={i}
                         className="min-w-max bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center space-x-1 py-0.5 px-1.5"
                       >
@@ -208,7 +222,7 @@ export default () => {
                         <span className="text-sm font-semibold">
                           {symbol}
                         </span>
-                      </div>
+                      </div>*/
                     )
                   })
                 }
