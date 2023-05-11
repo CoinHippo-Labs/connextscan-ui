@@ -13,6 +13,7 @@ import { IoWarning } from 'react-icons/io5'
 import { BsLightningChargeFill } from 'react-icons/bs'
 import { BiInfoCircle } from 'react-icons/bi'
 import { AiTwotoneFile } from 'react-icons/ai'
+import { MdInfoOutline } from 'react-icons/md'
 
 import ActionRequired from '../action-required'
 import AddToken from '../add-token'
@@ -393,20 +394,17 @@ export default () => {
                         buttonTitle={
                           <Tooltip
                             placement="top"
-                            content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transfer is not getting boosted by routers (fast path) and will complete in slow path eventually, if no new bids are received till the end.' : bumped ? 'Processing' : error_status}
+                            content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transaction will complete within 120 minutes.' : bumped ? 'Processing' : error_status}
                             className="z-50 bg-dark text-white text-xs"
                           >
-                            <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
-                              {
-                                !bumped &&
-                                (
-                                  <IoWarning
-                                    size={24}
-                                  />
-                                )
-                              }
+                            <div className={`flex items-center ${error_status === XTransferErrorStatus.NoBidsReceived ? 'text-slate-600 dark:text-slate-200' : 'text-red-600 dark:text-red-500'} space-x-1`}>
+                              {!bumped && (
+                                error_status === XTransferErrorStatus.NoBidsReceived ?
+                                  <MdInfoOutline size={24} /> :
+                                  <IoWarning size={24} />
+                              )}
                               <span className={`normal-case ${bumped ? 'text-blue-500 dark:text-blue-300' : ''} text-base font-bold`}>
-                                {[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) ? error_status : bumped ? 'Processing' : error_status}
+                                {[XTransferErrorStatus.ExecutionError].includes(error_status) ? error_status : error_status === XTransferErrorStatus.NoBidsReceived ? 'Boost liquidity not available' : bumped ? 'Processing' : error_status}
                               </span>
                             </div>
                           </Tooltip>
@@ -464,7 +462,7 @@ export default () => {
                     title="Time spent"
                     fromTime={xcall_timestamp}
                     toTime={execute_timestamp}
-                    className={`${errored ? 'text-red-600 dark:text-red-500' : pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}
+                    className={`${errored ? error_status === XTransferErrorStatus.NoBidsReceived ? 'text-slate-600 dark:text-slate-200' : 'text-red-600 dark:text-red-500' : pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-600 dark:text-yellow-400'} font-semibold`}
                   />
                 </div>
                 <div className="grid grid-cols-1 xl:grid-cols-2 items-center gap-8 sm:gap-4 xl:gap-8">
@@ -659,7 +657,7 @@ export default () => {
                                   buttonTitle={
                                     <Tooltip
                                       placement="top"
-                                      content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transfer is not getting boosted by routers (fast path) and will complete in slow path eventually, if no new bids are received till the end.' : bumped ? 'Processing' : error_status}
+                                      content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transaction will complete within 120 minutes.' : bumped ? 'Processing' : error_status}
                                       className="z-50 bg-dark text-white text-xs"
                                     >
                                       <div>
@@ -669,10 +667,12 @@ export default () => {
                                             height="32"
                                             color={loaderColor(theme)}
                                           /> :
-                                          <IoWarning
-                                            size={32}
-                                            className="text-red-600 dark:text-red-500"
-                                          />
+                                          error_status === XTransferErrorStatus.NoBidsReceived ?
+                                            <MdInfoOutline size={24} className="text-slate-400 dark:text-slate-500" /> :
+                                            <IoWarning
+                                              size={32}
+                                              className="text-red-600 dark:text-red-500"
+                                            />
                                         }
                                       </div>
                                     </Tooltip>
