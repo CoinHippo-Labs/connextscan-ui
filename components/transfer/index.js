@@ -1013,7 +1013,7 @@ export default () => {
                                             v ?
                                               <div className="flex items-start space-x-1">
                                                 <div className="bg-slate-50 dark:bg-slate-800 rounded break-all p-2">
-                                                  {v}
+                                                  {ellipse(v, 53)}
                                                 </div>
                                                 <div className="mt-2.5">
                                                   <Copy
