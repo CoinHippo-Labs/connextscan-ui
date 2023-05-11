@@ -302,13 +302,15 @@ export default () => {
                   const {
                     source_asset_data,
                     destination_asset_data,
+                    origin_transacting_asset,
                     origin_transacting_amount,
                     destination_transacting_amount,
                     source_decimals,
                     destination_decimals,
+                    relayer_fees,
                   } = { ...t }
 
-                  const source_amount = origin_transacting_amount && Number(utils.formatUnits(BigInt(origin_transacting_amount).toString(), source_decimals))
+                  const source_amount = origin_transacting_amount && Number(utils.formatUnits((BigInt(origin_transacting_amount) + BigInt(relayer_fees?.[origin_transacting_asset] || 0)).toString(), source_decimals))
                   const destination_amount = destination_transacting_amount ? Number(utils.formatUnits(BigInt(destination_transacting_amount).toString(), destination_decimals)) : source_amount * (1 - ROUTER_FEE_PERCENT / 100)
 
                   return {
