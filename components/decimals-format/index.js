@@ -6,6 +6,7 @@ import { split, numberFormat } from '../../lib/utils'
 export default (
   {
     value,
+    format = '0,0.00',
     delimiter = '.',
     maxDecimals,
     prefix = '',
@@ -89,10 +90,10 @@ export default (
   }
 
   if (_value && Number(_value) >= 1000) {
-    _value = numberFormat(_value, '0,0.00', true)
+    _value = numberFormat(_value, format, true)
   }
   else if (value && Number(value) >= 1000) {
-    value = numberFormat(value, '0,0.00', true)
+    value = numberFormat(value, format, true)
   }
 
   return (

@@ -7,19 +7,21 @@ import moment from 'moment'
 import { utils } from 'ethers'
 import { TailSpin } from 'react-loader-spinner'
 
+import TVLChart from './tvl/chart'
 import Metrics from '../metrics'
 import Copy from '../copy'
 import Datatable from '../datatable'
 import DecimalsFormat from '../decimals-format'
 import EnsProfile from '../ens-profile'
 import Image from '../image'
+import { ProgressBar } from '../progress-bars'
 
 import { daily_transfer_metrics, daily_transfer_volume } from '../../lib/api/metrics'
 import { currency_symbol } from '../../lib/object/currency'
 import { getChain } from '../../lib/object/chain'
 import { getAsset } from '../../lib/object/asset'
 import { getContract } from '../../lib/object/contract'
-import { toArray, ellipse, equalsIgnoreCase, loaderColor } from '../../lib/utils'
+import { toArray, numberFormat, ellipse, equalsIgnoreCase, loaderColor } from '../../lib/utils'
 
 const NUM_STATS_DAYS = Number(process.env.NEXT_PUBLIC_NUM_STATS_DAYS)
 
@@ -264,6 +266,22 @@ export default () => {
       <div className="mb-6">
         <Metrics data={metrics} />
       </div>
+      {metrics && mode && (
+        <div className="grid sm:grid-cols-2 gap-4 my-4 my-6">
+          <TVLChart
+            title="By asset"
+            description="Total Value Locked by Asset"
+            liquidity={metrics.liquidity_by_assets}
+            field="asset"
+          />
+          <TVLChart
+            title="By chain"
+            description="Total Value Locked by Chain"
+            liquidity={metrics.liquidity_by_chains}
+            field="chain"
+          />
+        </div>
+      )}
       <div className="my-4 sm:my-6">
         {router_asset_balances_data ?
           <Datatable
@@ -313,7 +331,7 @@ export default () => {
               {
                 Header: 'Liquidity',
                 accessor: 'total_value',
-                sortType: (a, b) => a.original.total_value > b.original.total_value ?  1 : -1,
+                sortType: (a, b) => a.original.total_value > b.original.total_value ? 1 : -1,
                 Cell: props => {
                   const {
                     value,
@@ -336,9 +354,70 @@ export default () => {
                 headerClassName: 'whitespace-nowrap justify-end text-right',
               },
               {
+                Header: 'Cumulative Share %',
+                accessor: 'share',
+                sortType: (a, b) => a.original.total_value > b.original.total_value ? 1 : -1,
+                Cell: props => {
+                  const {
+                    flatRows,
+                    row,
+                  } = { ...props }
+
+                  const index = flatRows?.indexOf(row)
+                  const total = _.sumBy(routers, 'total_value')
+
+                  const _data =
+                    index > -1 ?
+                      _.slice(
+                        flatRows.map(d => {
+                          const {
+                            original,
+                          } = { ...d }
+
+                          const {
+                            total_value,
+                          } = { ...original }
+
+                          return {
+                            ...original,
+                            value_share: total_value * 100 / total,
+                          }
+                        }),
+                        0,
+                        index + 1,
+                      ) :
+                      []
+
+                  const {
+                    value_share,
+                  } = { ..._.last(_data) }
+
+                  const total_share = _.sumBy(_data, 'value_share')
+
+                  return (
+                    <div className="flex items-start space-x-1.5 mt-0.5">
+                      <div className="w-20 bg-zinc-200 dark:bg-zinc-800 mt-0.5">
+                        <div style={{ width: `${total_share}%` }}>
+                          <ProgressBar
+                            width={(total_share - value_share) * 100 / total_share}
+                            color="bg-blue-200"
+                            backgroundClassName="h-7 bg-blue-500"
+                            className="h-7"
+                          />
+                        </div>
+                      </div>
+                      <span className="text-slate-600 dark:text-slate-200 text-2xs font-medium">
+                        {numberFormat(total_share, '0,0.0')}%
+                      </span>
+                    </div>
+                  )
+                },
+                headerClassName: 'whitespace-nowrap justify-end',
+              },
+              {
                 Header: 'By Asset',
                 accessor: 'liquidity_by_assets',
-                sortType: (a, b) => a.original.total_value > b.original.total_value ?  1 : -1,
+                sortType: (a, b) => a.original.total_value > b.original.total_value ? 1 : -1,
                 Cell: props => {
                   const {
                     value,
@@ -396,7 +475,7 @@ export default () => {
                                     </span>
                                     <DecimalsFormat
                                       value={utilization}
-                                      noTooltip={true}
+                                      format="0,0.00a"
                                       className="uppercase text-2xs font-semibold"
                                     />
                                   </div>
@@ -414,7 +493,7 @@ export default () => {
               {
                 Header: 'By Chain',
                 accessor: 'liquidity_by_chains',
-                sortType: (a, b) => a.original.total_value > b.original.total_value ?  1 : -1,
+                sortType: (a, b) => a.original.total_value > b.original.total_value ? 1 : -1,
                 Cell: props => {
                   const {
                     value,
@@ -472,7 +551,7 @@ export default () => {
                                     </span>
                                     <DecimalsFormat
                                       value={utilization}
-                                      noTooltip={true}
+                                      format="0,0.00a"
                                       className="uppercase text-2xs font-semibold"
                                     />
                                   </div>
@@ -604,7 +683,7 @@ export default () => {
                 headerClassName: 'whitespace-nowrap justify-end text-right',
               },
             ]
-            .filter(c => !mode ? !['liquidity_by_assets', 'liquidity_by_chains', 'total_transfers', 'total_fee'].includes(c.accessor) : !['total_transfers', 'total_fee'].includes(c.accessor))}
+            .filter(c => !mode ? !['share', 'liquidity_by_assets', 'liquidity_by_chains', 'total_transfers', 'total_fee'].includes(c.accessor) : !['total_transfers', 'total_fee'].includes(c.accessor))}
             data={routers}
             noPagination={routers.length <= 10}
             defaultPageSize={50}
