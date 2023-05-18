@@ -86,7 +86,6 @@ export default () => {
         if (page_visible && sdk && tx && (!data || ![XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status) || !equalsIgnoreCase(data.xcall_transaction_hash, tx))) {
           let response = toArray(await sdk.sdkUtils.getTransfers({ transferId: tx }))
           let _data = _.head(response)
-
           if (!_data) {
             response = toArray(await sdk.sdkUtils.getTransfers({ transactionHash: tx }))
             _data = _.head(response)
@@ -100,15 +99,19 @@ export default () => {
               destination_transacting_asset,
               destination_local_asset,
               to,
+              xcall_timestamp,
               execute_transaction_hash,
               receive_local,
               status,
+            } = { ..._data }
+            let {
               error_status,
             } = { ..._data }
 
+            error_status = !error_status && ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status) && moment().diff(moment(xcall_timestamp * 1000), 'minutes') >= 5 ? XTransferErrorStatus.NoBidsReceived : error_status
+
             const source_chain_data = getChain(origin_domain, chains_data)
             const source_asset_data = getAsset(null, assets_data, source_chain_data?.chain_id, origin_transacting_asset)
-
             let source_contract_data = getContract(source_chain_data?.chain_id, source_asset_data?.contracts)
             // next asset
             if (source_contract_data?.next_asset && equalsIgnoreCase(source_contract_data.next_asset.contract_address, origin_transacting_asset)) {
@@ -116,7 +119,6 @@ export default () => {
                 ...source_contract_data,
                 ...source_contract_data.next_asset,
               }
-
               delete source_contract_data.next_asset
             }
             // native asset
@@ -130,21 +132,18 @@ export default () => {
               } = { ...nativeCurrency }
 
               const _source_asset_data = getAsset(symbol, assets_data)
-
               source_contract_data = {
                 ...getContract(source_chain_data?.chain_id, _source_asset_data?.contracts),
                 ...nativeCurrency,
                 contract_address: origin_transacting_asset,
               }
             }
-
             const source_decimals = source_contract_data?.decimals || 18
 
             const destination_chain_data = getChain(destination_domain, chains_data)
             const _asset_data = getAsset(source_asset_data?.id, assets_data, destination_chain_data?.chain_id)
             const _contract_data = getContract(destination_chain_data?.chain_id, _asset_data?.contracts)
             const destination_asset_data = getAsset(null, assets_data, destination_chain_data?.chain_id, [destination_transacting_asset, _asset_data ? receive_local ? _contract_data?.next_asset?.contract_address : _contract_data?.contract_address : destination_local_asset])
-
             let destination_contract_data = getContract(destination_chain_data?.chain_id, destination_asset_data?.contracts)
             // next asset
             if (destination_contract_data?.next_asset && (equalsIgnoreCase(destination_contract_data.next_asset.contract_address, destination_transacting_asset) || receive_local)) {
@@ -152,7 +151,6 @@ export default () => {
                 ...destination_contract_data,
                 ...destination_contract_data.next_asset,
               }
-
               delete destination_contract_data.next_asset
             }
             // native asset
@@ -165,7 +163,6 @@ export default () => {
             } = { ...nativeCurrency }
 
             const _destination_asset_data = getAsset(NATIVE_WRAPPABLE_SYMBOLS.find(s => symbol?.endsWith(s)) || symbol, assets_data)
-
             if ((!destination_contract_data && equalsIgnoreCase(constants.AddressZero, destination_transacting_asset)) || (destination_asset_data?.id === _destination_asset_data?.id && equalsIgnoreCase(to, destination_chain_data?.unwrapper_contract))) {
               destination_contract_data = {
                 ...getContract(destination_chain_data?.chain_id, _destination_asset_data?.contracts),
@@ -204,7 +201,6 @@ export default () => {
       }
 
       getData()
-
       const interval = setInterval(() => getData(true), 0.25 * 60 * 1000)
       return () => clearInterval(interval)
     },
@@ -263,9 +259,7 @@ export default () => {
             {ellipse(id, 24)}
           </span>
         </div>
-        <Copy
-          value={id}
-        />
+        <Copy value={id} />
       </div>
       <div className="space-y-6">
         {!data && typeof data === 'boolean' ?
@@ -286,17 +280,14 @@ export default () => {
                   <div className="space-y-2">
                     {source_chain_data ?
                       <div className="flex items-center justify-center sm:justify-start space-x-3">
-                        {
-                          source_chain_data.image &&
-                          (
-                            <Image
-                              src={source_chain_data.image}
-                              width={32}
-                              height={32}
-                              className="rounded-full"
-                            />
-                          )
-                        }
+                        {source_chain_data.image && (
+                          <Image
+                            src={source_chain_data.image}
+                            width={32}
+                            height={32}
+                            className="rounded-full"
+                          />
+                        )}
                         <span className="text-lg font-semibold">
                           {source_chain_data.name}
                         </span>
@@ -309,51 +300,42 @@ export default () => {
                         />
                       </div>
                     }
-                    {
-                      xcall_caller &&
-                      (
-                        <div className="flex items-center justify-center sm:justify-start space-x-1.5">
-                          <a
-                            href={source_chain_data?.explorer?.url ? `${source_chain_data.explorer.url}${source_chain_data.explorer.address_path?.replace('{address}', xcall_caller)}` : `/address/${xcall_caller}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <EnsProfile
-                              address={xcall_caller}
-                              noCopy={true}
-                              fallback={
-                                <span className="text-slate-400 dark:text-slate-600 font-semibold">
-                                  <span className="sm:hidden">
-                                    {ellipse(xcall_caller, 8)}
-                                  </span>
-                                  <span className="hidden sm:block">
-                                    {ellipse(xcall_caller, 12)}
-                                  </span>
+                    {xcall_caller && (
+                      <div className="flex items-center justify-center sm:justify-start space-x-1.5">
+                        <a
+                          href={source_chain_data?.explorer?.url ? `${source_chain_data.explorer.url}${source_chain_data.explorer.address_path?.replace('{address}', xcall_caller)}` : `/address/${xcall_caller}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <EnsProfile
+                            address={xcall_caller}
+                            noCopy={true}
+                            fallback={
+                              <span className="text-slate-400 dark:text-slate-600 font-semibold">
+                                <span className="sm:hidden">
+                                  {ellipse(xcall_caller, 8)}
                                 </span>
-                              }
-                            />
-                          </a>
-                          <Copy
-                            size={20}
-                            value={xcall_caller}
+                                <span className="hidden sm:block">
+                                  {ellipse(xcall_caller, 12)}
+                                </span>
+                              </span>
+                            }
                           />
-                        </div>
-                      )
-                    }
+                        </a>
+                        <Copy size={20} value={xcall_caller} />
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col">
                     <div className="flex items-center justify-center sm:justify-start xl:justify-center space-x-1 sm:space-x-2">
-                      {
-                        source_asset_image &&
-                        (
-                          <Image
-                            src={source_asset_image}
-                            width={24}
-                            height={24}
-                            className="rounded-full"
-                          />
-                        )
-                      }
+                      {source_asset_image && (
+                        <Image
+                          src={source_asset_image}
+                          width={24}
+                          height={24}
+                          className="rounded-full"
+                        />
+                      )}
                       {source_amount >= 0 ?
                         <DecimalsFormat
                           value={source_amount}
@@ -365,22 +347,16 @@ export default () => {
                           color={loaderColor(theme)}
                         />
                       }
-                      {
-                        source_asset_data &&
-                        (
-                          <>
-                            {
-                              source_symbol &&
-                              (
-                                <span className="text-base font-medium">
-                                  {source_symbol}
-                                </span>
-                              )
-                            }
-                            <AddToken token_data={{ ...source_asset_data }} />
-                          </>
-                        )
-                      }
+                      {source_asset_data && (
+                        <>
+                          {source_symbol && (
+                            <span className="text-base font-medium">
+                              {source_symbol}
+                            </span>
+                          )}
+                          <AddToken token_data={{ ...source_asset_data }} />
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -412,26 +388,14 @@ export default () => {
                         onTransferBumped={
                           relayer_fee_data => {
                             if (data) {
-                              setData(
-                                {
-                                  ...data,
-                                  ...relayer_fee_data,
-                                  error_status: null,
-                                }
-                              )
+                              setData({ ...data, ...relayer_fee_data, error_status: null })
                             }
                           }
                         }
                         onSlippageUpdated={
                           slippage => {
                             if (data) {
-                              setData(
-                                {
-                                  ...data,
-                                  slippage,
-                                  error_status: null,
-                                }
-                              )
+                              setData({ ...data, slippage, error_status: null })
                             }
                           }
                         }
@@ -468,17 +432,14 @@ export default () => {
                 <div className="grid grid-cols-1 xl:grid-cols-2 items-center gap-8 sm:gap-4 xl:gap-8">
                   <div className="order-1 sm:order-2 xl:order-1 flex flex-col sm:items-end">
                     <div className="flex items-center justify-center sm:justify-end xl:justify-center space-x-1 sm:space-x-2">
-                      {
-                        destination_asset_image &&
-                        (
-                          <Image
-                            src={destination_asset_image}
-                            width={24}
-                            height={24}
-                            className="rounded-full"
-                          />
-                        )
-                      }
+                      {destination_asset_image && (
+                        <Image
+                          src={destination_asset_image}
+                          width={24}
+                          height={24}
+                          className="rounded-full"
+                        />
+                      )}
                       {destination_amount >= 0 ?
                         <DecimalsFormat
                           value={destination_amount}
@@ -490,38 +451,29 @@ export default () => {
                           color={loaderColor(theme)}
                         />
                       }
-                      {
-                        destination_asset_data &&
-                        (
-                          <>
-                            {
-                              destination_symbol &&
-                              (
-                                <span className="text-base font-medium">
-                                  {destination_symbol}
-                                </span>
-                              )
-                            }
-                            <AddToken token_data={{ ...destination_asset_data }} />
-                          </>
-                        )
-                      }
+                      {destination_asset_data && (
+                        <>
+                          {destination_symbol && (
+                            <span className="text-base font-medium">
+                              {destination_symbol}
+                            </span>
+                          )}
+                          <AddToken token_data={{ ...destination_asset_data }} />
+                        </>
+                      )}
                     </div>
                   </div>
                   <div className="order-2 sm:order-1 xl:order-2 space-y-2">
                     {destination_chain_data ?
                       <div className="flex items-center justify-center sm:justify-end space-x-3">
-                        {
-                          destination_chain_data?.image &&
-                          (
-                            <Image
-                              src={destination_chain_data.image}
-                              width={32}
-                              height={32}
-                              className="rounded-full"
-                            />
-                          )
-                        }
+                        {destination_chain_data?.image && (
+                          <Image
+                            src={destination_chain_data.image}
+                            width={32}
+                            height={32}
+                            className="rounded-full"
+                          />
+                        )}
                         <span className="text-lg font-semibold">
                           {destination_chain_data.name}
                         </span>
@@ -534,37 +486,31 @@ export default () => {
                         />
                       </div>
                     }
-                    {
-                      to &&
-                      (
-                        <div className="flex items-center justify-center sm:justify-end space-x-1.5">
-                          <a
-                            href={destination_chain_data?.explorer?.url ? `${destination_chain_data.explorer.url}${destination_chain_data.explorer.address_path?.replace('{address}', to)}` : `/address/${to}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <EnsProfile
-                              address={to}
-                              noCopy={true}
-                              fallback={
-                                <span className="text-slate-400 dark:text-slate-600 font-semibold">
-                                  <span className="sm:hidden">
-                                    {ellipse(to, 8)}
-                                  </span>
-                                  <span className="hidden sm:block">
-                                    {ellipse(to, 12)}
-                                  </span>
+                    {to && (
+                      <div className="flex items-center justify-center sm:justify-end space-x-1.5">
+                        <a
+                          href={destination_chain_data?.explorer?.url ? `${destination_chain_data.explorer.url}${destination_chain_data.explorer.address_path?.replace('{address}', to)}` : `/address/${to}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <EnsProfile
+                            address={to}
+                            noCopy={true}
+                            fallback={
+                              <span className="text-slate-400 dark:text-slate-600 font-semibold">
+                                <span className="sm:hidden">
+                                  {ellipse(to, 8)}
                                 </span>
-                              }
-                            />
-                          </a>
-                          <Copy
-                            size={20}
-                            value={to}
+                                <span className="hidden sm:block">
+                                  {ellipse(to, 12)}
+                                </span>
+                              </span>
+                            }
                           />
-                        </div>
-                      )
-                    }
+                        </a>
+                        <Copy size={20} value={to} />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -572,10 +518,7 @@ export default () => {
                 {details
                   .filter(s => data[`${s}_transaction_hash`] || !['reconcile'].includes(s))
                   .map((s, i) => (
-                    <div
-                      key={i}
-                      className={`form ${s === 'reconcile' ? 'bg-slate-100 dark:bg-gray-900 bg-opacity-100 dark:bg-opacity-50' : 'bg-slate-200 dark:bg-slate-900 bg-opacity-40 dark:bg-opacity-75'} rounded-lg space-y-5 py-10 px-4 sm:py-8 sm:px-6`}
-                    >
+                    <div key={i} className={`form ${s === 'reconcile' ? 'bg-slate-100 dark:bg-gray-900 bg-opacity-100 dark:bg-opacity-50' : 'bg-slate-200 dark:bg-slate-900 bg-opacity-40 dark:bg-opacity-75'} rounded-lg space-y-5 py-10 px-4 sm:py-8 sm:px-6`}>
                       <div className="flex items-center justify-between">
                         <Tooltip
                           placement="top"
@@ -595,55 +538,46 @@ export default () => {
                           </span>
                         </Tooltip>
                         <div className="flex items-center space-x-4">
-                          {
-                            s === 'xcall' &&
-                            (
-                              <>
-                                {
-                                  call_data && call_data !== '0x' &&
-                                  (
-                                    <Tooltip
-                                      placement="top"
-                                      content={call_data !== '0x' ? 'Has calldata' : 'No calldata'}
-                                      className="z-50 bg-dark text-white text-xs"
-                                    >
-                                      <div className="flex items-center">
-                                        <AiTwotoneFile
-                                          size={24}
-                                          className={call_data !== '0x' ? 'text-yellow-500 dark:text-yellow-400' : 'text-slate-400 dark:text-slate-500'}
-                                        />
-                                        <BiInfoCircle
-                                          size={14}
-                                          className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
-                                        />
-                                      </div>
-                                    </Tooltip>
-                                  )
-                                }
-                                {
-                                  call_data === '0x' && (routers?.length > 0 || !(execute_transaction_hash || errored)) &&
-                                  (
-                                    <Tooltip
-                                      placement="top"
-                                      content={routers?.length > 0 ? 'Boosted by routers.' : 'Pending router boost.'}
-                                      className="z-50 bg-dark text-white text-xs"
-                                    >
-                                      <div className="flex items-center">
-                                        <BsLightningChargeFill
-                                          size={24}
-                                          className={routers?.length > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-blue-300 dark:text-blue-200'}
-                                        />
-                                        <BiInfoCircle
-                                          size={14}
-                                          className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
-                                        />
-                                      </div>
-                                    </Tooltip>
-                                  )
-                                }
-                              </>
-                            )
-                          }
+                          {s === 'xcall' && (
+                            <>
+                              {call_data && call_data !== '0x' && (
+                                <Tooltip
+                                  placement="top"
+                                  content={call_data !== '0x' ? 'Has calldata' : 'No calldata'}
+                                  className="z-50 bg-dark text-white text-xs"
+                                >
+                                  <div className="flex items-center">
+                                    <AiTwotoneFile
+                                      size={24}
+                                      className={call_data !== '0x' ? 'text-yellow-500 dark:text-yellow-400' : 'text-slate-400 dark:text-slate-500'}
+                                    />
+                                    <BiInfoCircle
+                                      size={14}
+                                      className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
+                                    />
+                                  </div>
+                                </Tooltip>
+                              )}
+                              {call_data === '0x' && (routers?.length > 0 || !(execute_transaction_hash || errored)) && (
+                                <Tooltip
+                                  placement="top"
+                                  content={routers?.length > 0 ? 'Boosted by routers.' : 'Pending router boost.'}
+                                  className="z-50 bg-dark text-white text-xs"
+                                >
+                                  <div className="flex items-center">
+                                    <BsLightningChargeFill
+                                      size={24}
+                                      className={routers?.length > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-blue-300 dark:text-blue-200'}
+                                    />
+                                    <BiInfoCircle
+                                      size={14}
+                                      className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
+                                    />
+                                  </div>
+                                </Tooltip>
+                              )}
+                            </>
+                          )}
                           {data[`${s}_transaction_hash`] ?
                             <HiCheckCircle
                               size={32}
@@ -680,26 +614,14 @@ export default () => {
                                   onTransferBumped={
                                     relayer_fee_data => {
                                       if (data) {
-                                        setData(
-                                          {
-                                            ...data,
-                                            ...relayer_fee_data,
-                                            error_status: null,
-                                          }
-                                        )
+                                        setData({ ...data, ...relayer_fee_data, error_status: null })
                                       }
                                     }
                                   }
                                   onSlippageUpdated={
                                     slippage => {
                                       if (data) {
-                                        setData(
-                                          {
-                                            ...data,
-                                            slippage,
-                                            error_status: null,
-                                          }
-                                        )
+                                        setData({ ...data, slippage, error_status: null })
                                       }
                                     }
                                   }
@@ -713,9 +635,8 @@ export default () => {
                           }
                         </div>
                       </div>
-                      {
-                        data[`${s}_transaction_hash`] &&
-                        (
+                      {data[`${s}_transaction_hash`] && (
+                        toArray(
                           _.concat(
                             [
                               'transaction_hash',
@@ -732,92 +653,120 @@ export default () => {
                             ],
                             ['execute'].includes(s) ? ['simulation_from', 'simulation_to', 'simulation_network', 'simulation_input'] : undefined,
                           )
-                          .filter(f => f)
-                          .map(((f, j) => (
-                            <div
-                              key={j}
-                              className="space-y-1"
-                            >
-                              <div className="form-label tracking-wider capitalize text-slate-400 dark:text-slate-600 text-base font-normal">
-                                {split(f, 'normal', '_').join(' ')}
-                              </div>
-                              <div className="form-element">
-                                {[undefined, null].includes(data[['message_status', 'recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f === 'relayer_fee' && Object.keys({ ...data[`${f}s`] }).length > 0 ? `${f}s` : f : `${s}_${f}`]) ?
-                                  <span className="text-slate-600 dark:text-slate-200">
-                                    -
-                                  </span> :
-                                  toArray(data[['message_status', 'recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f === 'relayer_fee' && Object.keys({ ...data[`${f}s`] }).length > 0 ? `${f}s` : f : `${s}_${f}`])
-                                    .map((v, k) => {
-                                      const chain_data = s === 'xcall' ? source_chain_data : destination_chain_data
+                        )
+                        .map(((f, j) => (
+                          <div key={j} className="space-y-1">
+                            <div className="form-label tracking-wider capitalize text-slate-400 dark:text-slate-600 text-base font-normal">
+                              {split(f, 'normal', '_').join(' ')}
+                            </div>
+                            <div className="form-element">
+                              {[undefined, null].includes(data[['message_status', 'recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f === 'relayer_fee' && Object.keys({ ...data[`${f}s`] }).length > 0 ? `${f}s` : f : `${s}_${f}`]) ?
+                                <span className="text-slate-600 dark:text-slate-200">-</span> :
+                                toArray(data[['message_status', 'recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f === 'relayer_fee' && Object.keys({ ...data[`${f}s`] }).length > 0 ? `${f}s` : f : `${s}_${f}`]).map((v, k) => {
+                                  const {
+                                    provider_params,
+                                    explorer,
+                                  } = { ...s === 'xcall' ? source_chain_data : destination_chain_data }
 
-                                      const {
-                                        provider_params,
-                                        explorer,
-                                      } = { ...chain_data }
+                                  const {
+                                    nativeCurrency,
+                                  } = { ..._.head(provider_params) }
 
-                                      const {
-                                        nativeCurrency,
-                                      } = { ..._.head(provider_params) }
+                                  const {
+                                    url,
+                                    block_path,
+                                    transaction_path,
+                                    address_path,
+                                  } = { ...explorer }
 
-                                      const {
-                                        url,
-                                        block_path,
-                                        transaction_path,
-                                        address_path,
-                                      } = { ...explorer }
+                                  const {
+                                    symbol,
+                                    decimals,
+                                  } = { ...nativeCurrency }
 
-                                      const {
-                                        symbol,
-                                        decimals,
-                                      } = { ...nativeCurrency }
+                                  let _v
+                                  let component
 
-                                      let _v, component
+                                  switch (f) {
+                                    case 'transaction_hash':
+                                      _v = (
+                                        <>
+                                          <span className="lg:hidden">
+                                            {ellipse(v, 14)}
+                                          </span>
+                                          <span className="hidden lg:block">
+                                            {ellipse(v, 16)}
+                                          </span>
+                                        </>
+                                      )
 
-                                      switch (f) {
-                                        case 'transaction_hash':
-                                          _v = (
+                                      component = (
+                                        <div className="flex items-center space-x-2">
+                                          {url ?
+                                            <a
+                                              href={`${url}${transaction_path?.replace('{tx}', v)}`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-blue-500 dark:text-blue-600"
+                                            >
+                                              {_v}
+                                            </a> :
+                                            _v
+                                          }
+                                          <Copy size={20} value={v} />
+                                        </div>
+                                      )
+                                      break
+                                    case 'block_number':
+                                      _v = (
+                                        <DecimalsFormat
+                                          value={v}
+                                          className="text-base font-medium"
+                                        />
+                                      )
+
+                                      component =
+                                        url ?
+                                          <a
+                                            href={`${explorer.url}${block_path?.replace('{block}', v)}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-500 dark:text-blue-600"
+                                          >
+                                            {_v}
+                                          </a> :
+                                          _v
+                                      break
+                                    case 'timestamp':
+                                      component = moment(v * 1000).format('MMM D, YYYY H:mm:ss A')
+                                      break
+                                    case 'caller':
+                                    case 'origin_sender':
+                                    case 'recovery':
+                                    case 'simulation_to':
+                                      _v = (
+                                        <EnsProfile
+                                          address={v}
+                                          noCopy={true}
+                                          fallback={
                                             <>
                                               <span className="lg:hidden">
-                                                {ellipse(v, 14)}
+                                                {ellipse(v, 10)}
                                               </span>
                                               <span className="hidden lg:block">
-                                                {ellipse(v, 16)}
+                                                {ellipse(v, 12)}
                                               </span>
                                             </>
-                                          )
+                                          }
+                                        />
+                                      )
 
-                                          component = (
-                                            <div className="flex items-center space-x-2">
-                                              {url ?
-                                                <a
-                                                  href={`${url}${transaction_path?.replace('{tx}', v)}`}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                  className="text-blue-500 dark:text-blue-600"
-                                                >
-                                                  {_v}
-                                                </a> :
-                                                _v
-                                              }
-                                              <Copy
-                                                size={20}
-                                                value={v}
-                                              />
-                                            </div>
-                                          )
-                                          break
-                                        case 'block_number':
-                                          _v = (
-                                            <DecimalsFormat
-                                              value={v}
-                                              className="text-base font-medium"
-                                            />
-                                          )
-
-                                          component =
-                                            url ?
+                                      component =
+                                        v ?
+                                          <div className="flex items-center space-x-2">
+                                            {url ?
                                               <a
-                                                href={`${explorer.url}${block_path?.replace('{block}', v)}`}
+                                                href={`${url}${address_path?.replace('{address}', v)}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-blue-500 dark:text-blue-600"
@@ -825,238 +774,165 @@ export default () => {
                                                 {_v}
                                               </a> :
                                               _v
-                                          break
-                                        case 'timestamp':
-                                          component = moment(v * 1000).format('MMM D, YYYY H:mm:ss A')
-                                          break
-                                        case 'caller':
-                                        case 'origin_sender':
-                                        case 'recovery':
-                                        case 'simulation_to':
-                                          _v =
-                                            (
-                                              <EnsProfile
-                                                address={v}
-                                                noCopy={true}
-                                                fallback={
-                                                  <>
-                                                    <span className="lg:hidden">
-                                                      {ellipse(v, 10)}
-                                                    </span>
-                                                    <span className="hidden lg:block">
-                                                      {ellipse(v, 12)}
-                                                    </span>
-                                                  </>
-                                                }
-                                              />
-                                            )
-
-                                          component =
-                                            v ?
-                                              <div className="flex items-center space-x-2">
-                                                {url ?
-                                                  <a
-                                                    href={`${url}${address_path?.replace('{address}', v)}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-500 dark:text-blue-600"
-                                                  >
-                                                    {_v}
-                                                  </a> :
-                                                  _v
-                                                }
-                                                <Copy
-                                                  size={20}
-                                                  value={v}
-                                                />
-                                              </div> :
-                                              <span>
-                                                -
+                                            }
+                                            <Copy size={20} value={v} />
+                                          </div> :
+                                          <span>-</span>
+                                      break
+                                    case 'to':
+                                      _v = (
+                                        <EnsProfile
+                                          address={v}
+                                          noCopy={true}
+                                          fallback={
+                                            <>
+                                              <span className="lg:hidden">
+                                                {ellipse(v, 10)}
                                               </span>
-                                          break
-                                        case 'to':
-                                          _v = (
-                                            <EnsProfile
-                                              address={v}
-                                              noCopy={true}
-                                              fallback={
-                                                <>
-                                                  <span className="lg:hidden">
-                                                    {ellipse(v, 10)}
-                                                  </span>
-                                                  <span className="hidden lg:block">
-                                                    {ellipse(v, 12)}
-                                                  </span>
-                                                </>
-                                              }
-                                            />
-                                          )
-
-                                          component =
-                                            v ?
-                                              <div className="flex items-center space-x-2">
-                                                {destination_chain_data?.explorer?.url ?
-                                                  <a
-                                                    href={`${destination_chain_data.explorer.url}${destination_chain_data.explorer.address_path?.replace('{address}', v)}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-500 dark:text-blue-600"
-                                                  >
-                                                    {_v}
-                                                  </a> :
-                                                  _v
-                                                }
-                                                <Copy
-                                                  size={20}
-                                                  value={v}
-                                                />
-                                              </div> :
-                                              <span>
-                                                -
+                                              <span className="hidden lg:block">
+                                                {ellipse(v, 12)}
                                               </span>
-                                          break
-                                        case 'simulation_from':
-                                          _v = (
-                                            <EnsProfile
-                                              address={v}
-                                              noCopy={true}
-                                              fallback={
-                                                <>
-                                                  <span className="lg:hidden">
-                                                    {ellipse(v, 10)}
-                                                  </span>
-                                                  <span className="hidden lg:block">
-                                                    {ellipse(v, 12)}
-                                                  </span>
-                                                </>
-                                              }
-                                            />
-                                          )
-
-                                          component =
-                                            v ?
-                                              <div className="flex items-center space-x-2">
-                                                {source_chain_data?.explorer?.url ?
-                                                  <a
-                                                    href={`${source_chain_data.explorer.url}${source_chain_data.explorer.address_path?.replace('{address}', v)}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-500 dark:text-blue-600"
-                                                  >
-                                                    {_v}
-                                                  </a> :
-                                                  _v
-                                                }
-                                                <Copy
-                                                  size={20}
-                                                  value={v}
-                                                />
-                                              </div> :
-                                              <span>
-                                                -
-                                              </span>
-                                          break
-                                        case 'relayer_fee':
-                                          if (Object.keys({ ...data[`${f}s`] }).length > 0) {
-                                            component = (
-                                              <div className="flex flex-col space-y-2">
-                                                {Object.entries(data[`${f}s`])
-                                                  .map(([k, v]) => {
-                                                    return (
-                                                      <span
-                                                        key={k}
-                                                        className="whitespace-nowrap text-slate-800 dark:text-slate-200 font-semibold space-x-1.5"
-                                                      >
-                                                        <DecimalsFormat
-                                                          value={utils.formatUnits(v || '0', k === constants.AddressZero ? source_gas_decimals : source_decimals)}
-                                                          className="text-sm"
-                                                        />
-                                                        <span>
-                                                          {k === constants.AddressZero ? source_gas_native_token?.symbol : source_symbol}
-                                                        </span>
-                                                      </span>
-                                                    )
-                                                  })
-                                                }
-                                              </div>
-                                            )
+                                            </>
                                           }
-                                          else {
-                                            _v = utils.formatUnits(BigInt(v || '0'), decimals || 18),
+                                        />
+                                      )
 
-                                            component = (
-                                              <div className="flex items-center space-x-1">
-                                                <DecimalsFormat
-                                                  value={Number(_v) <= 0 ? 0 : _v}
-                                                  className="text-base"
-                                                />
-                                                <span>
-                                                  {symbol}
-                                                </span>
-                                              </div>
-                                            )
+                                      component =
+                                        v ?
+                                          <div className="flex items-center space-x-2">
+                                            {destination_chain_data?.explorer?.url ?
+                                              <a
+                                                href={`${destination_chain_data.explorer.url}${destination_chain_data.explorer.address_path?.replace('{address}', v)}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-500 dark:text-blue-600"
+                                              >
+                                                {_v}
+                                              </a> :
+                                              _v
+                                            }
+                                            <Copy size={20} value={v} />
+                                          </div> :
+                                          <span>-</span>
+                                      break
+                                    case 'simulation_from':
+                                      _v = (
+                                        <EnsProfile
+                                          address={v}
+                                          noCopy={true}
+                                          fallback={
+                                            <>
+                                              <span className="lg:hidden">
+                                                {ellipse(v, 10)}
+                                              </span>
+                                              <span className="hidden lg:block">
+                                                {ellipse(v, 12)}
+                                              </span>
+                                            </>
                                           }
-                                          break
-                                        case 'gas_price':
-                                          component = (
-                                            <div className="flex items-center space-x-1">
-                                              <span>
-                                                {utils.formatUnits(v, 'gwei')}
-                                              </span>
-                                              <span>
-                                                Gwei
-                                              </span>
-                                            </div>
-                                          )
-                                          break
-                                        case 'call_data':
-                                        case 'simulation_input':
-                                          component =
-                                            v ?
-                                              <div className="flex items-start space-x-1">
-                                                <div className="bg-slate-50 dark:bg-slate-800 rounded break-all p-2">
-                                                  {ellipse(v, 53)}
-                                                </div>
-                                                <div className="mt-2.5">
-                                                  <Copy
-                                                    size={20}
-                                                    value={v}
+                                        />
+                                      )
+
+                                      component =
+                                        v ?
+                                          <div className="flex items-center space-x-2">
+                                            {source_chain_data?.explorer?.url ?
+                                              <a
+                                                href={`${source_chain_data.explorer.url}${source_chain_data.explorer.address_path?.replace('{address}', v)}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-500 dark:text-blue-600"
+                                              >
+                                                {_v}
+                                              </a> :
+                                              _v
+                                            }
+                                            <Copy size={20} value={v} />
+                                          </div> :
+                                          <span>-</span>
+                                      break
+                                    case 'relayer_fee':
+                                      if (Object.keys({ ...data[`${f}s`] }).length > 0) {
+                                        component = (
+                                          <div className="flex flex-col space-y-2">
+                                            {Object.entries(data[`${f}s`]).map(([k, v]) => {
+                                              return (
+                                                <span
+                                                  key={k}
+                                                  className="whitespace-nowrap text-slate-800 dark:text-slate-200 font-semibold space-x-1.5"
+                                                >
+                                                  <DecimalsFormat
+                                                    value={utils.formatUnits(v || '0', k === constants.AddressZero ? source_gas_decimals : source_decimals)}
+                                                    className="text-sm"
                                                   />
-                                                </div>
-                                              </div> :
-                                              <span>
-                                                -
-                                              </span>
-                                          break
-                                        case 'simulation_network':
-                                          component = v
-                                          break
-                                        default:
-                                          component =
-                                            !isNaN(v) ?
-                                              <DecimalsFormat
-                                                value={v}
-                                                className="text-base"
-                                              /> :
-                                              v
-                                          break
+                                                  <span>
+                                                    {k === constants.AddressZero ? source_gas_native_token?.symbol : source_symbol}
+                                                  </span>
+                                                </span>
+                                              )
+                                            })}
+                                          </div>
+                                        )
                                       }
+                                      else {
+                                        _v = utils.formatUnits(BigInt(v || '0'), decimals || 18),
 
-                                      return (
-                                        <div
-                                          key={k}
-                                          className="text-base font-medium"
-                                        >
-                                          {component}
+                                        component = (
+                                          <div className="flex items-center space-x-1">
+                                            <DecimalsFormat
+                                              value={Number(_v) <= 0 ? 0 : _v}
+                                              className="text-base"
+                                            />
+                                            <span>
+                                              {symbol}
+                                            </span>
+                                          </div>
+                                        )
+                                      }
+                                      break
+                                    case 'gas_price':
+                                      component = (
+                                        <div className="flex items-center space-x-1">
+                                          <span>
+                                            {utils.formatUnits(v, 'gwei')}
+                                          </span>
+                                          <span>Gwei</span>
                                         </div>
                                       )
-                                    })
-                                }
-                              </div>
+                                      break
+                                    case 'call_data':
+                                    case 'simulation_input':
+                                      component =
+                                        v ?
+                                          <div className="flex items-start space-x-1">
+                                            <div className="bg-slate-50 dark:bg-slate-800 rounded break-all p-2">
+                                              {ellipse(v, 53)}
+                                            </div>
+                                            <div className="mt-2.5">
+                                              <Copy size={20} value={v} />
+                                            </div>
+                                          </div> :
+                                          <span>-</span>
+                                      break
+                                    case 'simulation_network':
+                                      component = v
+                                      break
+                                    default:
+                                      component = !isNaN(v) ? <DecimalsFormat value={v} className="text-base" /> : v
+                                      break
+                                  }
+
+                                  return (
+                                    <div key={k} className="text-base font-medium">
+                                      {component}
+                                    </div>
+                                  )
+                                })
+                              }
                             </div>
-                          )))
-                        )
-                      }
+                          </div>
+                        )))
+                      )}
                     </div>
                   ))
                 }
