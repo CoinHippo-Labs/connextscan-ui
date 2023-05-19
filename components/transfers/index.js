@@ -189,6 +189,7 @@ export default () => {
             response =
               response.map(t => {
                 const {
+                  transfer_id,
                   origin_domain,
                   origin_transacting_asset,
                   destination_domain,
@@ -268,7 +269,7 @@ export default () => {
                 }
 
                 const destination_decimals = destination_contract_data?.decimals || 18
-                const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, value) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
+                const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, transfer_id) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
 
                 return {
                   ...t,
