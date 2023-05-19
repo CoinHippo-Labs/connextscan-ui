@@ -389,14 +389,14 @@ export default () => {
                         onTransferBumped={
                           relayer_fee_data => {
                             if (data) {
-                              setData({ ...data, ...relayer_fee_data, error_status: null })
+                              setData({ ...data, ...relayer_fee_data, error_status: null, pending: true, errored: false })
                             }
                           }
                         }
                         onSlippageUpdated={
                           slippage => {
                             if (data) {
-                              setData({ ...data, slippage, error_status: null })
+                              setData({ ...data, slippage, error_status: null, pending: true, errored: false })
                             }
                           }
                         }
@@ -615,14 +615,14 @@ export default () => {
                                   onTransferBumped={
                                     relayer_fee_data => {
                                       if (data) {
-                                        setData({ ...data, ...relayer_fee_data, error_status: null })
+                                        setData({ ...data, ...relayer_fee_data, error_status: null, pending: true, errored: false })
                                       }
                                     }
                                   }
                                   onSlippageUpdated={
                                     slippage => {
                                       if (data) {
-                                        setData({ ...data, slippage, error_status: null })
+                                        setData({ ...data, slippage, error_status: null, pending: true, errored: false })
                                       }
                                     }
                                   }
