@@ -354,7 +354,7 @@ export default () => {
                 headerClassName: 'whitespace-nowrap justify-end text-right',
               },
               {
-                Header: 'Cumulative Share %',
+                Header: 'Relative Share %',
                 accessor: 'share',
                 sortType: (a, b) => a.original.total_value > b.original.total_value ? 1 : -1,
                 Cell: props => {
@@ -392,7 +392,7 @@ export default () => {
                     value_share,
                   } = { ..._.last(_data) }
 
-                  const total_share = _.sumBy(_data, 'value_share')
+                  const total_share = value_share // _.sumBy(_data, 'value_share')
 
                   return (
                     <div className="flex items-start space-x-1.5 mt-0.5">
@@ -412,7 +412,7 @@ export default () => {
                     </div>
                   )
                 },
-                headerClassName: 'whitespace-nowrap justify-end',
+                headerClassName: 'whitespace-nowrap justify-start',
               },
               {
                 Header: 'By Asset',
