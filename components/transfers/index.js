@@ -286,8 +286,8 @@ export default () => {
                   source_decimals,
                   destination_decimals,
                   error_status,
-                  pending: ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status),
-                  errored: error_status && !execute_transaction_hash && [XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status) && !(bumped && error_status === XTransferErrorStatus.ExecutionError),
+                  pending: ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status) || [XTransferErrorStatus.NoBidsReceived].includes(error_status),
+                  errored: error_status && !execute_transaction_hash && [XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status) && !(bumped && error_status === XTransferErrorStatus.ExecutionError) && error_status !== XTransferErrorStatus.NoBidsReceived,
                 }
               })
               .map(t => {
