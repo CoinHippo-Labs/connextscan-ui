@@ -408,9 +408,7 @@ export default () => {
                           </span>
                         </div> :
                         <div className="flex items-center text-green-500 dark:text-green-300 space-x-1">
-                          <HiCheckCircle
-                            size={24}
-                          />
+                          <HiCheckCircle size={24} />
                           <span className="uppercase text-base font-bold">
                             Success
                           </span>

@@ -33,7 +33,7 @@ import { toArray, ellipse, equalsIgnoreCase, loaderColor } from '../../lib/utils
 
 const NATIVE_WRAPPABLE_SYMBOLS = ['ETH', 'MATIC', 'DAI']
 const ROUTER_FEE_PERCENT = Number(process.env.NEXT_PUBLIC_ROUTER_FEE_PERCENT)
-const LIMIT = 250
+const LIMIT = 100
 
 export default () => {
   const {
