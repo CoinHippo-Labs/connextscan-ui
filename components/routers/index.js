@@ -95,11 +95,9 @@ export default () => {
                   ...asset_data,
                   ...getContract(origin_chain_data?.chain_id, asset_data?.contracts),
                 }
-
                 if (asset_data.contracts) {
                   delete asset_data.contracts
                 }
-
                 if (asset_data.next_asset && equalsIgnoreCase(asset_data.next_asset.contract_address, asset)) {
                   asset_data = {
                     ...asset_data,
@@ -206,14 +204,17 @@ export default () => {
           supported_chains: _.uniq(assets.map(a => a.chain_id)),
           liquidity_by_assets: _.orderBy(Object.entries(_.groupBy(assets.filter(a => a.asset_data?.id), 'asset_data.id')).map(([k, v]) => { return { asset: k, value: _.sumBy(v, 'value'), i: assets_data.findIndex(a => a.id === k) } }), ['i'], ['asc']),
           liquidity_by_chains: _.orderBy(Object.entries(_.groupBy(assets.filter(a => a.chain_data?.id), 'chain_data.id')).map(([k, v]) => { return { chain: k, value: _.sumBy(v, 'value'), i: chains_data.findIndex(c => c.id === k) } }), ['i'], ['asc']),
+          liquidity_by_assets_chains: _.orderBy(Object.entries(_.groupBy(assets.filter(a => a.asset_data?.id && a.chain_data?.id), 'asset_data.id')).map(([k, v]) => { return { asset: k, value: _.sumBy(v, 'value'), chains: _.orderBy(Object.entries(_.groupBy(v, 'chain_data.id')).map(([_k, _v]) => { return { chain: _k, value: _.sumBy(_v, 'value'), i: chains_data.findIndex(c => c.id === _k) } }), ['i'], ['asc']), i: assets_data.findIndex(a => a.id === k) } }), ['i'], ['asc']),
         }
       })
       .map(r => {
         const {
+          router_address,
           total_value,
           total_volume,
           liquidity_by_assets,
           liquidity_by_chains,
+          liquidity_by_assets_chains,
         } = { ...r }
 
         return {
@@ -228,7 +229,7 @@ export default () => {
                 value,
               } = { ...d }
 
-              const volume = _.sumBy(toArray(raw_volumes).filter(d => d.asset_data?.id === asset), 'volume')
+              const volume = _.sumBy(toArray(raw_volumes).filter(d => equalsIgnoreCase(d.router, router_address) && d.asset_data?.id === asset), 'volume')
               value = value && volume ? volume / value : 0
               return { asset, value }
             }),
@@ -241,10 +242,34 @@ export default () => {
                 value,
               } = { ...d }
 
-              const volume = _.sumBy(toArray(raw_volumes).filter(d => d.destination_chain_data?.id === chain), 'volume')
+              const volume = _.sumBy(toArray(raw_volumes).filter(d => equalsIgnoreCase(d.router, router_address) && d.destination_chain_data?.id === chain), 'volume')
               value = value && volume ? volume / value : 0
               return { chain, value }
             }),
+          liquidity_utilization_by_assets_chains:
+            liquidity_by_assets_chains.map(d => {
+              const {
+                asset,
+                value,
+              } = { ...d }
+              let {
+                chains,
+              } = { ...d }
+
+              const volume = _.sumBy(toArray(raw_volumes).filter(d => equalsIgnoreCase(d.router, router_address) && d.asset_data?.id === asset), 'volume')
+              const utilization = value && volume ? volume / value : 0
+              chains = chains.map(_d => {
+                const {
+                  chain,
+                  value,
+                } = { ..._d }
+
+                const volume = _.sumBy(toArray(raw_volumes).filter(d => equalsIgnoreCase(d.router, router_address) && d.asset_data?.id === asset && d.destination_chain_data?.id === chain), 'volume')
+                const utilization = value && volume ? volume / value : 0
+                return { chain, value, utilization }
+              })
+              return { asset, value, utilization, chains }
+            })
         }
       }),
     ['total_value'], ['desc'],
@@ -258,7 +283,30 @@ export default () => {
     supported_chains: _.uniq(routers.flatMap(r => r.supported_chains)),
     liquidity_by_assets: Object.entries(_.groupBy(routers.flatMap(r => toArray(r.liquidity_by_assets)), 'asset')).map(([k, v]) => { return { asset: k, value: _.sumBy(v, 'value') } }),
     liquidity_by_chains: Object.entries(_.groupBy(routers.flatMap(r => toArray(r.liquidity_by_chains)), 'chain')).map(([k, v]) => { return { chain: k, value: _.sumBy(v, 'value') } }),
+    liquidity_by_assets_chains: Object.entries(_.groupBy(routers.flatMap(r => toArray(r.liquidity_by_assets_chains)), 'asset')).map(([k, v]) => { return { asset: k, value: _.sumBy(v, 'value'), chains: Object.entries(_.groupBy(v.flatMap(_v => _v.chains), 'chain')).map(([_k, _v]) => { return { chain: _k, value: _.sumBy(_v, 'value') } }) } }),
     liquidity_by_routers: Object.entries(_.groupBy(routers, 'router_address')).map(([k, v]) => { return { address: k, value: _.sumBy(v, 'total_value') } }),
+    liquidity_utilization_by_assets_chains:
+      Object.entries(_.groupBy(routers.flatMap(r => toArray(r.liquidity_utilization_by_assets_chains)), 'asset')).map(([k, v]) => {
+        const volume = _.sumBy(toArray(raw_volumes).filter(d => d.asset_data?.id === k), 'volume')
+        let value = _.sumBy(v, 'value')
+        value = value && volume ? volume / value : 0
+
+        return {
+          asset: k,
+          value,
+          chains:
+            Object.entries(_.groupBy(v.flatMap(_v => _v.chains), 'chain')).map(([_k, _v]) => {
+              const volume = _.sumBy(toArray(raw_volumes).filter(d => d.asset_data?.id === k && d.destination_chain_data?.id === _k), 'volume')
+              let value = _.sumBy(_v, 'value')
+              value = value && volume ? volume / value : 0
+
+              return {
+                chain: _k,
+                value,
+              }
+            }),
+        }
+      }),
   }
 
   return (
@@ -267,18 +315,20 @@ export default () => {
         <Metrics data={metrics} />
       </div>
       {metrics && mode && (
-        <div className="grid sm:grid-cols-2 gap-4 my-4 my-6">
+        <div className="grid gap-4 my-4 sm:my-6">
           <TVLChart
-            title="By asset"
-            description="Total Value Locked by Asset"
-            liquidity={metrics.liquidity_by_assets}
-            field="asset"
+            title="Utilization"
+            description="Utilization by chain + by asset"
+            liquidity={metrics.liquidity_by_assets_chains}
+            utilization={metrics.liquidity_utilization_by_assets_chains}
+            field="utilization"
+            prefix=""
           />
           <TVLChart
-            title="By chain"
-            description="Total Value Locked by Chain"
-            liquidity={metrics.liquidity_by_chains}
-            field="chain"
+            title="TVL"
+            description="Total Value Locked by chain + by asset"
+            liquidity={metrics.liquidity_by_assets_chains}
+            utilization={metrics.liquidity_utilization_by_assets_chains}
           />
         </div>
       )}
