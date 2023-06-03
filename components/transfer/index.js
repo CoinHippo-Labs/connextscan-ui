@@ -242,7 +242,7 @@ export default () => {
   const destination_symbol = destination_asset_data?.symbol
   const destination_asset_image = destination_asset_data?.image
 
-  const source_amount = origin_transacting_amount && Number(utils.formatUnits((BigInt(origin_transacting_amount) + BigInt(relayer_fees?.[origin_transacting_asset] || 0)).toString(), source_decimals))
+  const source_amount = origin_transacting_amount && Number(utils.formatUnits((BigInt(origin_transacting_amount) + BigInt(origin_transacting_amount !== '0' ? relayer_fees?.[origin_transacting_asset] || 0 : 0)).toString(), source_decimals))
   const destination_amount = destination_transacting_amount ? Number(utils.formatUnits(BigInt(destination_transacting_amount).toString(), destination_decimals)) : source_amount * (1 - ROUTER_FEE_PERCENT / 100)
 
   const details = _.concat('xcall', routers?.length > 0 ? ['execute', 'reconcile'] : ['reconcile', 'execute']).filter(s => s !== 'reconcile' || reconcile_transaction_hash || execute_transaction_hash)
