@@ -207,19 +207,19 @@
         "contract_address": "0xF6DD52cdF1614Cd649077Aa283840657617faa07",
         "chain_id": 5,
         "decimals": 18,
-        "symbol": "alUSD"
+        "symbol": "alETH"
       },
       {
         "contract_address": "0xF6DD52cdF1614Cd649077Aa283840657617faa07",
         "chain_id": 420,
         "decimals": 18,
-        "symbol": "alUSD"
+        "symbol": "alETH"
       },
       {
         "contract_address": "0xF6DD52cdF1614Cd649077Aa283840657617faa07",
         "chain_id": 421613,
         "decimals": 18,
-        "symbol": "alUSD"
+        "symbol": "alETH"
       }
     ],
     "color": "#000000"
