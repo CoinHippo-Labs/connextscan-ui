@@ -120,7 +120,7 @@ export default ({ data }) => {
                   </div>
                 )
               },
-              headerClassName: 'min-w-sm whitespace-nowrap justify-start',
+              headerClassName: 'w-64 whitespace-nowrap justify-start',
             },
             {
               Header: 'Liquidity',
