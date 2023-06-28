@@ -538,7 +538,7 @@ export default () => {
                     </div>
                   )
                 },
-                headerClassName: 'whitespace-nowrap justify-start',
+                headerClassName: 'min-w-max whitespace-nowrap justify-start',
               },
               {
                 Header: 'By Chain',
