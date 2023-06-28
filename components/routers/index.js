@@ -469,31 +469,15 @@ export default () => {
                 accessor: 'liquidity_by_assets',
                 sortType: (a, b) => a.original.total_value > b.original.total_value ? 1 : -1,
                 Cell: props => {
-                  const {
-                    value,
-                    row,
-                  } = { ...props }
-
-                  const {
-                    liquidity_utilization_by_assets,
-                  } = { ...row.original }
-
+                  const { value, row } = { ...props }
+                  const { liquidity_utilization_by_assets } = { ...row.original }
                   return (
                     <div className="min-w-max grid grid-cols-2 gap-2">
                       {toArray(value).map((v, i) => {
-                        const {
-                          asset,
-                          value,
-                        } = { ...v }
-
+                        const { asset, value } = { ...v }
                         const utilization = toArray(liquidity_utilization_by_assets).find(d => d.asset === asset)?.value
                         const asset_data = getAsset(asset, assets_data)
-
-                        const {
-                          symbol,
-                          image,
-                        } = { ...asset_data }
-
+                        const { symbol, image } = { ...asset_data }
                         return (
                           <div key={i} className="flex items-start space-x-2 mt-0.5">
                             <Image
@@ -538,38 +522,22 @@ export default () => {
                     </div>
                   )
                 },
-                headerClassName: 'min-w-max whitespace-nowrap justify-start',
+                headerClassName: 'min-w-sm whitespace-nowrap justify-start',
               },
               {
                 Header: 'By Chain',
                 accessor: 'liquidity_by_chains',
                 sortType: (a, b) => a.original.total_value > b.original.total_value ? 1 : -1,
                 Cell: props => {
-                  const {
-                    value,
-                    row,
-                  } = { ...props }
-
-                  const {
-                    liquidity_utilization_by_chains,
-                  } = { ...row.original }
-
+                  const { value, row } = { ...props }
+                  const { liquidity_utilization_by_chains } = { ...row.original }
                   return (
                     <div className="min-w-max grid grid-cols-2 gap-2">
                       {toArray(value).map((v, i) => {
-                        const {
-                          chain,
-                          value,
-                        } = { ...v }
-
+                        const { chain, value } = { ...v }
                         const utilization = toArray(liquidity_utilization_by_chains).find(d => d.chain === chain)?.value
                         const chain_data = getChain(chain, chains_data)
-
-                        const {
-                          name,
-                          image,
-                        } = { ...chain_data }
-
+                        const { name, image } = { ...chain_data }
                         return (
                           <div key={i} className="flex items-start space-x-2 mt-0.5">
                             <Image
@@ -614,7 +582,7 @@ export default () => {
                     </div>
                   )
                 },
-                headerClassName: 'whitespace-nowrap justify-start',
+                headerClassName: 'min-w-sm whitespace-nowrap justify-start',
               },
               {
                 Header: 'Transfers',

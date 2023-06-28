@@ -120,7 +120,7 @@ export default ({ data }) => {
                   </div>
                 )
               },
-              headerClassName: 'min-w-max whitespace-nowrap justify-start',
+              headerClassName: 'min-w-sm whitespace-nowrap justify-start',
             },
             {
               Header: 'Liquidity',
@@ -152,22 +152,20 @@ export default ({ data }) => {
                 const { flatRows, row } = { ...props }
                 const index = flatRows?.indexOf(row)
                 const total = _.sumBy(data, 'total_value')
-
-                const _data =
-                  index > -1 ?
-                    _.slice(
-                      flatRows.map(d => {
-                        const { original } = { ...d }
-                        const { total_value } = { ...original }
-                        return {
-                          ...original,
-                          value_share: total_value * 100 / total,
-                        }
-                      }),
-                      0,
-                      index + 1,
-                    ) :
-                    []
+                const _data = index > -1 ?
+                  _.slice(
+                    flatRows.map(d => {
+                      const { original } = { ...d }
+                      const { total_value } = { ...original }
+                      return {
+                        ...original,
+                        value_share: total_value * 100 / total,
+                      }
+                    }),
+                    0,
+                    index + 1,
+                  ) :
+                  []
 
                 const { value_share } = { ..._.last(_data) }
                 const total_share = value_share // _.sumBy(_data, 'value_share')
