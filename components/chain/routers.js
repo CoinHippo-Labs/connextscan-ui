@@ -74,8 +74,8 @@ export default ({ data }) => {
               Cell: props => {
                 const { value } = { ...props }
                 return (
-                  <div className="grid grid-cols-2 gap-2">
-                    {toArray(value).map((v, i) => {
+                  <div className="min-w-max grid grid-cols-2 gap-2">
+                    {toArray(value).filter(v => v.asset_data?.symbol).map((v, i) => {
                       const { asset_data, amount, value } = { ...v }
                       const { symbol, image } = { ...asset_data }
                       return (

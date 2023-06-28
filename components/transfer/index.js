@@ -513,7 +513,7 @@ export default () => {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-flow-row md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6">
+              <div className="grid grid-flow-row md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                 {details
                   .filter(s => data[`${s}_transaction_hash`] || !['reconcile'].includes(s))
                   .map((s, i) => (
