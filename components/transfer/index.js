@@ -371,17 +371,17 @@ export default () => {
                         buttonTitle={
                           <Tooltip
                             placement="top"
-                            content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transaction will complete within 120 minutes.' : bumped ? 'Processing' : error_status}
+                            content={error_status === XTransferErrorStatus.NoBidsReceived ? 'Transfer processing'/*'The transaction will complete within 120 minutes.'*/ : bumped ? 'Transfer processing' : error_status}
                             className="z-50 bg-dark text-white text-xs"
                           >
-                            <div className={`flex items-center ${error_status === XTransferErrorStatus.NoBidsReceived ? 'text-slate-600 dark:text-slate-200' : 'text-red-600 dark:text-red-500'} space-x-1`}>
+                            <div className={`flex items-center ${error_status === XTransferErrorStatus.NoBidsReceived ? 'text-blue-500 dark:text-blue-300'/*'text-slate-600 dark:text-slate-200'*/ : 'text-red-600 dark:text-red-500'} space-x-1`}>
                               {!bumped && (
                                 error_status === XTransferErrorStatus.NoBidsReceived ?
-                                  <MdInfoOutline size={24} /> :
+                                  null/*<MdInfoOutline size={24} />*/ :
                                   <IoWarning size={24} />
                               )}
                               <span className={`normal-case ${bumped ? 'text-blue-500 dark:text-blue-300' : ''} text-base font-bold`}>
-                                {[XTransferErrorStatus.ExecutionError].includes(error_status) ? error_status : error_status === XTransferErrorStatus.NoBidsReceived ? 'Boost liquidity not available' : bumped ? 'Processing' : error_status}
+                                {[XTransferErrorStatus.ExecutionError].includes(error_status) ? error_status : error_status === XTransferErrorStatus.NoBidsReceived ? 'Transfer processing'/*'Boost liquidity not available'*/ : bumped ? 'Transfer processing' : error_status}
                               </span>
                             </div>
                           </Tooltip>
