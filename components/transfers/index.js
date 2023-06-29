@@ -36,48 +36,16 @@ const ROUTER_FEE_PERCENT = Number(process.env.NEXT_PUBLIC_ROUTER_FEE_PERCENT)
 const LIMIT = 100
 
 export default () => {
-  const {
-    preferences,
-    chains,
-    assets,
-    dev,
-    latest_bumped_transfers,
-  } = useSelector(
-    state => (
-      {
-        preferences: state.preferences,
-        chains: state.chains,
-        assets: state.assets,
-        dev: state.dev,
-        latest_bumped_transfers: state.latest_bumped_transfers,
-      }
-    ),
-    shallowEqual,
-  )
-  const {
-    theme,
-  } = { ...preferences }
-  const {
-    chains_data,
-  } = { ...chains }
-  const {
-    assets_data,
-  } = { ...assets }
-  const {
-    sdk,
-  } = { ...dev }
-  const {
-    latest_bumped_transfers_data,
-  } = { ...latest_bumped_transfers }
+  const { preferences, chains, assets, dev, latest_bumped_transfers } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, assets: state.assets, dev: state.dev, latest_bumped_transfers: state.latest_bumped_transfers }), shallowEqual)
+  const { theme } = { ...preferences }
+  const { chains_data } = { ...chains }
+  const { assets_data } = { ...assets }
+  const { sdk } = { ...dev }
+  const { latest_bumped_transfers_data } = { ...latest_bumped_transfers }
 
   const router = useRouter()
-  const {
-    pathname,
-    query,
-  } = { ...router }
-  const {
-    address,
-  } = { ...query }
+  const { pathname, query } = { ...router }
+  const { address } = { ...query }
 
   const [data, setData] = useState(null)
   const [offset, setOffset] = useState(0)
@@ -130,7 +98,6 @@ export default () => {
           setFetchTrigger(`${[fromChainSelect, toChainSelect, assetSelect].join('_')}`)
         }
       }
-
       trigger()
     },
     [fromChainSelect, toChainSelect, assetSelect],
@@ -151,21 +118,24 @@ export default () => {
           }
 
           let response
-
           const status = statusSelect
           const errorStatus = errorStatusSelect
           const _data = toArray(fetchTrigger && data)
           const limit = LIMIT * (typeof fetchTrigger === 'string' || (fromChainSelect || toChainSelect || assetSelect) ? 3 : 1)
           const offset = [true, 1].includes(fetchTrigger) ? _data.length : 0
 
+          const source_chain_data = getChain(fromChainSelect, chains_data)
+          const destination_chain_data = getChain(toChainSelect, chains_data)
+          const originDomain = source_chain_data?.domain_id
+          const destinationDomain = destination_chain_data?.domain_id
+
           switch (pathname) {
             case '/address/[address]':
               try {
                 if (address) {
-                  response = toArray(await sdk.sdkUtils.getTransfers({ xcallCaller: address, status, errorStatus, range: { limit, offset } }))
-
+                  response = toArray(await sdk.sdkUtils.getTransfers({ xcallCaller: address, originDomain, destinationDomain, status, errorStatus, range: { limit, offset } }))
                   if (response.length < 1) {
-                    response = toArray(await sdk.sdkUtils.getTransfers({ userAddress: address, status, errorStatus, range: { limit, offset } }))
+                    response = toArray(await sdk.sdkUtils.getTransfers({ userAddress: address, originDomain, destinationDomain, status, errorStatus, range: { limit, offset } }))
                   }
                 }
               } catch (error) {}
@@ -173,151 +143,110 @@ export default () => {
             case '/router/[address]':
               try {
                 if (address) {
-                  response = toArray(await sdk.sdkUtils.getTransfers({ routerAddress: address, status, errorStatus, range: { limit, offset } }))
+                  response = toArray(await sdk.sdkUtils.getTransfers({ routerAddress: address, originDomain, destinationDomain, status, errorStatus, range: { limit, offset } }))
                 }
               } catch (error) {}
               break
             default:
               try {
-                response = toArray(await sdk.sdkUtils.getTransfers({ status, errorStatus, range: { limit, offset } }))
+                response = toArray(await sdk.sdkUtils.getTransfers({ originDomain, destinationDomain, status, errorStatus, range: { limit, offset } }))
               } catch (error) {}
               break
           }
 
           if (Array.isArray(response)) {
             response = _.orderBy(_.uniqBy(_.concat(_data, response), 'transfer_id'), ['xcall_timestamp'], ['desc'])
-            response =
-              response.map(t => {
-                const {
-                  transfer_id,
-                  origin_domain,
-                  origin_transacting_asset,
-                  destination_domain,
-                  destination_transacting_asset,
-                  destination_local_asset,
-                  to,
-                  xcall_timestamp,
-                  execute_transaction_hash,
-                  receive_local,
-                  status,
-                } = { ...t }
-                let {
-                  error_status,
-                } = { ...t }
+            response = response.map(t => {
+              const { transfer_id, origin_domain, origin_transacting_asset, destination_domain, destination_transacting_asset, destination_local_asset, to, xcall_timestamp, execute_transaction_hash, receive_local, status } = { ...t }
+              let { error_status } = { ...t }
+              error_status = !error_status && ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status) && moment().diff(moment(xcall_timestamp * 1000), 'minutes') >= 5 ? XTransferErrorStatus.NoBidsReceived : error_status
 
-                error_status = !error_status && ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status) && moment().diff(moment(xcall_timestamp * 1000), 'minutes') >= 5 ? XTransferErrorStatus.NoBidsReceived : error_status
-
-                const source_chain_data = getChain(origin_domain, chains_data)
-                const source_asset_data = getAsset(null, assets_data, source_chain_data?.chain_id, origin_transacting_asset)
-                let source_contract_data = getContract(source_chain_data?.chain_id, source_asset_data?.contracts)
-                // next asset
-                if (source_contract_data?.next_asset && equalsIgnoreCase(source_contract_data.next_asset.contract_address, origin_transacting_asset)) {
-                  source_contract_data = {
-                    ...source_contract_data,
-                    ...source_contract_data.next_asset,
-                  }
-                  delete source_contract_data.next_asset
+              const source_chain_data = getChain(origin_domain, chains_data)
+              const source_asset_data = getAsset(null, assets_data, source_chain_data?.chain_id, origin_transacting_asset)
+              let source_contract_data = getContract(source_chain_data?.chain_id, source_asset_data?.contracts)
+              // next asset
+              if (source_contract_data?.next_asset && equalsIgnoreCase(source_contract_data.next_asset.contract_address, origin_transacting_asset)) {
+                source_contract_data = {
+                  ...source_contract_data,
+                  ...source_contract_data.next_asset,
                 }
-                // native asset
-                if (!source_contract_data && equalsIgnoreCase(constants.AddressZero, origin_transacting_asset)) {
-                  const {
-                    nativeCurrency,
-                  } = { ..._.head(source_chain_data?.provider_params) }
-
-                  const {
-                    symbol,
-                  } = { ...nativeCurrency }
-
-                  const _source_asset_data = getAsset(symbol, assets_data)
-                  source_contract_data = {
-                    ...getContract(source_chain_data?.chain_id, _source_asset_data?.contracts),
-                    ...nativeCurrency,
-                    contract_address: origin_transacting_asset,
-                  }
+                delete source_contract_data.next_asset
+              }
+              // native asset
+              if (!source_contract_data && equalsIgnoreCase(constants.AddressZero, origin_transacting_asset)) {
+                const { nativeCurrency } = { ..._.head(source_chain_data?.provider_params) }
+                const { symbol } = { ...nativeCurrency }
+                const _source_asset_data = getAsset(symbol, assets_data)
+                source_contract_data = {
+                  ...getContract(source_chain_data?.chain_id, _source_asset_data?.contracts),
+                  ...nativeCurrency,
+                  contract_address: origin_transacting_asset,
                 }
-                const source_decimals = source_contract_data?.decimals || 18
+              }
+              const source_decimals = source_contract_data?.decimals || 18
 
-                const destination_chain_data = getChain(destination_domain, chains_data)
-                const _asset_data = getAsset(source_asset_data?.id, assets_data, destination_chain_data?.chain_id)
-                const _contract_data = getContract(destination_chain_data?.chain_id, _asset_data?.contracts)
-                const destination_asset_data = getAsset(null, assets_data, destination_chain_data?.chain_id, [destination_transacting_asset, _asset_data ? receive_local ? _contract_data?.next_asset?.contract_address : _contract_data?.contract_address : destination_local_asset])
-                let destination_contract_data = getContract(destination_chain_data?.chain_id, destination_asset_data?.contracts)
-                // next asset
-                if (destination_contract_data?.next_asset && (equalsIgnoreCase(destination_contract_data.next_asset.contract_address, destination_transacting_asset) || receive_local)) {
-                  destination_contract_data = {
-                    ...destination_contract_data,
-                    ...destination_contract_data.next_asset,
-                  }
-                  delete destination_contract_data.next_asset
+              const destination_chain_data = getChain(destination_domain, chains_data)
+              const _asset_data = getAsset(source_asset_data?.id, assets_data, destination_chain_data?.chain_id)
+              const _contract_data = getContract(destination_chain_data?.chain_id, _asset_data?.contracts)
+              const destination_asset_data = getAsset(null, assets_data, destination_chain_data?.chain_id, [destination_transacting_asset, _asset_data ? receive_local ? _contract_data?.next_asset?.contract_address : _contract_data?.contract_address : destination_local_asset])
+              let destination_contract_data = getContract(destination_chain_data?.chain_id, destination_asset_data?.contracts)
+              // next asset
+              if (destination_contract_data?.next_asset && (equalsIgnoreCase(destination_contract_data.next_asset.contract_address, destination_transacting_asset) || receive_local)) {
+                destination_contract_data = {
+                  ...destination_contract_data,
+                  ...destination_contract_data.next_asset,
                 }
-                // native asset
-                const {
-                  nativeCurrency,
-                } = { ..._.head(destination_chain_data?.provider_params) }
-
-                const {
-                  symbol,
-                } = { ...nativeCurrency }
-
-                const _destination_asset_data = getAsset(NATIVE_WRAPPABLE_SYMBOLS.find(s => symbol?.endsWith(s)) || symbol, assets_data)
-                if ((!destination_contract_data && equalsIgnoreCase(constants.AddressZero, destination_transacting_asset)) || (destination_asset_data?.id === _destination_asset_data?.id && equalsIgnoreCase(to, destination_chain_data?.unwrapper_contract))) {
-                  destination_contract_data = {
-                    ...getContract(destination_chain_data?.chain_id, _destination_asset_data?.contracts),
-                    ...nativeCurrency,
-                    contract_address: constants.AddressZero,
-                  }
+                delete destination_contract_data.next_asset
+              }
+              // native asset
+              const { nativeCurrency } = { ..._.head(destination_chain_data?.provider_params) }
+              const { symbol } = { ...nativeCurrency }
+              const _destination_asset_data = getAsset(NATIVE_WRAPPABLE_SYMBOLS.find(s => symbol?.endsWith(s)) || symbol, assets_data)
+              if ((!destination_contract_data && equalsIgnoreCase(constants.AddressZero, destination_transacting_asset)) || (destination_asset_data?.id === _destination_asset_data?.id && equalsIgnoreCase(to, destination_chain_data?.unwrapper_contract))) {
+                destination_contract_data = {
+                  ...getContract(destination_chain_data?.chain_id, _destination_asset_data?.contracts),
+                  ...nativeCurrency,
+                  contract_address: constants.AddressZero,
                 }
+              }
+              const destination_decimals = destination_contract_data?.decimals || 18
 
-                const destination_decimals = destination_contract_data?.decimals || 18
-                const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, transfer_id) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
-
-                return {
-                  ...t,
-                  source_chain_data,
-                  destination_chain_data,
-                  source_asset_data: {
-                    ...source_asset_data,
-                    ...source_contract_data,
-                  },
-                  destination_asset_data: {
-                    ...destination_asset_data,
-                    ...destination_contract_data,
-                  },
-                  source_decimals,
-                  destination_decimals,
-                  error_status,
-                  pending: ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status) || [XTransferErrorStatus.NoBidsReceived].includes(error_status),
-                  errored: error_status && !execute_transaction_hash && [XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status) && !(bumped && error_status === XTransferErrorStatus.ExecutionError) && error_status !== XTransferErrorStatus.NoBidsReceived,
-                }
-              })
-              .map(t => {
-                const {
-                  source_asset_data,
-                  destination_asset_data,
-                  origin_transacting_asset,
-                  origin_transacting_amount,
-                  destination_transacting_amount,
-                  source_decimals,
-                  destination_decimals,
-                  relayer_fees,
-                } = { ...t }
-
-                const source_amount = origin_transacting_amount && Number(utils.formatUnits((BigInt(origin_transacting_amount) + BigInt(relayer_fees?.[origin_transacting_asset] || 0)).toString(), source_decimals))
-                const destination_amount = destination_transacting_amount ? Number(utils.formatUnits(BigInt(destination_transacting_amount).toString(), destination_decimals)) : source_amount * (1 - ROUTER_FEE_PERCENT / 100)
-
-                return {
-                  ...t,
-                  source_asset_data: {
-                    ...source_asset_data,
-                    amount: source_amount,
-                  },
-                  destination_asset_data: {
-                    ...destination_asset_data,
-                    amount: destination_amount,
-                  },
-                }
-              })
-
+              const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, transfer_id) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
+              return {
+                ...t,
+                source_chain_data,
+                destination_chain_data,
+                source_asset_data: {
+                  ...source_asset_data,
+                  ...source_contract_data,
+                },
+                destination_asset_data: {
+                  ...destination_asset_data,
+                  ...destination_contract_data,
+                },
+                source_decimals,
+                destination_decimals,
+                error_status,
+                pending: ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status) || [XTransferErrorStatus.NoBidsReceived].includes(error_status),
+                errored: error_status && !execute_transaction_hash && [XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status) && !(bumped && error_status === XTransferErrorStatus.ExecutionError) && error_status !== XTransferErrorStatus.NoBidsReceived,
+              }
+            })
+            .map(t => {
+              const { source_asset_data, destination_asset_data, origin_transacting_asset, origin_transacting_amount, destination_transacting_amount, source_decimals, destination_decimals, relayer_fees } = { ...t }
+              const source_amount = origin_transacting_amount && Number(utils.formatUnits((BigInt(origin_transacting_amount) + BigInt(relayer_fees?.[origin_transacting_asset] || 0)).toString(), source_decimals))
+              const destination_amount = destination_transacting_amount ? Number(utils.formatUnits(BigInt(destination_transacting_amount).toString(), destination_decimals)) : source_amount * (1 - ROUTER_FEE_PERCENT / 100)
+              return {
+                ...t,
+                source_asset_data: {
+                  ...source_asset_data,
+                  amount: source_amount,
+                },
+                destination_asset_data: {
+                  ...destination_asset_data,
+                  amount: destination_amount,
+                },
+              }
+            })
             setData(response)
             setNoMore(!offset ? response.length < _data.length : response.length <= _data.length)
           }
@@ -338,13 +267,11 @@ export default () => {
   const source_chain_data = getChain(fromChainSelect, chains_data)
   const destination_chain_data = getChain(toChainSelect, chains_data)
   const asset_data = getAsset(assetSelect, assets_data)
-
-  const data_filtered =
-    toArray(data).filter(t =>
-      (!source_chain_data || source_chain_data?.id === t.source_chain_data?.id) &&
-      (!destination_chain_data || destination_chain_data?.id === t.destination_chain_data?.id) &&
-      (!asset_data || [t.source_asset_data?.id, t.destination_asset_data?.id].includes(asset_data.id))
-    )
+  const data_filtered = toArray(data).filter(t =>
+    (!source_chain_data || source_chain_data?.id === t.source_chain_data?.id) &&
+    (!destination_chain_data || destination_chain_data?.id === t.destination_chain_data?.id) &&
+    (!asset_data || [t.source_asset_data?.id, t.destination_asset_data?.id].includes(asset_data.id))
+  )
 
   return (
     <div className="space-y-2 mb-6">
@@ -407,25 +334,9 @@ export default () => {
                 accessor: 'transfer_id',
                 disableSortBy: true,
                 Cell: props => {
-                  const {
-                    row,
-                    value,
-                  } = { ...props }
-
-                  const {
-                    pending,
-                    errored,
-                    xcall_timestamp,
-                    execute_transaction_hash,
-                    execute_timestamp,
-                    status,
-                    error_status,
-                    routers,
-                    call_data,
-                  } = { ...row.original }
-
+                  const { row, value } = { ...props }
+                  const { pending, errored, xcall_timestamp, execute_transaction_hash, execute_timestamp, status, error_status, routers, call_data } = { ...row.original }
                   const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, value) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
-
                   return value && (
                     <div className="flex flex-col items-start space-y-2 mt-0.5">
                       <div className="flex items-center space-x-1">
@@ -448,14 +359,8 @@ export default () => {
                           className="z-50 bg-dark text-white text-xs"
                         >
                           <div className="flex items-center">
-                            <AiTwotoneFile
-                              size={16}
-                              className={call_data !== '0x' ? 'text-yellow-500 dark:text-yellow-400' : 'text-slate-400 dark:text-slate-500'}
-                            />
-                            <BiInfoCircle
-                              size={14}
-                              className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
-                            />
+                            <AiTwotoneFile size={16} className={call_data !== '0x' ? 'text-yellow-500 dark:text-yellow-400' : 'text-slate-400 dark:text-slate-500'} />
+                            <BiInfoCircle size={14} className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0" />
                           </div>
                         </Tooltip>
                       )}
@@ -513,14 +418,8 @@ export default () => {
                                 className="z-50 bg-dark text-white text-xs"
                               >
                                 <div className="flex items-center">
-                                  <BsLightningChargeFill
-                                    size={16}
-                                    className={routers?.length > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-blue-300 dark:text-blue-200'}
-                                  />
-                                  <BiInfoCircle
-                                    size={14}
-                                    className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
-                                  />
+                                  <BsLightningChargeFill size={16} className={routers?.length > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-blue-300 dark:text-blue-200'} />
+                                  <BiInfoCircle size={14} className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0" />
                                 </div>
                               </Tooltip>
                             )}
@@ -546,10 +445,7 @@ export default () => {
                 accessor: 'xcall_timestamp',
                 disableSortBy: true,
                 Cell: props => {
-                  const {
-                    value,
-                  } = { ...props }
-
+                  const { value } = { ...props }
                   return value && (
                     <div className="flex flex-col space-y-1 mt-0.5">
                       <span className="text-slate-400 dark:text-slate-500 text-sm font-medium">
@@ -568,25 +464,9 @@ export default () => {
                 accessor: 'status',
                 disableSortBy: true,
                 Cell: props => {
-                  const {
-                    row,
-                    value,
-                  } = { ...props }
-
-                  const {
-                    transfer_id,
-                    pending,
-                    errored,
-                    xcall_timestamp,
-                    execute_transaction_hash,
-                    execute_timestamp,
-                    error_status,
-                    routers,
-                    call_data,
-                  } = { ...row.original }
-
+                  const { row, value } = { ...props }
+                  const { transfer_id, pending, errored, xcall_timestamp, execute_transaction_hash, execute_timestamp, error_status, routers, call_data } = { ...row.original }
                   const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, transfer_id) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
-
                   return (
                     <div className="flex flex-col items-start space-y-1 mt-0.5">
                       {errored ?
@@ -641,14 +521,8 @@ export default () => {
                             className="z-50 bg-dark text-white text-xs"
                           >
                             <div className="flex items-center">
-                              <BsLightningChargeFill
-                                size={16}
-                                className={routers?.length > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-blue-300 dark:text-blue-200'}
-                              />
-                              <BiInfoCircle
-                                size={14}
-                                className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
-                              />
+                              <BsLightningChargeFill size={16} className={routers?.length > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-blue-300 dark:text-blue-200'} />
+                              <BiInfoCircle size={14} className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0" />
                             </div>
                           </Tooltip>
                         )}
@@ -668,32 +542,11 @@ export default () => {
                 accessor: 'source_chain_data',
                 disableSortBy: true,
                 Cell: props => {
-                  const {
-                    row,
-                    value,
-                  } = { ...props }
-
-                  const {
-                    source_asset_data,
-                    xcall_caller,
-                  } = { ...row.original }
-
-                  const {
-                    name,
-                    image,
-                    explorer,
-                  } = { ...value }
-
-                  const {
-                    url,
-                    address_path,
-                  } = { ...explorer }
-
-                  const {
-                    symbol,
-                    amount,
-                  } = { ...source_asset_data }
-
+                  const { row, value } = { ...props }
+                  const { source_asset_data, xcall_caller } = { ...row.original }
+                  const { name, image, explorer } = { ...value }
+                  const { url, address_path } = { ...explorer }
+                  const { symbol, amount } = { ...source_asset_data }
                   return (
                     <div className="space-y-1.5 mb-3">
                       {value ?
@@ -781,32 +634,11 @@ export default () => {
                 accessor: 'destination_chain_data',
                 disableSortBy: true,
                 Cell: props => {
-                  const {
-                    row,
-                    value,
-                  } = { ...props }
-
-                  const {
-                    destination_asset_data,
-                    to,
-                  } = { ...row.original }
-
-                  const {
-                    name,
-                    image,
-                    explorer,
-                  } = { ...value }
-
-                  const {
-                    url,
-                    address_path,
-                  } = { ...explorer }
-
-                  const {
-                    symbol,
-                    amount,
-                  } = { ...destination_asset_data }
-
+                  const { row, value } = { ...props }
+                  const { destination_asset_data, to } = { ...row.original }
+                  const { name, image, explorer } = { ...value }
+                  const { url, address_path } = { ...explorer }
+                  const { symbol, amount } = { ...destination_asset_data }
                   return (
                     <div className="space-y-1.5 mb-3">
                       {value ?
@@ -853,9 +685,7 @@ export default () => {
                                 {symbol}
                               </span>
                             )}
-                            {destination_asset_data.contract_address && (
-                              <AddToken token_data={{ ...destination_asset_data }} />
-                            )}
+                            {destination_asset_data.contract_address && <AddToken token_data={{ ...destination_asset_data }} />}
                           </>
                         )}
                       </div>
@@ -894,15 +724,8 @@ export default () => {
                 accessor: 'xcall_status',
                 disableSortBy: true,
                 Cell: props => {
-                  const {
-                    row,
-                  } = { ...props }
-
-                  const {
-                    transfer_id,
-                    status,
-                  } = { ...row.original }
-
+                  const { row } = { ...props }
+                  const { transfer_id, status } = { ...row.original }
                   return (
                     <div className="flex flex-col items-start space-y-1 mt-0.5">
                       <Link href={`/tx/${transfer_id}`}>
@@ -920,28 +743,16 @@ export default () => {
                 accessor: 'error_status',
                 disableSortBy: true,
                 Cell: props => {
-                  const {
-                    row,
-                  } = { ...props }
-
-                  let {
-                    value,
-                  } = { ...props }
-
-                  const {
-                    transfer_id,
-                    status,
-                  } = { ...row.original }
-
+                  const { row } = { ...props }
+                  let { value } = { ...props }
+                  const { transfer_id, status } = { ...row.original }
                   if (value === XTransferErrorStatus.ExecutionError && status === XTransferStatus.CompletedSlow) {
                     value = 'AuthenticationCheck'
                   }
                   if (value && ![XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status)) {
                     value = null
                   }
-
                   const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(value) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, transfer_id) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
-
                   return (
                     <div className="flex flex-col items-start space-y-1 mt-0.5">
                       <Link href={`/tx/${transfer_id}`}>
