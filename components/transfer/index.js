@@ -31,58 +31,23 @@ const NATIVE_WRAPPABLE_SYMBOLS = ['ETH', 'MATIC', 'DAI']
 const ROUTER_FEE_PERCENT = Number(process.env.NEXT_PUBLIC_ROUTER_FEE_PERCENT)
 
 export default () => {
-  const {
-    preferences,
-    chains,
-    assets,
-    dev,
-    latest_bumped_transfers,
-  } = useSelector(
-    state => (
-      {
-        preferences: state.preferences,
-        chains: state.chains,
-        assets: state.assets,
-        dev: state.dev,
-        latest_bumped_transfers: state.latest_bumped_transfers,
-      }
-    ),
-    shallowEqual,
-  )
-  const {
-    theme,
-    page_visible,
-  } = { ...preferences }
-  const {
-    chains_data,
-  } = { ...chains }
-  const {
-    assets_data,
-  } = { ...assets }
-  const {
-    sdk,
-  } = { ...dev }
-  const {
-    latest_bumped_transfers_data,
-  } = { ...latest_bumped_transfers }
+  const { preferences, chains, assets, dev, latest_bumped_transfers } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, assets: state.assets, dev: state.dev, latest_bumped_transfers: state.latest_bumped_transfers }), shallowEqual)
+  const { theme, page_visible } = { ...preferences }
+  const { chains_data } = { ...chains }
+  const { assets_data } = { ...assets }
+  const { sdk } = { ...dev }
+  const { latest_bumped_transfers_data } = { ...latest_bumped_transfers }
 
   const router = useRouter()
-  const {
-    query,
-  } = { ...router }
-  const {
-    tx,
-  } = { ...query }
+  const { query } = { ...router }
+  const { tx } = { ...query }
 
   const [data, setData] = useState(null)
 
   useEffect(
     () => {
       const getData = async is_interval => {
-        const {
-          status,
-        } = { ...data }
-
+        const { status } = { ...data }
         if (page_visible && sdk && tx && (!data || ![XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status) || !equalsIgnoreCase(data.xcall_transaction_hash, tx))) {
           let response = toArray(await sdk.sdkUtils.getTransfers({ transferId: tx }))
           let _data = _.head(response)
@@ -104,10 +69,7 @@ export default () => {
               receive_local,
               status,
             } = { ..._data }
-            let {
-              error_status,
-            } = { ..._data }
-
+            let { error_status } = { ..._data }
             error_status = !error_status && ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status) && moment().diff(moment(xcall_timestamp * 1000), 'minutes') >= 5 ? XTransferErrorStatus.NoBidsReceived : error_status
 
             const source_chain_data = getChain(origin_domain, chains_data)
@@ -123,14 +85,8 @@ export default () => {
             }
             // native asset
             if (!source_contract_data && equalsIgnoreCase(constants.AddressZero, origin_transacting_asset)) {
-              const {
-                nativeCurrency,
-              } = { ..._.head(source_chain_data?.provider_params) }
-
-              const {
-                symbol,
-              } = { ...nativeCurrency }
-
+              const { nativeCurrency } = { ..._.head(source_chain_data?.provider_params) }
+              const { symbol } = { ...nativeCurrency }
               const _source_asset_data = getAsset(symbol, assets_data)
               source_contract_data = {
                 ...getContract(source_chain_data?.chain_id, _source_asset_data?.contracts),
@@ -154,14 +110,8 @@ export default () => {
               delete destination_contract_data.next_asset
             }
             // native asset
-            const {
-              nativeCurrency,
-            } = { ..._.head(destination_chain_data?.provider_params) }
-
-            const {
-              symbol,
-            } = { ...nativeCurrency }
-
+            const { nativeCurrency } = { ..._.head(destination_chain_data?.provider_params) }
+            const { symbol } = { ...nativeCurrency }
             const _destination_asset_data = getAsset(NATIVE_WRAPPABLE_SYMBOLS.find(s => symbol?.endsWith(s)) || symbol, assets_data)
             if ((!destination_contract_data && equalsIgnoreCase(constants.AddressZero, destination_transacting_asset)) || (destination_asset_data?.id === _destination_asset_data?.id && equalsIgnoreCase(to, destination_chain_data?.unwrapper_contract))) {
               destination_contract_data = {
@@ -170,30 +120,27 @@ export default () => {
                 contract_address: constants.AddressZero,
               }
             }
-
             const destination_decimals = destination_contract_data?.decimals || 18
-            const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, transfer_id) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
 
-            setData(
-              {
-                ..._data,
-                source_chain_data,
-                destination_chain_data,
-                source_asset_data: {
-                  ...source_asset_data,
-                  ...source_contract_data,
-                },
-                destination_asset_data: {
-                  ...destination_asset_data,
-                  ...destination_contract_data,
-                },
-                source_decimals,
-                destination_decimals,
-                error_status,
-                pending: ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status),
-                errored: error_status && !execute_transaction_hash && [XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status) && !(bumped && error_status === XTransferErrorStatus.ExecutionError),
-              }
-            )
+            const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(t => equalsIgnoreCase(t.transfer_id, transfer_id) && moment().diff(moment(t.updated), 'minutes', true) <= 5) > -1
+            setData({
+              ..._data,
+              source_chain_data,
+              destination_chain_data,
+              source_asset_data: {
+                ...source_asset_data,
+                ...source_contract_data,
+              },
+              destination_asset_data: {
+                ...destination_asset_data,
+                ...destination_contract_data,
+              },
+              source_decimals,
+              destination_decimals,
+              error_status,
+              pending: ![XTransferStatus.Executed, XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status),
+              errored: error_status && !execute_transaction_hash && [XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status) && !(bumped && error_status === XTransferErrorStatus.ExecutionError),
+            })
           }
           else if (!is_interval) {
             setData(false)
@@ -546,14 +493,8 @@ export default () => {
                                   className="z-50 bg-dark text-white text-xs"
                                 >
                                   <div className="flex items-center">
-                                    <AiTwotoneFile
-                                      size={24}
-                                      className={call_data !== '0x' ? 'text-yellow-500 dark:text-yellow-400' : 'text-slate-400 dark:text-slate-500'}
-                                    />
-                                    <BiInfoCircle
-                                      size={14}
-                                      className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
-                                    />
+                                    <AiTwotoneFile size={24} className={call_data !== '0x' ? 'text-yellow-500 dark:text-yellow-400' : 'text-slate-400 dark:text-slate-500'} />
+                                    <BiInfoCircle size={14} className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0" />
                                   </div>
                                 </Tooltip>
                               )}
@@ -564,24 +505,15 @@ export default () => {
                                   className="z-50 bg-dark text-white text-xs"
                                 >
                                   <div className="flex items-center">
-                                    <BsLightningChargeFill
-                                      size={24}
-                                      className={routers?.length > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-blue-300 dark:text-blue-200'}
-                                    />
-                                    <BiInfoCircle
-                                      size={14}
-                                      className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0"
-                                    />
+                                    <BsLightningChargeFill size={24} className={routers?.length > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-blue-300 dark:text-blue-200'} />
+                                    <BiInfoCircle size={14} className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0" />
                                   </div>
                                 </Tooltip>
                               )}
                             </>
                           )}
                           {data[`${s}_transaction_hash`] ?
-                            <HiCheckCircle
-                              size={32}
-                              className="bg-slate-100 dark:bg-slate-200 rounded-full text-green-500 dark:text-green-500"
-                            /> :
+                            <HiCheckCircle size={32} className="bg-slate-100 dark:bg-slate-200 rounded-full text-green-500 dark:text-green-500" /> :
                             errored ?
                               s === 'execute' ?
                                 <ActionRequired
@@ -602,10 +534,7 @@ export default () => {
                                           /> :
                                           error_status === XTransferErrorStatus.NoBidsReceived ?
                                             <MdInfoOutline size={24} className="text-slate-400 dark:text-slate-500" /> :
-                                            <IoWarning
-                                              size={32}
-                                              className="text-red-600 dark:text-red-500"
-                                            />
+                                            <IoWarning size={32} className="text-red-600 dark:text-red-500" />
                                         }
                                       </div>
                                     </Tooltip>
@@ -662,30 +591,13 @@ export default () => {
                               {[undefined, null].includes(data[['message_status', 'recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f === 'relayer_fee' && Object.keys({ ...data[`${f}s`] }).length > 0 ? `${f}s` : f : `${s}_${f}`]) ?
                                 <span className="text-slate-600 dark:text-slate-200">-</span> :
                                 toArray(data[['message_status', 'recovery', 'to', 'relayer_fee', 'call_data'].includes(f) ? f === 'relayer_fee' && Object.keys({ ...data[`${f}s`] }).length > 0 ? `${f}s` : f : `${s}_${f}`]).map((v, k) => {
-                                  const {
-                                    provider_params,
-                                    explorer,
-                                  } = { ...s === 'xcall' ? source_chain_data : destination_chain_data }
-
-                                  const {
-                                    nativeCurrency,
-                                  } = { ..._.head(provider_params) }
-
-                                  const {
-                                    url,
-                                    block_path,
-                                    transaction_path,
-                                    address_path,
-                                  } = { ...explorer }
-
-                                  const {
-                                    symbol,
-                                    decimals,
-                                  } = { ...nativeCurrency }
+                                  const { provider_params, explorer } = { ...s === 'xcall' ? source_chain_data : destination_chain_data }
+                                  const { nativeCurrency } = { ..._.head(provider_params) }
+                                  const { url, block_path, transaction_path, address_path } = { ...explorer }
+                                  const { symbol, decimals } = { ...nativeCurrency }
 
                                   let _v
                                   let component
-
                                   switch (f) {
                                     case 'transaction_hash':
                                       _v = (
@@ -698,7 +610,6 @@ export default () => {
                                           </span>
                                         </>
                                       )
-
                                       component = (
                                         <div className="flex items-center space-x-2">
                                           {url ?
@@ -723,18 +634,16 @@ export default () => {
                                           className="text-base font-medium"
                                         />
                                       )
-
-                                      component =
-                                        url ?
-                                          <a
-                                            href={`${explorer.url}${block_path?.replace('{block}', v)}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-500 dark:text-blue-600"
-                                          >
-                                            {_v}
-                                          </a> :
-                                          _v
+                                      component = url ?
+                                        <a
+                                          href={`${explorer.url}${block_path?.replace('{block}', v)}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-blue-500 dark:text-blue-600"
+                                        >
+                                          {_v}
+                                        </a> :
+                                        _v
                                       break
                                     case 'timestamp':
                                       component = moment(v * 1000).format('MMM D, YYYY H:mm:ss A')
@@ -759,24 +668,22 @@ export default () => {
                                           }
                                         />
                                       )
-
-                                      component =
-                                        v ?
-                                          <div className="flex items-center space-x-2">
-                                            {url ?
-                                              <a
-                                                href={`${url}${address_path?.replace('{address}', v)}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-500 dark:text-blue-600"
-                                              >
-                                                {_v}
-                                              </a> :
-                                              _v
-                                            }
-                                            <Copy size={20} value={v} />
-                                          </div> :
-                                          <span>-</span>
+                                      component = v ?
+                                        <div className="flex items-center space-x-2">
+                                          {url ?
+                                            <a
+                                              href={`${url}${address_path?.replace('{address}', v)}`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-blue-500 dark:text-blue-600"
+                                            >
+                                              {_v}
+                                            </a> :
+                                            _v
+                                          }
+                                          <Copy size={20} value={v} />
+                                        </div> :
+                                        <span>-</span>
                                       break
                                     case 'to':
                                       _v = (
@@ -795,24 +702,22 @@ export default () => {
                                           }
                                         />
                                       )
-
-                                      component =
-                                        v ?
-                                          <div className="flex items-center space-x-2">
-                                            {destination_chain_data?.explorer?.url ?
-                                              <a
-                                                href={`${destination_chain_data.explorer.url}${destination_chain_data.explorer.address_path?.replace('{address}', v)}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-500 dark:text-blue-600"
-                                              >
-                                                {_v}
-                                              </a> :
-                                              _v
-                                            }
-                                            <Copy size={20} value={v} />
-                                          </div> :
-                                          <span>-</span>
+                                      component = v ?
+                                        <div className="flex items-center space-x-2">
+                                          {destination_chain_data?.explorer?.url ?
+                                            <a
+                                              href={`${destination_chain_data.explorer.url}${destination_chain_data.explorer.address_path?.replace('{address}', v)}`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-blue-500 dark:text-blue-600"
+                                            >
+                                              {_v}
+                                            </a> :
+                                            _v
+                                          }
+                                          <Copy size={20} value={v} />
+                                        </div> :
+                                        <span>-</span>
                                       break
                                     case 'simulation_from':
                                       _v = (
@@ -831,24 +736,22 @@ export default () => {
                                           }
                                         />
                                       )
-
-                                      component =
-                                        v ?
-                                          <div className="flex items-center space-x-2">
-                                            {source_chain_data?.explorer?.url ?
-                                              <a
-                                                href={`${source_chain_data.explorer.url}${source_chain_data.explorer.address_path?.replace('{address}', v)}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-500 dark:text-blue-600"
-                                              >
-                                                {_v}
-                                              </a> :
-                                              _v
-                                            }
-                                            <Copy size={20} value={v} />
-                                          </div> :
-                                          <span>-</span>
+                                      component = v ?
+                                        <div className="flex items-center space-x-2">
+                                          {source_chain_data?.explorer?.url ?
+                                            <a
+                                              href={`${source_chain_data.explorer.url}${source_chain_data.explorer.address_path?.replace('{address}', v)}`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-blue-500 dark:text-blue-600"
+                                            >
+                                              {_v}
+                                            </a> :
+                                            _v
+                                          }
+                                          <Copy size={20} value={v} />
+                                        </div> :
+                                        <span>-</span>
                                       break
                                     case 'relayer_fee':
                                       if (Object.keys({ ...data[`${f}s`] }).length > 0) {
@@ -856,10 +759,7 @@ export default () => {
                                           <div className="flex flex-col space-y-2">
                                             {Object.entries(data[`${f}s`]).map(([k, v]) => {
                                               return (
-                                                <span
-                                                  key={k}
-                                                  className="whitespace-nowrap text-slate-800 dark:text-slate-200 font-semibold space-x-1.5"
-                                                >
+                                                <span key={k} className="whitespace-nowrap text-slate-800 dark:text-slate-200 font-semibold space-x-1.5">
                                                   <DecimalsFormat
                                                     value={utils.formatUnits(v || '0', k === constants.AddressZero ? source_gas_decimals : source_decimals)}
                                                     className="text-sm"
@@ -875,7 +775,6 @@ export default () => {
                                       }
                                       else {
                                         _v = utils.formatUnits(BigInt(v || '0'), decimals || 18),
-
                                         component = (
                                           <div className="flex items-center space-x-1">
                                             <DecimalsFormat
@@ -901,17 +800,16 @@ export default () => {
                                       break
                                     case 'call_data':
                                     case 'simulation_input':
-                                      component =
-                                        v ?
-                                          <div className="flex items-start space-x-1">
-                                            <div className="bg-slate-50 dark:bg-slate-800 rounded break-all p-2">
-                                              {ellipse(v, 53)}
-                                            </div>
-                                            <div className="mt-2.5">
-                                              <Copy size={20} value={v} />
-                                            </div>
-                                          </div> :
-                                          <span>-</span>
+                                      component = v ?
+                                        <div className="flex items-start space-x-1">
+                                          <div className="bg-slate-50 dark:bg-slate-800 rounded break-all p-2">
+                                            {ellipse(v, 53)}
+                                          </div>
+                                          <div className="mt-2.5">
+                                            <Copy size={20} value={v} />
+                                          </div>
+                                        </div> :
+                                        <span>-</span>
                                       break
                                     case 'simulation_network':
                                       component = v
