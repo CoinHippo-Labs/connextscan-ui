@@ -23,21 +23,12 @@ h5 {
 h6 {
   @apply text-lg;
 }
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  /*@apply font-sans;*/
-}
 
 code {
-  @apply font-mono p-1 inline rounded font-semibold;
+  @apply inline rounded font-semibold p-1;
 }
 pre {
-  @apply font-mono p-2 block rounded font-semibold;
-  @apply whitespace-pre-wrap;
+  @apply block rounded whitespace-pre-wrap font-semibold p-2;
 }
 
 ul {
@@ -56,9 +47,9 @@ button {
   }
 }
 
-/**
- * hide scrollbars
- */
+/*******************
+ * hide scrollbars *
+ *******************/
 ::-webkit-scrollbar {
   display: none;
   width: 0 !important;
@@ -80,7 +71,7 @@ button {
 }
 
 body {
-  @apply /*font-sans */antialiased text-sm disable-scrollbars;
+  @apply antialiased text-sm disable-scrollbars;
 }
 
 [data-background="light"] {
@@ -99,7 +90,7 @@ body {
   }
 }
 .link {
-  @apply text-blue-500;
+  @apply text-blue-400 dark:text-blue-500;
 }
 
 .ring-red {
@@ -113,74 +104,6 @@ body {
 }
 .ring-black {
   box-shadow: 0 0 0 3px rgba(0, 0, 0, 1);
-}
-
-.react-switch {
-  vertical-align: middle;
-  margin-left: 4px;
-}
-
-.react-icons {
-  vertical-align: middle;
-}
-
-.z-1 {
-  z-index: 1;
-}
-.z-2 {
-  z-index: 2;
-}
-
-.string-value {
-  @apply break-all;
-}
-
-.recharts-cartesian-axis-tick-value {
-  @apply fill-current text-slate-900 dark:text-white text-3xs sm:text-sm md:text-sm lg:text-sm xl:text-sm font-medium;
-}
-
-.mobile-hidden-x .recharts-cartesian-axis-tick-value {
-  @apply hidden sm:block;
-}
-
-.small-x .recharts-cartesian-axis-tick-value {
-  font-size: .65rem !important;
-}
-
-.recharts-label {
-  @apply font-mono text-2xs sm:text-xs md:text-sm lg:text-sm xl:text-sm font-semibold;
-}
-
-.font-default .recharts-label {
-  @apply font-sans;
-}
-
-.recharts-label-list text tspan {
-  @apply text-3xs sm:text-xs md:text-xs lg:text-xs xl:text-xs;
-}
-
-.max-w-8xl {
-  max-width: 88rem;
-}
-
-.max-w-6\.5xl {
-  max-width: 76rem;
-}
-
-.h-7 {
-  height: 1.75rem !important;
-}
-
-.h-108 {
-  height: 25.5rem !important;
-}
-
-.text-2xs {
-  font-size: .65rem;
-}
-
-.text-3xs {
-  font-size: .5rem;
 }
 
 /* Chrome, Safari, Edge, Opera */
@@ -202,8 +125,52 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
-.main {
-  @apply bg-white dark:bg-black;
+.wrapper {
+  min-height: calc(100vh - 96px);
+}
+
+.text-2xs {
+  font-size: .65rem;
+}
+
+.text-3xs {
+  font-size: .5rem;
+}
+
+.backdrop-blur-8 {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.backdrop-blur-16 {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.linkify a {
+  @apply text-blue-400 dark:text-white font-semibold;
+}
+
+.status-message a {
+  @apply underline font-extrabold;
+}
+
+a {
+  .underline {
+    text-decoration-line: underline;
+  }
+}
+
+.max-w-8xl {
+  max-width: 88rem;
+}
+
+.max-w-6\.5xl {
+  max-width: 76rem;
+}
+
+.h-7 {
+  height: 1.75rem !important;
 }
 
 #modal-chains,
@@ -213,6 +180,15 @@ input[type=number] {
   }
 }
 
-.min-h-screen {
-  min-height: calc(100vh - 168px) !important;
+.alert-box {
+  .transition-all {
+    @apply right-0 ml-auto;
+    position: initial !important;
+    [role=button] {
+      padding: 1px;
+      svg {
+        @apply w-5 h-5;
+      }
+    }
+  }
 }

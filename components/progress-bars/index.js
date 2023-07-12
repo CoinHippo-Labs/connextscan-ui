@@ -1,3 +1,5 @@
+import { fixDecimals } from '../../lib/utils'
+
 export const ProgressBar = (
   {
     width,
@@ -8,7 +10,7 @@ export const ProgressBar = (
     backgroundStyle,
   },
 ) => {
-  width = width < 0 ? 0 : width > 100 ? 100 : width
+  width = fixDecimals(width < 0 ? 0 : width > 100 ? 100 : width)
 
   return (
     <div
@@ -32,7 +34,7 @@ export const ProgressBarWithText = (
     backgroundClassName = '',
   },
 ) => {
-  width = width < 0 ? 0 : width > 100 ? 100 : width
+  width = fixDecimals(width < 0 ? 0 : width > 100 ? 100 : width)
 
   return (
     <div className={`w-full ${backgroundClassName.includes('h-') ? '' : 'h-4'} ${backgroundClassName.includes('bg-') ? '' : 'bg-slate-50 dark:bg-slate-800'} relative flex flex-row items-center text-xs text-center ${backgroundClassName}`}>

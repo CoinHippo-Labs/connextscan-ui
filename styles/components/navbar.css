@@ -1,25 +1,35 @@
 [data-navbar="light"] {
   .navbar,.footer {
     @apply text-slate-900;
-    @apply bg-white border-slate-100;
+    @apply bg-white border-slate-50;
     .navbar-search {
       input {
-      @apply bg-slate-100 border-slate-100;
+        @apply bg-slate-50 border-slate-50;
       }
     }
+  }
+
+  .navbar {
+    background: color(theme('colors.white') tint(2%));
+    border-color: color(theme('colors.white') tint(2%));
   }
 }
 
 [data-navbar="dark"] {
   .navbar,.footer {
     @apply text-white;
-    background: color(theme('colors.black') tint(5%));
-    border-color: color(theme('colors.black') tint(5%));
+    background: #1a1919;
+    border-color: #1a1919;
     .navbar-search {
       input {
-        background: color(theme('colors.gray.900'));
-        border-color: color(theme('colors.gray.900'));
+        background: color(theme('colors.slate.900'));
+        border-color: color(theme('colors.slate.900'));
       }
     }
+  }
+
+  .navbar {
+    background: color(theme('colors.black') tint(2%));
+    border-color: color(theme('colors.black') tint(2%));
   }
 }

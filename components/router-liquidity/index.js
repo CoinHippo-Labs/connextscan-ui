@@ -680,81 +680,49 @@ export default () => {
 
   return (
     <>
-      {
-        notificationResponse &&
-        (
-          <Notification
-            hideButton={true}
-            outerClassNames="w-full h-auto z-50 transform fixed top-0 left-0 p-0"
-            innerClassNames={
-              `${
-                status === 'failed' ?
-                  'bg-red-500 dark:bg-red-600' :
-                  status === 'success' ?
-                    'bg-green-500 dark:bg-green-600' :
-                    'bg-blue-600 dark:bg-blue-700'
-              } text-white`
-            }
-            animation="animate__animated animate__fadeInDown"
-            icon={
-              status === 'failed' ?
-                <BiMessageError
-                  className="w-6 h-6 stroke-current mr-2"
-                /> :
-                status === 'success' ?
-                  <BiMessageCheck
-                    className="w-6 h-6 stroke-current mr-2"
-                  /> :
-                  <div className="mr-2">
-                    <Watch
-                      width="20"
-                      height="20"
-                      color="white"
-                    />
-                  </div>
-            }
-            content={
-              <div className="flex items-center">
-                <span className="break-all mr-2">
-                  {message}
-                </span>
-                {
-                  url && tx_hash &&
-                  (
-                    <a
-                      href={`${url}${transaction_path?.replace('{tx}', tx_hash)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mr-2"
-                    >
-                      <span className="font-semibold">
-                        View on {explorer.name}
-                      </span>
-                    </a>
-                  )
-                }
-                {
-                  status === 'failed' && message &&
-                  (
-                    <Copy
-                      size={24}
-                      value={message}
-                      className="cursor-pointer text-slate-200 hover:text-white"
-                    />
-                  )
-                }
-              </div>
-            }
-            onClose={
-              () => {
-                setApproveResponse(null)
-                setAddResponse(null)
-                setRemoveResponse(null)
+      {notificationResponse && (
+        <Notification
+          body={
+            <div className="flex items-center">
+              <span className="break-all mr-2">
+                {message}
+              </span>
+              {
+                url && tx_hash &&
+                (
+                  <a
+                    href={`${url}${transaction_path?.replace('{tx}', tx_hash)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mr-2"
+                  >
+                    <span className="font-semibold">
+                      View on {explorer.name}
+                    </span>
+                  </a>
+                )
               }
+              {
+                status === 'failed' && message &&
+                (
+                  <Copy
+                    size={24}
+                    value={message}
+                    className="cursor-pointer text-slate-200 hover:text-white"
+                  />
+                )
+              }
+            </div>
+          }
+          onClose={
+            () => {
+              setApproveResponse(null)
+              setAddResponse(null)
+              setRemoveResponse(null)
             }
-          />
-        )
-      }
+          }
+        />
+      )}
       <Modal
         hidden={hidden}
         disabled={disabled}

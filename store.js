@@ -5,7 +5,6 @@ import { composeWithDevTools } from '@redux-devtools/extension'
 import reducers from './reducers'
 
 let store
-
 const initStore = preloadedState => createStore(reducers, preloadedState, composeWithDevTools(applyMiddleware()))
 
 export const initializeStore = preloadedState => {
@@ -31,12 +30,4 @@ export const initializeStore = preloadedState => {
   return _store
 }
 
-export const useStore = initialState => {
-  const store =
-    useMemo(
-      () => initializeStore(initialState),
-      [initialState],
-    )
-
-  return store
-}
+export const useStore = initialState => useMemo(() => initializeStore(initialState), [initialState])
