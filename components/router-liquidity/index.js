@@ -10,7 +10,7 @@ import { BiMessageError, BiMessageCheck, BiX } from 'react-icons/bi'
 
 import Copy from '../copy'
 import DecimalsFormat from '../decimals-format'
-import EnsProfile from '../ens-profile'
+import EnsProfile from '../profile/ens'
 import Modal from '../modals'
 import Notification from '../notifications'
 import SelectChain from '../select/chain'

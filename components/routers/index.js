@@ -12,7 +12,7 @@ import Metrics from '../metrics'
 import Copy from '../copy'
 import Datatable from '../datatable'
 import DecimalsFormat from '../decimals-format'
-import EnsProfile from '../ens-profile'
+import EnsProfile from '../profile/ens'
 import Image from '../image'
 import { ProgressBar } from '../progress-bars'
 

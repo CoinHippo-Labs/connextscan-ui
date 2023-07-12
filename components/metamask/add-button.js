@@ -4,14 +4,15 @@ import Web3 from 'web3'
 import { Tooltip } from '@material-tailwind/react'
 
 import Image from '../image'
-import { getChainData, getAssetData } from '../../lib/object'
-import { split, toArray } from '../../lib/utils'
+import { getChainData, getAssetData, getContractData } from '../../lib/object'
+import { split, toArray, equalsIgnoreCase } from '../../lib/utils'
 import { WEB3_CHAIN_ID } from '../../reducers/types'
 
 export default (
   {
     chain,
     asset,
+    address,
     width = 20,
     height = 20,
     noTooltip = false,
@@ -70,20 +71,18 @@ export default (
       if (chain_id === chainId) {
         try {
           const { address, decimals, symbol, image } = { ...token_data }
-          await web3.currentProvider.request(
-            {
-              method: 'wallet_watchAsset',
-              params: {
-                type: 'ERC20',
-                options: {
-                  address,
-                  symbol,
-                  decimals,
-                  image: image ? `${image.startsWith('/') ? window.location.origin : ''}${image}` : undefined,
-                },
+          await web3.currentProvider.request({
+            method: 'wallet_watchAsset',
+            params: {
+              type: 'ERC20',
+              options: {
+                address,
+                symbol,
+                decimals,
+                image: image ? `${image.startsWith('/') ? window.location.origin : ''}${image}` : undefined,
               },
-            }
-          )
+            },
+          })
         } catch (error) {}
         setData(null)
       }
@@ -95,23 +94,19 @@ export default (
 
   const switchNetwork = async (chain_id, token_data) => {
     try {
-      await web3.currentProvider.request(
-        {
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: web3.utils.toHex(chain_id) }],
-        }
-      )
+      await web3.currentProvider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: web3.utils.toHex(chain_id) }],
+      })
     } catch (error) {
       const { code } = { ...error }
       if (code === 4902) {
         try {
           const { provider_params } = { ...toArray(chains_data).find(c => c.chain_id === chain_id) }
-          await web3.currentProvider.request(
-            {
-              method: 'wallet_addEthereumChain',
-              params: provider_params,
-            }
-          )
+          await web3.currentProvider.request({
+            method: 'wallet_addEthereumChain',
+            params: provider_params,
+          })
         } catch (error) {}
       }
     }
@@ -121,10 +116,19 @@ export default (
     }
   }
 
-  const { id, chain_id, name } = { ...getChainData(chain, chains_data) }
-  const { symbol, decimals, image, addresses } = { ...getAssetData(asset, assets_data) }
+  const { chain_id, name } = { ...getChainData(chain, chains_data) }
+  const asset_data = getAssetData(asset, assets_data)
+  const { contracts } = { ...asset_data }
+  const contract_data = getContractData(chain_id, contracts)
+  const { next_asset } = { ...contract_data }
+  const { contract_address, symbol, decimals, image } = { ...contract_data, ...(equalsIgnoreCase(address, next_asset?.contract_address) && next_asset) }
 
-  const token_data = { symbol, decimals, image, ...addresses?.[id] }
+  const token_data = {
+    address: contract_address,
+    symbol: symbol || asset_data?.symbol,
+    decimals: decimals || asset_data?.decimals,
+    image: image || asset_data?.image,
+  }
   const already_on = chain_id === web3_chain_id
 
   const button = (
