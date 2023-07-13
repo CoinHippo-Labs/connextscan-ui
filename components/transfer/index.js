@@ -2,12 +2,11 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
+import { XTransferStatus, XTransferErrorStatus } from '@connext/nxtp-utils'
+import { Tooltip } from '@material-tailwind/react'
+import { constants, utils } from 'ethers'
 import _ from 'lodash'
 import moment from 'moment'
-import { constants, utils } from 'ethers'
-import { XTransferStatus, XTransferErrorStatus } from '@connext/nxtp-utils'
-import { TailSpin } from 'react-loader-spinner'
-import { Tooltip } from '@material-tailwind/react'
 import { HiCheckCircle } from 'react-icons/hi'
 import { IoWarning } from 'react-icons/io5'
 import { BsLightningChargeFill } from 'react-icons/bs'
@@ -16,23 +15,20 @@ import { AiTwotoneFile } from 'react-icons/ai'
 import { MdInfoOutline } from 'react-icons/md'
 
 import ActionRequired from '../action-required'
-import AddToken from '../add-token'
+import Spinner from '../spinner'
+import NumberDisplay from '../number'
 import Copy from '../copy'
-import DecimalsFormat from '../decimals-format'
-import EnsProfile from '../profile/ens'
 import Image from '../image'
-import TimeSpent from '../time-spent'
-import { getChain } from '../../lib/object/chain'
-import { getAsset } from '../../lib/object/asset'
-import { getContract } from '../../lib/object/contract'
-import { split, toArray, ellipse, equalsIgnoreCase, loaderColor } from '../../lib/utils'
-
-const NATIVE_WRAPPABLE_SYMBOLS = ['ETH', 'MATIC', 'DAI']
-const ROUTER_FEE_PERCENT = Number(process.env.NEXT_PUBLIC_ROUTER_FEE_PERCENT)
+import EnsProfile from '../profile/ens'
+import AddMetamask from '../metamask/add-button'
+import TimeSpent from '../time/timeSpent'
+import { NATIVE_WRAPPABLE_SYMBOLS, PERCENT_ROUTER_FEE } from '../../lib/config'
+import { getChainData, getAssetData, getContractData } from '../../lib/object'
+import { split, toArray, ellipse, equalsIgnoreCase } from '../../lib/utils'
 
 export default () => {
   const { preferences, chains, assets, dev, latest_bumped_transfers } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, assets: state.assets, dev: state.dev, latest_bumped_transfers: state.latest_bumped_transfers }), shallowEqual)
-  const { theme, page_visible } = { ...preferences }
+  const { page_visible } = { ...preferences }
   const { chains_data } = { ...chains }
   const { assets_data } = { ...assets }
   const { sdk } = { ...dev }
@@ -190,7 +186,7 @@ export default () => {
   const destination_asset_image = destination_asset_data?.image
 
   const source_amount = origin_transacting_amount && Number(utils.formatUnits((BigInt(origin_transacting_amount) + BigInt(origin_transacting_amount !== '0' ? relayer_fees?.[origin_transacting_asset] || 0 : 0)).toString(), source_decimals))
-  const destination_amount = destination_transacting_amount ? Number(utils.formatUnits(BigInt(destination_transacting_amount).toString(), destination_decimals)) : source_amount * (1 - ROUTER_FEE_PERCENT / 100)
+  const destination_amount = destination_transacting_amount ? Number(utils.formatUnits(BigInt(destination_transacting_amount).toString(), destination_decimals)) : source_amount * (1 - PERCENT_ROUTER_FEE / 100)
 
   const details = _.concat('xcall', routers?.length > 0 ? ['execute', 'reconcile'] : ['reconcile', 'execute']).filter(s => s !== 'reconcile' || reconcile_transaction_hash || execute_transaction_hash)
   const id = transfer_id || tx
@@ -216,11 +212,7 @@ export default () => {
           </div> :
           !data ?
             <div className="h-32 flex items-center justify-center">
-              <TailSpin
-                width="32"
-                height="32"
-                color={loaderColor(theme)}
-              />
+              <Spinner width={32} height={32} />
             </div> :
             <>
               <div className="max-w-8xl bg-slate-200 dark:bg-slate-900 bg-opacity-40 dark:bg-opacity-75 overflow-x-auto rounded-lg sm:flex sm:items-center sm:justify-between space-y-8 sm:space-y-0 sm:space-x-8 mx-auto py-10 px-3 sm:py-8 sm:px-6">
@@ -241,11 +233,7 @@ export default () => {
                         </span>
                       </div> :
                       <div className="flex items-center justify-center sm:justify-start">
-                        <TailSpin
-                          width="32"
-                          height="32"
-                          color={loaderColor(theme)}
-                        />
+                        <Spinner width={32} height={32} />
                       </div>
                     }
                     {xcall_caller && (
@@ -289,11 +277,7 @@ export default () => {
                           value={source_amount}
                           className="text-lg font-semibold"
                         /> :
-                        <TailSpin
-                          width="32"
-                          height="32"
-                          color={loaderColor(theme)}
-                        />
+                        <Spinner width={32} height={32} />
                       }
                       {source_asset_data && (
                         <>
@@ -361,11 +345,7 @@ export default () => {
                           </span>
                         </div> :
                     <div className="flex items-center justify-center sm:justify-start">
-                      <TailSpin
-                        width="32"
-                        height="32"
-                        color={loaderColor(theme)}
-                      />
+                      <Spinner width={32} height={32} />
                     </div>
                   }
                   <TimeSpent
@@ -391,11 +371,7 @@ export default () => {
                           value={destination_amount}
                           className="text-lg font-semibold"
                         /> :
-                        <TailSpin
-                          width="32"
-                          height="32"
-                          color={loaderColor(theme)}
-                        />
+                        <Spinner width={32} height={32} />
                       }
                       {destination_asset_data && (
                         <>
@@ -425,11 +401,7 @@ export default () => {
                         </span>
                       </div> :
                       <div className="flex items-center justify-center sm:justify-end">
-                        <TailSpin
-                          width="32"
-                          height="32"
-                          color={loaderColor(theme)}
-                        />
+                        <Spinner width={32} height={32} />
                       </div>
                     }
                     {to && (
@@ -527,11 +499,7 @@ export default () => {
                                     >
                                       <div>
                                         {bumped ?
-                                          <TailSpin
-                                            width="32"
-                                            height="32"
-                                            color={loaderColor(theme)}
-                                          /> :
+                                          <Spinner width={32} height={32} /> :
                                           error_status === XTransferErrorStatus.NoBidsReceived ?
                                             <MdInfoOutline size={24} className="text-slate-400 dark:text-slate-500" /> :
                                             <IoWarning size={32} className="text-red-600 dark:text-red-500" />
@@ -555,11 +523,7 @@ export default () => {
                                   }
                                 /> :
                                 null :
-                                <TailSpin
-                                  width="32"
-                                  height="32"
-                                  color={loaderColor(theme)}
-                                />
+                                <Spinner width={32} height={32} />
                           }
                         </div>
                       </div>
