@@ -240,7 +240,7 @@ export default () => {
   return (
     <>
       <div className="mb-6">
-        <Metrics data={metrics} num_stats_days={timeframe} />
+        <Metrics data={metrics} numDays={timeframe} />
       </div>
       <div className="grid lg:grid-cols-4 gap-4 mt-2 mb-6 mx-auto">
         <div className="lg:col-span-4 flex items-center justify-end">
