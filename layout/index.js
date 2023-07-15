@@ -64,7 +64,8 @@ export default ({ children }) => {
   const { provider, ethereum_provider, signer, address } = { ...wallet_data }
 
   const router = useRouter()
-  const { pathname, asPath } = { ...router }
+  const { pathname, query, asPath } = { ...router }
+  const { chain } = { ...query }
 
   const [currentAddress, setCurrentAddress] = useState(null)
 
@@ -342,7 +343,7 @@ export default ({ children }) => {
               pool.local = local
             }
 
-            if (lpTokenAddress) {
+            /*if (lpTokenAddress) {
               await sleep(1.5 * 1000)
               console.log('[General]', '[getTokenSupply]', { domain_id, lpTokenAddress })
               try {
@@ -352,7 +353,7 @@ export default ({ children }) => {
               } catch (error) {
                 console.log('[General]', '[getTokenSupply error]', { domain_id, lpTokenAddress }, error)
               }
-            }
+            }*/
             supply = supply || pool?.supply
             let { price } = { ...getAssetData(asset_data.id, assets_data) }
             price = price || 0
@@ -360,7 +361,7 @@ export default ({ children }) => {
               tvl = Number(supply || _.sum(toArray(_.concat(adopted, local)).map(a => Number(a.balance)))) * price
             }
 
-            if (pool && (IS_STAGING || ENVIRONMENT === 'production')) {
+            /*if (pool && (IS_STAGING || ENVIRONMENT === 'production')) {
               await sleep(1.5 * 1000)
               const number_of_days = 7
               console.log('[General]', '[getYieldData]', { domain_id, contract_address, number_of_days })
@@ -370,7 +371,7 @@ export default ({ children }) => {
               } catch (error) {
                 console.log('[General]', '[getYieldData error]', { domain_id, contract_address, number_of_days }, error)
               }
-            }
+            }*/
 
             if (equalsIgnoreCase(pool?.domainId, domain_id)) {
               const { liquidity, volumeFormatted, fees } = { ...stats }
@@ -417,7 +418,7 @@ export default ({ children }) => {
       const interval = setInterval(() => getData(), 1.5 * 60 * 1000)
       return () => clearInterval(interval)
     },
-    [page_visible, chains_data, pool_assets_data, sdk, pathname],
+    [page_visible, chains_data, pool_assets_data, sdk, pathname, chain],
   )
 
   const { title, description, image, url } = { ...meta(asPath) }

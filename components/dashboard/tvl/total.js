@@ -66,7 +66,7 @@ export default () => {
   const { total, top_chains, top_assets } = { ...data }
 
   return (
-    <div className="h-80 bg-white dark:bg-slate-900 dark:bg-opacity-75 rounded p-5">
+    <div className="h-80 bg-slate-50 dark:bg-slate-900 dark:bg-opacity-75 rounded p-5">
       {data ?
         <div className="space-y-4">
           <div className="text-center py-12">

@@ -115,7 +115,7 @@ export default (
   const gradient_id = `gradient-${fields.join('-')}`
 
   return (
-    <div className="bg-white dark:bg-slate-900 dark:bg-opacity-75 rounded space-y-2 pt-5 pb-0 sm:pb-1 px-5">
+    <div className="bg-slate-50 dark:bg-slate-900 dark:bg-opacity-75 rounded space-y-2 pt-5 pb-0 sm:pb-1 px-5">
       <div className="flex items-start justify-between space-x-1">
         <div className="flex flex-col space-y-0.5">
           <span className="3xl:text-2xl font-semibold">

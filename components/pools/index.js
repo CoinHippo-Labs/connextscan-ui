@@ -213,7 +213,9 @@ export default () => {
           noPagination={_pools_data.length <= 10}
           className="no-border no-shadow"
         /> :
-        <Spinner width={32} height={32} />
+        <div className="loading">
+          <Spinner width={32} height={32} />
+        </div>
       }
     </div>
   )

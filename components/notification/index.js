@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { BiX } from 'react-icons/bi'
+import { BiX, BiMessageError, BiMessageCheck } from 'react-icons/bi'
 
 import Portal from '../modal/portal'
+import Spinner from '../spinner'
 
 export default (
   {
@@ -57,7 +58,11 @@ export default (
       break
     default:
       color = color || 'bg-blue-400 dark:bg-blue-500'
-      icon = icon || <div className={iconCSS}><Spinner name="Watch" width={20} height={20} /></div>
+      icon = icon || (
+        <div className={`${iconCSS} flex items-center`}>
+          <Spinner name="Watch" width={20} height={20} />
+        </div>
+      )
       break
   }
 

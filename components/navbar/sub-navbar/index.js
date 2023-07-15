@@ -12,7 +12,7 @@ import EnsProfile from '../../profile/ens'
 import Copy from '../../copy'
 import Image from '../../image'
 import { getChainData } from '../../../lib/object'
-import { toArray, ellipse } from '../../../lib/utils'
+import { toArray } from '../../../lib/utils'
 
 export default () => {
   const { chains, router_asset_balances } = useSelector(state => ({ chains: state.chains, router_asset_balances: state.router_asset_balances }), shallowEqual)
@@ -44,21 +44,6 @@ export default () => {
     case '/router/[address]':
     case '/address/[address]':
       title = <EnsProfile address={address} />
-      subtitle = (
-        <Copy
-          value={address}
-          title={
-            <div className="text-slate-400 dark:text-slate-500 text-sm">
-              <span className="xl:hidden">
-                {ellipse(address, 12)}
-              </span>
-              <span className="hidden xl:block">
-                {ellipse(address, 16)}
-              </span>
-            </div>
-          }
-        />
-      )
       break
     case '/[chain]':
       const { name, image } = { ...getChainData(chain, chains_data) }

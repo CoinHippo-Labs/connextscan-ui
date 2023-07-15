@@ -34,7 +34,7 @@ export default ({ value = '', onSelect }) => {
     <div className="relative">
       <button
         ref={buttonRef}
-        onClick={() => onClick(value)}
+        onClick={() => setHidden(!hidden)}
         className="bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 rounded shadow flex items-center justify-center space-x-1.5 py-2 px-3"
       >
         <span className="whitespace-nowrap text-sm sm:text-base font-semibold">

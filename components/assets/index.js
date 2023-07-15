@@ -14,9 +14,10 @@ import AddMetamask from '../metamask/add-button'
 import SelectChain from '../select/chain'
 import SelectAsset from '../select/asset'
 
+import { WRAPPED_PREFIX } from '../../lib/config'
 import { chainName, getChainData, getAssetData, getContractData } from '../../lib/object'
 import { isNumber } from '../../lib/number'
-import { toArray, ellipse, equalsIgnoreCase } from '../../lib/utils'
+import { toArray, capitalize, ellipse, equalsIgnoreCase } from '../../lib/utils'
 
 export default ({ data }) => {
   const { chains, assets } = useSelector(state => ({ chains: state.chains, assets: state.assets }), shallowEqual)
@@ -112,7 +113,7 @@ export default ({ data }) => {
                         {value}
                       </div>
                       <div className="whitespace-nowrap text-slate-400 dark:text-slate-500 text-xs">
-                        {name}
+                        {value?.startsWith(WRAPPED_PREFIX) ? `${capitalize(WRAPPED_PREFIX)} ` : ''}{name}
                       </div>
                     </div>
                   </div>
@@ -216,7 +217,9 @@ export default ({ data }) => {
           noPagination={_assets_data.length <= 10}
           className="no-border no-shadow"
         /> :
-        <Spinner width={32} height={32} />
+        <div className="loading">
+          <Spinner width={32} height={32} />
+        </div>
       }
     </div>
   )

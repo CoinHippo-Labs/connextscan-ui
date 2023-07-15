@@ -1,5 +1,9 @@
 import Router from '../../components/router'
 
 export default () => {
-  return <Router />
+  return (
+    <div className="px-4">
+      <Router />
+    </div>
+  )
 }

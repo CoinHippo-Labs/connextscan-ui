@@ -62,17 +62,17 @@ export default () => {
     [asPath],
   )
 
-  useEffect(
-    () => {
-      if (fetchTrigger !== undefined) {
-        const qs = new URLSearchParams()
-        Object.entries({ ...filters }).filter(([k, v]) => v).forEach(([k, v]) => { qs.append(k, v) })
-        const qs_string = qs.toString()
-        router.push(`${pathname}${qs_string ? `?${qs_string}` : ''}`)
-      }
-    },
-    [fetchTrigger],
-  )
+  // useEffect(
+  //   () => {
+  //     if (fetchTrigger !== undefined) {
+  //       const qs = new URLSearchParams()
+  //       Object.entries({ ...filters }).filter(([k, v]) => v).forEach(([k, v]) => { qs.append(k, v) })
+  //       const qs_string = qs.toString()
+  //       router.push(`${pathname}${qs_string ? `?${qs_string}` : ''}`)
+  //     }
+  //   },
+  //   [fetchTrigger],
+  // )
 
   useEffect(
     () => {
@@ -218,7 +218,7 @@ export default () => {
       }
       getData()
     },
-    [fetchTrigger],
+    [sdk, fetchTrigger],
   )
 
   const { sourceChain, destinationChain, asset, status, errorStatus } = { ...filters }
@@ -230,437 +230,445 @@ export default () => {
   return (
     <div className="children">
       {data ?
-        <div className="space-y-2 sm:space-y-4 mt-4 sm:mt-6 mx-auto">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 space-x-0 sm:space-x-3 px-3">
+        <div className="space-y-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 space-x-0 sm:space-x-3">
             <div className="uppercase text-sm font-semibold">
               Transfers
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 my-4 sm:my-0">
               <div className="flex items-center space-x-2">
-                <SelectChain value={sourceChain || ''} onSelect={c => setFilters({ ...filters, sourceChain: c })} />
+                <SelectChain value={sourceChain} onSelect={c => setFilters({ ...filters, sourceChain: c })} />
                 <span className="font-semibold">
                   To
                 </span>
-                <SelectChain value={destinationChain || ''} onSelect={c => setFilters({ ...filters, destinationChain: c })} />
+                <SelectChain value={destinationChain} onSelect={c => setFilters({ ...filters, destinationChain: c })} />
               </div>
               <div className="flex items-center space-x-2">
                 <SelectAsset
-                  value={asset || ''}
+                  value={asset}
                   onSelect={a => setFilters({ ...filters, asset: a })}
                   chain={sourceChain}
                   destinationChain={destinationChain}
                 />
-                <SelectStatus value={status || ''} onSelect={s => setFilters({ ...filters, status: s })} />
-                <SelectErrorStatus value={errorStatus || ''} onSelect={s => setFilters({ ...filters, errorStatus: s })} />
+                <SelectStatus value={status} onSelect={s => setFilters({ ...filters, status: s })} />
+                <SelectErrorStatus value={errorStatus} onSelect={s => setFilters({ ...filters, errorStatus: s })} />
               </div>
             </div>
           </div>
-          <div className="px-3">
-            <Datatable
-              columns={[
-                {
-                  Header: '#',
-                  accessor: 'i',
-                  disableSortBy: true,
-                  Cell: props => (
-                    <span className="text-black dark:text-white font-medium">
-                      {props.flatRows?.indexOf(props.row) + 1}
-                    </span>
-                  ),
-                },
-                {
-                  Header: 'Transfer ID',
-                  accessor: 'transfer_id',
-                  disableSortBy: true,
-                  Cell: props => {
-                    const { value, row } = { ...props }
-                    const { execute_transaction_hash, xcall_timestamp, execute_timestamp, routers, call_data, status, error_status, pending, errored } = { ...row.original }
-                    const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(d => equalsIgnoreCase(d.transfer_id, value) && moment().diff(moment(d.updated), 'minutes', true) <= 5) > -1
-                    return value && (
-                      <div className="flex flex-col items-start space-y-2 mt-0.5">
-                        <div className="flex items-center space-x-1">
-                          <Link href={`/tx/${value}`}>
-                            <div className="text-blue-500 dark:text-white font-semibold">
-                              <span className="sm:hidden">
-                                {ellipse(value, address ? 6 : 8)}
-                              </span>
-                              <span className="hidden sm:block">
-                                {ellipse(value, address ? 8 : 12)}
-                              </span>
-                            </div>
-                          </Link>
-                          <Copy size={20} value={value} />
-                        </div>
-                        {call_data && call_data !== '0x' && <AiTwotoneFile size={24} className="text-yellow-500 dark:text-yellow-400" />}
-                        {address && !['/address/[address]'].includes(pathname) && (
-                          <div className="flex-col items-start space-y-1">
-                            {errored ?
-                              <Link href={`/tx/${value}`}>
-                                <ActionRequired
-                                  forceDisabled={true}
-                                  transferData={row.original}
-                                  buttonTitle={
-                                    <Tooltip content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transfer is not getting boosted by routers (fast path) and will complete in slow path eventually, if no new bids are received till the end.' : bumped ? 'Processing' : error_status}>
-                                      <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
-                                        <IoWarning size={20} />
-                                        <span className={`normal-case ${bumped ? 'text-blue-500 dark:text-blue-300' : ''} font-bold`}>
-                                          {bumped ? 'Processing' : error_status}
-                                        </span>
-                                      </div>
-                                    </Tooltip>
-                                  }
-                                  onTransferBumped={relayerFeeData => setFetchTrigger(moment().valueOf())}
-                                  onSlippageUpdated={slippage => setFetchTrigger(moment().valueOf())}
-                                />
-                              </Link> :
-                              <Link href={`/tx/${value}`}>
-                                {pending ?
-                                  <div className="flex items-center space-x-1.5">
-                                    <Spinner width={16} height={16} />
-                                    <span className="text-blue-500 dark:text-blue-300 font-medium">
-                                      Processing...
-                                    </span>
-                                  </div> :
-                                  <div className="flex items-center space-x-1">
-                                    <HiCheckCircle size={20} />
-                                    <span className="uppercase text-green-500 dark:text-green-400 font-bold">
-                                      Success
-                                    </span>
-                                  </div>
+          <Datatable
+            columns={[
+              {
+                Header: '#',
+                accessor: 'i',
+                disableSortBy: true,
+                Cell: props => (
+                  <span className="text-black dark:text-white font-medium">
+                    {props.flatRows?.indexOf(props.row) + 1}
+                  </span>
+                ),
+              },
+              {
+                Header: 'Transfer ID',
+                accessor: 'transfer_id',
+                disableSortBy: true,
+                Cell: props => {
+                  const { value, row } = { ...props }
+                  const { execute_transaction_hash, xcall_timestamp, execute_timestamp, routers, call_data, status, error_status, pending, errored } = { ...row.original }
+                  const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(d => equalsIgnoreCase(d.transfer_id, value) && moment().diff(moment(d.updated), 'minutes', true) <= 5) > -1
+                  return value && (
+                    <div className="flex flex-col items-start space-y-2 mt-0.5">
+                      <div className="flex items-center space-x-1">
+                        <Link href={`/tx/${value}`}>
+                          <div className="text-blue-500 dark:text-white font-semibold">
+                            <span className="sm:hidden">
+                              {ellipse(value, address ? 6 : 8)}
+                            </span>
+                            <span className="hidden sm:block">
+                              {ellipse(value, address ? 8 : 12)}
+                            </span>
+                          </div>
+                        </Link>
+                        <Copy size={20} value={value} />
+                      </div>
+                      {call_data && call_data !== '0x' && <AiTwotoneFile size={18} className="text-yellow-500 dark:text-yellow-400" />}
+                      {address && !['/address/[address]'].includes(pathname) && (
+                        <div className="flex-col items-start space-y-1">
+                          {errored ?
+                            <Link href={`/tx/${value}`}>
+                              <ActionRequired
+                                forceDisabled={true}
+                                transferData={row.original}
+                                buttonTitle={
+                                  <Tooltip content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transfer is not getting boosted by routers (fast path) and will complete in slow path eventually, if no new bids are received till the end.' : bumped ? 'Processing' : error_status}>
+                                    <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
+                                      <IoWarning size={20} />
+                                      <span className={`normal-case ${bumped ? 'text-blue-500 dark:text-blue-300' : ''} font-bold`}>
+                                        {bumped ? 'Processing' : error_status}
+                                      </span>
+                                    </div>
+                                  </Tooltip>
                                 }
-                              </Link>
-                            }
-                            <div className="flex items-center space-x-2">
-                              {call_data === '0x' && (routers?.length > 0 || !(execute_transaction_hash || errored)) && (
-                                <Tooltip placement="bottom" content={routers?.length > 0 ? 'Boosted by routers' : 'Pending router boost'}>
-                                  <div className="flex items-center">
-                                    <BsLightningChargeFill size={16} className={routers?.length > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-blue-300 dark:text-blue-200'} />
-                                    <BiInfoCircle size={14} className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0" />
-                                  </div>
-                                </Tooltip>
-                              )}
-                              <TimeSpent
-                                fromTime={xcall_timestamp}
-                                toTime={execute_timestamp}
-                                title="Time spent"
-                                className={`${errored ? 'text-red-500 dark:text-red-400' : pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-500 dark:text-yellow-400'} font-semibold`}
+                                onTransferBumped={relayerFeeData => setFetchTrigger(moment().valueOf())}
+                                onSlippageUpdated={slippage => setFetchTrigger(moment().valueOf())}
                               />
-                            </div>
-                            <div className="normal-case font-bold">
-                              {status}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  },
-                  headerClassName: 'whitespace-nowrap',
-                },
-                {
-                  Header: 'Timestamp',
-                  accessor: 'xcall_timestamp',
-                  disableSortBy: true,
-                  Cell: props => {
-                    const { value } = { ...props }
-                    return value && (
-                      <div className="flex items-center mt-0.5">
-                        <TimeAgo time={moment(value * 1000).unix()} className="text-slate-400 dark:text-slate-500 text-sm font-medium" />
-                      </div>
-                    )
-                  },
-                },
-                {
-                  Header: 'Status',
-                  accessor: 'status',
-                  disableSortBy: true,
-                  Cell: props => {
-                    const { value, row } = { ...props }
-                    const { transfer_id, execute_transaction_hash, xcall_timestamp, execute_timestamp, routers, call_data, error_status, pending, errored } = { ...row.original }
-                    const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(d => equalsIgnoreCase(d.transfer_id, transfer_id) && moment().diff(moment(d.updated), 'minutes', true) <= 5) > -1
-                    return (
-                      <div className="flex flex-col items-start space-y-1 mt-0.5">
-                        {errored ?
-                          <Link href={`/tx/${transfer_id}`}>
-                            <ActionRequired
-                              forceDisabled={true}
-                              transferData={row.original}
-                              buttonTitle={
-                                <Tooltip content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transfer is not getting boosted by routers (fast path) and will complete in slow path eventually, if no new bids are received till the end.' : bumped ? 'Processing' : error_status}>
-                                  <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
-                                    <IoWarning size={20} />
-                                    <span className={`normal-case ${bumped ? 'text-blue-500 dark:text-blue-300' : ''} font-bold`}>
-                                      {bumped ? 'Processing' : error_status}
-                                    </span>
-                                  </div>
-                                </Tooltip>
+                            </Link> :
+                            <Link href={`/tx/${value}`}>
+                              {pending ?
+                                <div className="flex items-center space-x-1.5">
+                                  <Spinner width={16} height={16} />
+                                  <span className="text-blue-500 dark:text-blue-300 font-medium">
+                                    Processing...
+                                  </span>
+                                </div> :
+                                <div className="flex items-center space-x-1">
+                                  <HiCheckCircle size={20} className="text-green-500 dark:text-green-400" />
+                                  <span className="uppercase text-green-500 dark:text-green-400 font-bold">
+                                    Success
+                                  </span>
+                                </div>
                               }
-                              onTransferBumped={relayerFeeData => setFetchTrigger(moment().valueOf())}
-                              onSlippageUpdated={slippage => setFetchTrigger(moment().valueOf())}
-                            />
-                          </Link> :
-                          <Link href={`/tx/${transfer_id}`}>
-                            {pending ?
-                              <div className="flex items-center space-x-1.5">
-                                <Spinner width={16} height={16} />
-                                <span className="text-blue-500 dark:text-blue-300 font-medium">
-                                  Processing...
-                                </span>
-                              </div> :
-                              <div className="flex items-center space-x-1">
-                                <HiCheckCircle size={20} />
-                                <span className="uppercase text-green-500 dark:text-green-400 font-bold">
-                                  Success
-                                </span>
-                              </div>
-                            }
-                          </Link>
-                        }
-                        <div className="flex items-center space-x-2">
-                          {call_data === '0x' && (routers?.length > 0 || !(execute_transaction_hash || errored)) && (
-                            <Tooltip placement="bottom" content={routers?.length > 0 ? 'Boosted by routers' : 'Pending router boost'}>
-                              <div className="flex items-center">
-                                <BsLightningChargeFill size={16} className={routers?.length > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-blue-300 dark:text-blue-200'} />
-                                <BiInfoCircle size={14} className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0" />
-                              </div>
-                            </Tooltip>
-                          )}
-                          <TimeSpent
-                            fromTime={xcall_timestamp}
-                            toTime={execute_timestamp}
-                            title="Time spent"
-                            className={`${errored ? 'text-red-500 dark:text-red-400' : pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-500 dark:text-yellow-400'} font-semibold`}
-                          />
-                        </div>
-                      </div>
-                    )
-                  },
-                },
-                {
-                  Header: 'Origin',
-                  accessor: 'source_chain_data',
-                  disableSortBy: true,
-                  Cell: props => {
-                    const { value, row } = { ...props }
-                    const { source_asset_data, xcall_caller } = { ...row.original }
-                    const { name, image, explorer } = { ...value }
-                    const { url, address_path } = { ...explorer }
-                    const { id, contract_address, symbol, amount } = { ...source_asset_data }
-                    return (
-                      <div className="space-y-1.5 mb-3">
-                        {value ?
-                          <div className="h-7 flex items-center justify-start space-x-2">
-                            {image && (
-                              <Image
-                                src={image}
-                                width={24}
-                                height={24}
-                                className="rounded-full"
-                              />
+                            </Link>
+                          }
+                          <div className="flex items-center space-x-2">
+                            {call_data === '0x' && (routers?.length > 0 || !(execute_transaction_hash || errored)) && (
+                              <Tooltip placement="bottom" content={routers?.length > 0 ? 'Boosted by routers' : 'Pending router boost'}>
+                                <div className="flex items-center">
+                                  <BsLightningChargeFill size={16} className={routers?.length > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-blue-300 dark:text-blue-200'} />
+                                  <BiInfoCircle size={14} className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0" />
+                                </div>
+                              </Tooltip>
                             )}
-                            <span className="font-semibold">
-                              {name}
-                            </span>
-                          </div> :
-                          <div className="h-7 flex items-center justify-start">
-                            <Spinner />
-                          </div>
-                        }
-                        <div className="h-7 flex items-center space-x-2">
-                          {source_asset_data?.image && (
-                            <Image
-                              src={source_asset_data.image}
-                              width={20}
-                              height={20}
-                              className="rounded-full"
+                            <TimeSpent
+                              fromTime={xcall_timestamp}
+                              toTime={execute_timestamp}
+                              title="Time spent"
+                              className={`${errored ? 'text-red-500 dark:text-red-400' : pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-500 dark:text-yellow-400'} font-semibold`}
                             />
-                          )}
-                          {Number(amount) >= 0 && <NumberDisplay value={amount} className="text-xs font-semibold" />}
-                          {source_asset_data && (
-                            <>
-                              {symbol && (
-                                <span className="text-xs font-medium">
-                                  {symbol}
-                                </span>
-                              )}
-                              {contract_address && (
-                                <AddMetamask
-                                  chain={value?.id}
-                                  asset={id}
-                                  address={contract_address}
-                                />
-                              )}
-                            </>
-                          )}
-                        </div>
-                        {xcall_caller && (
-                          <div className="flex items-center justify-start space-x-1">
-                            <a
-                              href={url ? `${url}${address_path?.replace('{address}', xcall_caller)}` : `/address/${xcall_caller}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <EnsProfile address={xcall_caller} noCopy={true} />
-                            </a>
-                            <Copy value={xcall_caller} />
                           </div>
-                        )}
-                      </div>
-                    )
-                  },
-                },
-                {
-                  Header: 'Destination',
-                  accessor: 'destination_chain_data',
-                  disableSortBy: true,
-                  Cell: props => {
-                    const { value, row } = { ...props }
-                    const { destination_asset_data, to } = { ...row.original }
-                    const { name, image, explorer } = { ...value }
-                    const { url, address_path } = { ...explorer }
-                    const { id, contract_address, symbol, amount } = { ...destination_asset_data }
-                    return (
-                      <div className="space-y-1.5 mb-3">
-                        {value ?
-                          <div className="h-7 flex items-center justify-start space-x-2">
-                            {image && (
-                              <Image
-                                src={image}
-                                width={24}
-                                height={24}
-                                className="rounded-full"
-                              />
-                            )}
-                            <span className="font-semibold">
-                              {name}
-                            </span>
-                          </div> :
-                          <div className="h-7 flex items-center justify-start">
-                            <Spinner />
-                          </div>
-                        }
-                        <div className="h-7 flex items-center space-x-2">
-                          {destination_asset_data?.image && (
-                            <Image
-                              src={destination_asset_data.image}
-                              width={20}
-                              height={20}
-                              className="rounded-full"
-                            />
-                          )}
-                          {Number(amount) >= 0 && <NumberDisplay value={amount} className="text-xs font-semibold" />}
-                          {destination_asset_data && (
-                            <>
-                              {symbol && (
-                                <span className="text-xs font-medium">
-                                  {symbol}
-                                </span>
-                              )}
-                              {contract_address && (
-                                <AddMetamask
-                                  chain={value?.id}
-                                  asset={id}
-                                  address={contract_address}
-                                />
-                              )}
-                            </>
-                          )}
-                        </div>
-                        {to && (
-                          <div className="flex items-center justify-start space-x-1">
-                            <a
-                              href={url ? `${url}${address_path?.replace('{address}', to)}` : `/address/${to}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <EnsProfile address={to} noCopy={true} />
-                            </a>
-                            <Copy value={to} />
-                          </div>
-                        )}
-                      </div>
-                    )
-                  },
-                },
-                {
-                  Header: 'Xcall Status',
-                  accessor: 'xcall_status',
-                  disableSortBy: true,
-                  Cell: props => {
-                    const { row } = { ...props }
-                    const { transfer_id, status } = { ...row.original }
-                    return (
-                      <div className="mt-0.5">
-                        <Link href={`/tx/${transfer_id}`}>
                           <div className="normal-case font-bold">
                             {status}
                           </div>
-                        </Link>
-                      </div>
-                    )
-                  },
-                  headerClassName: 'whitespace-nowrap',
+                        </div>
+                      )}
+                    </div>
+                  )
                 },
-                {
-                  Header: 'Error Status',
-                  accessor: 'error_status',
-                  disableSortBy: true,
-                  Cell: props => {
-                    const { row } = { ...props }
-                    let { value } = { ...props }
-                    const { transfer_id, status } = { ...row.original }
-                    if (value === XTransferErrorStatus.ExecutionError && status === XTransferStatus.CompletedSlow) {
-                      value = 'AuthenticationCheck'
-                    }
-                    if (value && ![XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status)) {
-                      value = null
-                    }
-                    const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(value) && toArray(latest_bumped_transfers_data).findIndex(d => equalsIgnoreCase(d.transfer_id, transfer_id) && moment().diff(moment(d.updated), 'minutes', true) <= 5) > -1
-                    return (
-                      <div className="mt-0.5">
+                headerClassName: 'whitespace-nowrap',
+              },
+              {
+                Header: 'Timestamp',
+                accessor: 'xcall_timestamp',
+                disableSortBy: true,
+                Cell: props => {
+                  const { value } = { ...props }
+                  return value && (
+                    <div className="flex items-center mt-0.5">
+                      <TimeAgo time={moment(value * 1000).unix()} className="text-slate-400 dark:text-slate-500 text-sm font-medium" />
+                    </div>
+                  )
+                },
+              },
+              {
+                Header: 'Status',
+                accessor: 'status',
+                disableSortBy: true,
+                Cell: props => {
+                  const { value, row } = { ...props }
+                  const { transfer_id, execute_transaction_hash, xcall_timestamp, execute_timestamp, routers, call_data, error_status, pending, errored } = { ...row.original }
+                  const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(d => equalsIgnoreCase(d.transfer_id, transfer_id) && moment().diff(moment(d.updated), 'minutes', true) <= 5) > -1
+                  return (
+                    <div className="flex flex-col items-start space-y-1 mt-0.5">
+                      {errored ?
                         <Link href={`/tx/${transfer_id}`}>
-                          <div className="normal-case font-bold">
-                            {(bumped ? 'Processing' : value) || '-'}
-                          </div>
-                        </Link>
-                      </div>
-                    )
-                  },
-                  headerClassName: 'whitespace-nowrap',
-                },
-              ].filter(c => !address || ['/address/[address]'].includes(pathname) || !['xcall_timestamp', 'status', 'xcall_status', 'error_status'].includes(c.accessor))}
-              size="small"
-              data={dataFiltered}
-              defaultPageSize={address ? 10 : 25}
-              noPagination={dataFiltered.length <= 10}
-              extra={
-                data.length > 0 && (
-                  <div className="flex justify-center">
-                    {!fetching ?
-                      data.length >= LIMIT && !noMore && (
-                        <button
-                          onClick={
-                            () => {
-                              setOffset(data.length)
-                              setFetchTrigger(typeof fetchTrigger === 'number' ? true : 1)
+                          <ActionRequired
+                            forceDisabled={true}
+                            transferData={row.original}
+                            buttonTitle={
+                              <Tooltip content={error_status === XTransferErrorStatus.NoBidsReceived ? 'The transfer is not getting boosted by routers (fast path) and will complete in slow path eventually, if no new bids are received till the end.' : bumped ? 'Processing' : error_status}>
+                                <div className="flex items-center text-red-600 dark:text-red-500 space-x-1">
+                                  <IoWarning size={20} />
+                                  <span className={`normal-case ${bumped ? 'text-blue-500 dark:text-blue-300' : ''} font-bold`}>
+                                    {bumped ? 'Processing' : error_status}
+                                  </span>
+                                </div>
+                              </Tooltip>
                             }
+                            onTransferBumped={relayerFeeData => setFetchTrigger(moment().valueOf())}
+                            onSlippageUpdated={slippage => setFetchTrigger(moment().valueOf())}
+                          />
+                        </Link> :
+                        <Link href={`/tx/${transfer_id}`}>
+                          {pending ?
+                            <div className="flex items-center space-x-1.5">
+                              <Spinner width={16} height={16} />
+                              <span className="text-blue-500 dark:text-blue-300 font-medium">
+                                Processing...
+                              </span>
+                            </div> :
+                            <div className="flex items-center space-x-1">
+                              <HiCheckCircle size={20} className="text-green-500 dark:text-green-400" />
+                              <span className="uppercase text-green-500 dark:text-green-400 font-bold">
+                                Success
+                              </span>
+                            </div>
                           }
-                          className="flex items-center text-black dark:text-white space-x-0.5"
-                        >
-                          <span className="font-medium">
-                            Load more
+                        </Link>
+                      }
+                      <div className="flex items-center space-x-2">
+                        {call_data === '0x' && (routers?.length > 0 || !(execute_transaction_hash || errored)) && (
+                          <Tooltip placement="bottom" content={routers?.length > 0 ? 'Boosted by routers' : 'Pending router boost'}>
+                            <div className="flex items-center">
+                              <BsLightningChargeFill size={16} className={routers?.length > 0 ? 'text-yellow-500 dark:text-yellow-400' : 'text-blue-300 dark:text-blue-200'} />
+                              <BiInfoCircle size={14} className="block sm:hidden text-slate-400 dark:text-slate-500 ml-1 sm:ml-0" />
+                            </div>
+                          </Tooltip>
+                        )}
+                        <TimeSpent
+                          fromTime={xcall_timestamp}
+                          toTime={execute_timestamp}
+                          title="Time spent"
+                          className={`${errored ? 'text-red-500 dark:text-red-400' : pending ? 'text-blue-500 dark:text-blue-300' : 'text-yellow-500 dark:text-yellow-400'} font-semibold`}
+                        />
+                      </div>
+                    </div>
+                  )
+                },
+              },
+              {
+                Header: 'Origin',
+                accessor: 'source_chain_data',
+                disableSortBy: true,
+                Cell: props => {
+                  const { value, row } = { ...props }
+                  const { source_asset_data, xcall_caller } = { ...row.original }
+                  const { name, image, explorer } = { ...value }
+                  const { url, address_path } = { ...explorer }
+                  const { id, contract_address, symbol, amount } = { ...source_asset_data }
+                  return (
+                    <div className="space-y-1.5 mb-3">
+                      {value ?
+                        <div className="h-7 flex items-center justify-start space-x-2">
+                          {image && (
+                            <Image
+                              src={image}
+                              width={24}
+                              height={24}
+                              className="rounded-full"
+                            />
+                          )}
+                          <span className="font-semibold">
+                            {name}
                           </span>
-                        </button>
-                      ) :
-                      <Spinner />
-                    }
-                  </div>
-                )
-              }
-              className="no-border no-shadow"
-            />
-          </div>
+                        </div> :
+                        <div className="h-7 flex items-center justify-start">
+                          <Spinner />
+                        </div>
+                      }
+                      <div className="h-7 flex items-center space-x-2">
+                        {source_asset_data?.image && (
+                          <Image
+                            src={source_asset_data.image}
+                            width={20}
+                            height={20}
+                            className="rounded-full"
+                          />
+                        )}
+                        {Number(amount) >= 0 && <NumberDisplay value={amount} className="text-xs font-semibold" />}
+                        {source_asset_data && (
+                          <>
+                            {symbol && (
+                              <span className="text-xs font-medium">
+                                {symbol}
+                              </span>
+                            )}
+                            {contract_address && (
+                              <AddMetamask
+                                chain={value?.id}
+                                asset={id}
+                                address={contract_address}
+                              />
+                            )}
+                          </>
+                        )}
+                      </div>
+                      {xcall_caller && (
+                        <div className="flex items-center justify-start space-x-1">
+                          <a
+                            href={url ? `${url}${address_path?.replace('{address}', xcall_caller)}` : `/address/${xcall_caller}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <EnsProfile
+                              address={xcall_caller}
+                              noCopy={true}
+                              noImage={true}
+                            />
+                          </a>
+                          <Copy value={xcall_caller} />
+                        </div>
+                      )}
+                    </div>
+                  )
+                },
+              },
+              {
+                Header: 'Destination',
+                accessor: 'destination_chain_data',
+                disableSortBy: true,
+                Cell: props => {
+                  const { value, row } = { ...props }
+                  const { destination_asset_data, to } = { ...row.original }
+                  const { name, image, explorer } = { ...value }
+                  const { url, address_path } = { ...explorer }
+                  const { id, contract_address, symbol, amount } = { ...destination_asset_data }
+                  return (
+                    <div className="space-y-1.5 mb-3">
+                      {value ?
+                        <div className="h-7 flex items-center justify-start space-x-2">
+                          {image && (
+                            <Image
+                              src={image}
+                              width={24}
+                              height={24}
+                              className="rounded-full"
+                            />
+                          )}
+                          <span className="font-semibold">
+                            {name}
+                          </span>
+                        </div> :
+                        <div className="h-7 flex items-center justify-start">
+                          <Spinner />
+                        </div>
+                      }
+                      <div className="h-7 flex items-center space-x-2">
+                        {destination_asset_data?.image && (
+                          <Image
+                            src={destination_asset_data.image}
+                            width={20}
+                            height={20}
+                            className="rounded-full"
+                          />
+                        )}
+                        {Number(amount) >= 0 && <NumberDisplay value={amount} className="text-xs font-semibold" />}
+                        {destination_asset_data && (
+                          <>
+                            {symbol && (
+                              <span className="text-xs font-medium">
+                                {symbol}
+                              </span>
+                            )}
+                            {contract_address && (
+                              <AddMetamask
+                                chain={value?.id}
+                                asset={id}
+                                address={contract_address}
+                              />
+                            )}
+                          </>
+                        )}
+                      </div>
+                      {to && (
+                        <div className="flex items-center justify-start space-x-1">
+                          <a
+                            href={url ? `${url}${address_path?.replace('{address}', to)}` : `/address/${to}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <EnsProfile
+                              address={to}
+                              noCopy={true}
+                              noImage={true}
+                            />
+                          </a>
+                          <Copy value={to} />
+                        </div>
+                      )}
+                    </div>
+                  )
+                },
+              },
+              {
+                Header: 'Xcall Status',
+                accessor: 'xcall_status',
+                disableSortBy: true,
+                Cell: props => {
+                  const { row } = { ...props }
+                  const { transfer_id, status } = { ...row.original }
+                  return (
+                    <div className="mt-0.5">
+                      <Link href={`/tx/${transfer_id}`}>
+                        <div className="normal-case font-bold">
+                          {status}
+                        </div>
+                      </Link>
+                    </div>
+                  )
+                },
+                headerClassName: 'whitespace-nowrap',
+              },
+              {
+                Header: 'Error Status',
+                accessor: 'error_status',
+                disableSortBy: true,
+                Cell: props => {
+                  const { row } = { ...props }
+                  let { value } = { ...props }
+                  const { transfer_id, status } = { ...row.original }
+                  if (value === XTransferErrorStatus.ExecutionError && status === XTransferStatus.CompletedSlow) {
+                    value = 'AuthenticationCheck'
+                  }
+                  if (value && ![XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status)) {
+                    value = null
+                  }
+                  const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(value) && toArray(latest_bumped_transfers_data).findIndex(d => equalsIgnoreCase(d.transfer_id, transfer_id) && moment().diff(moment(d.updated), 'minutes', true) <= 5) > -1
+                  return (
+                    <div className="mt-0.5">
+                      <Link href={`/tx/${transfer_id}`}>
+                        <div className="normal-case font-bold">
+                          {(bumped ? 'Processing' : value) || '-'}
+                        </div>
+                      </Link>
+                    </div>
+                  )
+                },
+                headerClassName: 'whitespace-nowrap',
+              },
+            ].filter(c => !address || ['/address/[address]'].includes(pathname) || !['xcall_timestamp', 'status', 'xcall_status', 'error_status'].includes(c.accessor))}
+            size="small"
+            data={dataFiltered}
+            defaultPageSize={address ? 10 : 25}
+            noPagination={dataFiltered.length <= 10}
+            extra={
+              data.length > 0 && (
+                <div className="flex justify-center">
+                  {!fetching ?
+                    data.length >= LIMIT && !noMore && (
+                      <button
+                        onClick={
+                          () => {
+                            setOffset(data.length)
+                            setFetchTrigger(typeof fetchTrigger === 'number' ? true : 1)
+                          }
+                        }
+                        className="flex items-center text-black dark:text-white space-x-0.5"
+                      >
+                        <span className="font-medium">
+                          Load more
+                        </span>
+                      </button>
+                    ) :
+                    <Spinner />
+                  }
+                </div>
+              )
+            }
+            className="no-border no-shadow"
+          />
         </div> :
-        <Spinner />
+        <div className="loading">
+          <Spinner />
+        </div>
       }
     </div>
   )

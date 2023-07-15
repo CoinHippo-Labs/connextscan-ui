@@ -42,7 +42,11 @@ export default ({ data }) => {
                 return value && (
                   <div className="flex items-center space-x-1">
                     <Link href={`/router/${value}`}>
-                      <EnsProfile address={value} noCopy={true} />
+                      <EnsProfile
+                        address={value}
+                        noCopy={true}
+                        noImage={true}
+                      />
                     </Link>
                     <Copy value={value} />
                   </div>
@@ -178,7 +182,9 @@ export default ({ data }) => {
           noPagination={data.length <= 10}
           className="no-border no-shadow"
         /> :
-        <Spinner width={32} height={32} />
+        <div className="loading">
+          <Spinner width={32} height={32} />
+        </div>
       }
     </div>
   )

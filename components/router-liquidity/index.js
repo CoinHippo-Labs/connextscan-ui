@@ -9,7 +9,7 @@ import { BiX } from 'react-icons/bi'
 import Spinner from '../spinner'
 import NumberDisplay from '../number'
 import Modal from '../modal'
-import Notification from '../notifications'
+import Notification from '../notification'
 import Copy from '../copy'
 import EnsProfile from '../profile/ens'
 import ExplorerLink from '../explorer/link'
@@ -310,60 +310,34 @@ export default () => {
       name: 'chain',
       type: 'select',
       placeholder: 'Select chain',
-      options:
-        toArray(chains_data)
-          .filter(c => !c?.view_only)
-          .map(c => {
-            const {
-              id,
-              name,
-            } = { ...c }
-
-            return {
-              value: id,
-              title: name,
-              name,
-            }
-          }),
+      options: toArray(chains_data).map(d => {
+        const { id, name } = { ...d }
+        return {
+          value: id,
+          title: name,
+          name,
+        }
+      }),
       hidden: true,
-  },
+    },
     {
       label: 'Asset',
       name: 'asset',
       type: 'select',
       placeholder: 'Select asset',
-      options:
-        toArray(assets_data)
-          .filter(a =>
-            !chain ||
-            toArray(a?.contracts).findIndex(c => getContract(chain_id, a.contracts)) > -1
-          )
-          .map(a => {
-            const {
-              id,
-              name,
-              contracts,
-            } = { ...a }
-
-            const contract_data = getContract(chain_id, contracts)
-
-            const {
-              next_asset,
-            } = { ...contract_data }
-            let {
-              contract_address,
-              symbol,
-            } = { ...contract_data }
-
-            contract_address = next_asset?.contract_address || contract_address
-            symbol = next_asset?.symbol || symbol || a?.symbol
-
-            return {
-              value: id,
-              title: name,
-              name: `${symbol}${contract_address ? `: ${ellipse(contract_address, 16)}` : ''}`,
-            }
-          }),
+      options: toArray(assets_data).filter(d => !chain || getContractData(chain_id, d.contracts)).map(d => {
+        const { id, name, contracts } = { ...d }
+        const contract_data = getContractData(chain_id, contracts)
+        const { next_asset } = { ...contract_data }
+        let { contract_address, symbol } = { ...contract_data }
+        contract_address = next_asset?.contract_address || contract_address
+        symbol = next_asset?.symbol || symbol || d?.symbol
+        return {
+          value: id,
+          title: name,
+          name: `${symbol}${contract_address ? `: ${ellipse(contract_address, 16)}` : ''}`,
+        }
+      }),
       hidden: true,
     },
     {
@@ -409,6 +383,7 @@ export default () => {
     <>
       {response && (
         <Notification
+          status={status}
           body={
             <div className="flex items-center">
               <span className="leading-5 break-words text-sm 3xl:text-xl font-medium mr-2">
@@ -475,7 +450,7 @@ export default () => {
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center space-x-1">
+                <div className="flex items-center space-x-2">
                   <span className="text-sm">
                     on
                   </span>
@@ -483,6 +458,7 @@ export default () => {
                     disabled={disabled}
                     value={chain || getChainData(undefined, chains_data, { get_head: true })?.id}
                     onSelect={c => { setData({ ...data, chain: c }) }}
+                    canClose={false}
                     className="w-fit flex items-center justify-center space-x-1.5 sm:space-x-2"
                   />
                 </div>
@@ -495,6 +471,7 @@ export default () => {
                       value={asset}
                       onSelect={(a, c) => { setData({ ...data, asset: a, amount: null }) }}
                       chain={chain}
+                      canClose={false}
                       className="flex items-center space-x-1.5 sm:space-x-2 sm:-ml-1"
                     />
                     <DebounceInput

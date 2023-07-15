@@ -163,7 +163,7 @@ export default () => {
   const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(d => equalsIgnoreCase(d.transfer_id, transfer_id) && moment().diff(moment(d.updated), 'minutes', true) <= 5) > -1
 
   return (
-    <div className="space-y-4 -mt-1">
+    <div className="space-y-4 px-4">
       <div className="flex items-center space-x-2">
         <div className="text-slate-400 dark:text-slate-500 text-sm">
           <span className="xl:hidden">
@@ -187,7 +187,7 @@ export default () => {
               <Spinner width={32} height={32} />
             </div> :
             <>
-              <div className="max-w-8xl bg-slate-200 dark:bg-slate-900 bg-opacity-40 dark:bg-opacity-75 overflow-x-auto rounded sm:flex sm:items-center sm:justify-between space-y-8 sm:space-y-0 sm:space-x-8 mx-auto py-10 px-3 sm:py-8 sm:px-6">
+              <div className="max-w-8xl bg-slate-100 dark:bg-slate-900 overflow-x-auto rounded sm:flex sm:items-center sm:justify-between space-y-8 sm:space-y-0 sm:space-x-8 mx-auto py-10 sm:py-8 px-3 sm:px-6">
                 <div className="grid grid-cols-1 xl:grid-cols-2 items-center gap-8 sm:gap-4 xl:gap-8">
                   <div className="space-y-2">
                     {source_chain_data ?
@@ -372,7 +372,7 @@ export default () => {
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                 {details.filter(d => d !== 'reconcile' || data[`${d}_transaction_hash`]).map((d, i) => (
-                  <div key={i} className={`form ${d === 'reconcile' ? 'bg-slate-100 dark:bg-gray-900 bg-opacity-100 dark:bg-opacity-50' : 'bg-slate-200 dark:bg-slate-900 bg-opacity-40 dark:bg-opacity-75'} rounded-lg space-y-5 py-10 sm:py-8 px-4 sm:px-6`}>
+                  <div key={i} className={`form bg-slate-100 dark:bg-slate-900 ${d === 'reconcile' ? 'bg-opacity-75 dark:bg-opacity-75' : ''} rounded space-y-5 py-10 sm:py-8 px-4 sm:px-6`}>
                     <div className="flex items-center justify-between">
                       <Tooltip content={d === 'xcall' ? 'assets sent by user on origin chain' : d === 'execute' ? 'assets delivered to user on destination chain' : d === 'reconcile' ? 'assets minted to router' : null}>
                         <div className={`${d === 'reconcile' ? 'bg-slate-200 dark:bg-slate-800 text-black dark:text-white' : 'bg-blue-400 dark:bg-blue-600 text-white'} rounded capitalize text-xl font-medium py-1 px-3`}>

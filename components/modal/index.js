@@ -37,11 +37,12 @@ export default (
 
   const modalRef = useRef(null)
 
-  const show = () => {
+  const show = e => {
+    const open = !e.target.toString().includes('SVG')
     if (onClick) {
-      onClick(true)
+      onClick(open)
     }
-    setOpen(true)
+    setOpen(open)
   }
 
   const hide = () => {

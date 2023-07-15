@@ -216,12 +216,12 @@ export default (
               </span>
             </div>
           )
-          const className = `dropdown-item ${disabled || !contract_data ? 'cursor-not-allowed text-slate-400 dark:text-slate-600' : selected ? 'bg-slate-100 dark:bg-slate-800 cursor-pointer' : 'hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer'} rounded flex items-center justify-between space-x-2 my-1 p-2`
+          const className = `dropdown-item ${disabled/* || !contract_data*/ ? 'cursor-not-allowed text-slate-400 dark:text-slate-600' : selected ? 'bg-slate-100 dark:bg-slate-800 cursor-pointer' : 'hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer'} rounded flex items-center justify-between space-x-2 my-1 p-2`
 
           return (
             <div key={i}>
               {header}
-              {disabled || !contract_data ?
+              {disabled/* || !contract_data*/ ?
                 <div title={contract_data ? 'Disabled' : 'Not Support'} className={className}>
                   {item}
                 </div> :
