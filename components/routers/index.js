@@ -156,7 +156,7 @@ export default () => {
                 }),
                 ['i'], ['asc'],
               ),
-              i: assets_data.findIndex(a => a.id === k),
+              i: toArray(assets_data).findIndex(a => a.id === k),
             }
           }),
           ['i'], ['asc'],
