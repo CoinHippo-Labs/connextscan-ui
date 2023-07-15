@@ -61,7 +61,7 @@ export default () => {
       )
       break
     case '/[chain]':
-      const { name, short_name, image } = { ...getChainData(chain, chains_data) }
+      const { name, image } = { ...getChainData(chain, chains_data) }
       title = (
         <div className="flex items-center space-x-3">
           {image && (
@@ -72,13 +72,8 @@ export default () => {
               className="rounded-full"
             />
           )}
-          <span>{short_name || chain}</span>
+          <span>{name}</span>
         </div>
-      )
-      subtitle = (
-        <span className={`${image ? 'ml-9' : ''}`}>
-          {name}
-        </span>
       )
       break
     default:
@@ -89,7 +84,7 @@ export default () => {
     <div className="w-full overflow-x-auto flex items-center pt-6 sm:pt-4 pb-2 px-2 sm:px-4">
       <div className="flex flex-col space-y-1">
         {title && (
-          <h1 className="uppercase text-black dark:text-white text-sm sm:text-base font-medium">
+          <h1 className="uppercase text-black dark:text-white text-sm sm:text-base font-semibold">
             {title}
           </h1>
         )}
@@ -110,7 +105,7 @@ export default () => {
                   <NumberDisplay
                     value={Object.keys(router_asset_balances_data).length}
                     suffix=" chains"
-                    className="whitespace-nowrap font-medium"
+                    className="uppercase whitespace-nowrap font-medium"
                   />
                 </div>
               </Link>
@@ -120,7 +115,7 @@ export default () => {
                   <NumberDisplay
                     value={_.uniq(toArray(Object.values(router_asset_balances_data).flatMap(d => toArray(d)).map(d => d.address?.toLowerCase()))).length}
                     suffix=" routers"
-                    className="whitespace-nowrap font-medium"
+                    className="uppercase whitespace-nowrap font-medium"
                   />
                 </div>
               </Link>
@@ -130,7 +125,7 @@ export default () => {
                   <NumberDisplay
                     value={_.uniq(toArray(Object.values(router_asset_balances_data).flatMap(d => toArray(d)).map(d => d.asset_data?.id))).length}
                     suffix=" assets"
-                    className="whitespace-nowrap font-medium"
+                    className="uppercase whitespace-nowrap font-medium"
                   />
                 </div>
               </Link>

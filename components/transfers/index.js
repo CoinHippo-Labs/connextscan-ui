@@ -27,9 +27,10 @@ import SelectAsset from '../select/asset'
 import SelectStatus from '../select/status'
 import SelectErrorStatus from '../select/error-status'
 import TimeSpent from '../time/timeSpent'
-import TimeAgo from '../../time/timeAgo'
+import TimeAgo from '../time/timeAgo'
 import { NATIVE_WRAPPABLE_SYMBOLS, PERCENT_ROUTER_FEE } from '../../lib/config'
 import { getChainData, getAssetData, getContractData } from '../../lib/object'
+import { formatUnits } from '../../lib/number'
 import { toArray, ellipse, equalsIgnoreCase, getQueryParams } from '../../lib/utils'
 
 const LIMIT = 100
@@ -63,14 +64,14 @@ export default () => {
 
   useEffect(
     () => {
-      if (filterTrigger !== undefined) {
+      if (fetchTrigger !== undefined) {
         const qs = new URLSearchParams()
         Object.entries({ ...filters }).filter(([k, v]) => v).forEach(([k, v]) => { qs.append(k, v) })
         const qs_string = qs.toString()
         router.push(`${pathname}${qs_string ? `?${qs_string}` : ''}`)
       }
     },
-    [filterTrigger],
+    [fetchTrigger],
   )
 
   useEffect(
@@ -97,7 +98,7 @@ export default () => {
           if (!fetchTrigger) {
             setData(null)
             setNoMore(false)
-            setOffet(0)
+            setOffset(0)
           }
 
           const _data = toArray(fetchTrigger && data)
@@ -195,7 +196,7 @@ export default () => {
               }
             })
             .map(d => {
-              const { source_asset_data, destination_asset_data, origin_transacting_asset, origin_transacting_amount, destination_transacting_amount, source_decimals, destination_decimals, relayer_fees } = { ...t }
+              const { source_asset_data, destination_asset_data, origin_transacting_asset, origin_transacting_amount, destination_transacting_amount, source_decimals, destination_decimals, relayer_fees } = { ...d }
               const source_amount = origin_transacting_amount && formatUnits(BigInt(origin_transacting_amount) + BigInt(relayer_fees?.[origin_transacting_asset] || 0), source_decimals)
               const destination_amount = destination_transacting_amount ? formatUnits(BigInt(destination_transacting_amount), destination_decimals) : source_amount * (1 - PERCENT_ROUTER_FEE / 100)
               return {
@@ -236,21 +237,21 @@ export default () => {
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 my-4 sm:my-0">
               <div className="flex items-center space-x-2">
-                <SelectChain value={sourceChain} onSelect={c => setFilters({ ...filters, sourceChain: c })} />
+                <SelectChain value={sourceChain || ''} onSelect={c => setFilters({ ...filters, sourceChain: c })} />
                 <span className="font-semibold">
                   To
                 </span>
-                <SelectChain value={destinationChain} onSelect={c => setFilters({ ...filters, destinationChain: c })} />
+                <SelectChain value={destinationChain || ''} onSelect={c => setFilters({ ...filters, destinationChain: c })} />
               </div>
               <div className="flex items-center space-x-2">
                 <SelectAsset
-                  value={assetSelect}
+                  value={asset || ''}
                   onSelect={a => setFilters({ ...filters, asset: a })}
                   chain={sourceChain}
                   destinationChain={destinationChain}
                 />
-                <SelectStatus value={status} onSelect={s => setFilters({ ...filters, status: s })} />
-                <SelectErrorStatus value={errorStatus} onSelect={s => setFilters({ ...filters, errorStatus: s })} />
+                <SelectStatus value={status || ''} onSelect={s => setFilters({ ...filters, status: s })} />
+                <SelectErrorStatus value={errorStatus || ''} onSelect={s => setFilters({ ...filters, errorStatus: s })} />
               </div>
             </div>
           </div>
@@ -639,7 +640,7 @@ export default () => {
                         <button
                           onClick={
                             () => {
-                              setOffet(data.length)
+                              setOffset(data.length)
                               setFetchTrigger(typeof fetchTrigger === 'number' ? true : 1)
                             }
                           }

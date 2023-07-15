@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { useSelector, shallowEqual } from 'react-redux'
 
 import Image from '../../image'
@@ -9,11 +10,15 @@ export default ({ onClick }) => {
   const { chains } = useSelector(state => ({ chains: state.chains }), shallowEqual)
   const { chains_data } = { ...chains }
 
+  const router = useRouter()
+  const { query } = { ...router }
+  const { chain } = { ...query }
+
   return (
     <div className="flex flex-wrap pb-0">
       {toArray(chains_data).map(c => {
         const { id, disabled, image } = { ...c }
-        const selected = c.chain_id === chain_id
+        const selected = id === chain
         const item = (
           <>
             <Image

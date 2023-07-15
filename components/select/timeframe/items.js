@@ -3,7 +3,7 @@ import { TIMEFRAMES } from '../../../lib/object'
 export default ({ value, onClick }) => {
   return (
     <div className="flex flex-wrap pb-1">
-      {timeframes.map((d, i) => {
+      {TIMEFRAMES.map((d, i) => {
         const { day, title } = { ...d }
         const selected = day === value
         const item = (

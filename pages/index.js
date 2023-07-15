@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-import <Dashboard from '../components/dashboard'
+import Dashboard from '../components/dashboard'
 
 export default () => {
   const [ssr, setSsr] = useState(true)

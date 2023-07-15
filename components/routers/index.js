@@ -284,7 +284,7 @@ export default () => {
                   return value && (
                     <div className="flex items-center space-x-1">
                       <Link href={`/router/${value}`}>
-                        <EnsProfile address={value} noCopy={true} />
+                        <EnsProfile address={value} noCopy={true} noImage={true} />
                       </Link>
                       <Copy value={value} />
                     </div>
@@ -300,7 +300,7 @@ export default () => {
                   return (
                     <div className="text-right">
                       {isNumber(value) ?
-                        <DecimalsFormat
+                        <NumberDisplay
                           value={value}
                           prefix="$"
                           noTooltip={true}
@@ -328,7 +328,7 @@ export default () => {
                       flatRows.map(d => {
                         const { original } = { ...d }
                         const { total_value } = { ...original }
-                        return { ...original, value_share: total_value * 100 / total }
+                        return { ...original, value_share: (total_value > 0 ? total_value : 0) * 100 / total }
                       }),
                       0, index + 1,
                     ) :

@@ -13,8 +13,9 @@ import { getTokensPrice } from '../lib/api/tokens'
 import { getENS } from '../lib/api/ens'
 import { getProvider } from '../lib/chain/evm'
 import { NETWORK, ENVIRONMENT, IS_STAGING, getChainsData, getAssetsData } from '../lib/config'
-import { getChainData, getAssetData, getContractData } from '../lib/object'
-import { toArray, equalsIgnoreCase } from '../lib/utils'
+import { getChainData, getAssetData, getContractData, getPoolData } from '../lib/object'
+import { formatUnits, isNumber } from '../lib/number'
+import { split, toArray, equalsIgnoreCase, sleep } from '../lib/utils'
 import { THEME, PAGE_VISIBLE, CHAINS_DATA, ASSETS_DATA, POOL_ASSETS_DATA, GAS_TOKENS_PRICE_DATA, ENS_DATA, ROUTER_ASSET_BALANCES_DATA, POOLS_DATA, RPCS, SDK, LATEST_BUMPED_TRANSFERS_DATA } from '../reducers/types'
 
 export default ({ children }) => {
@@ -57,7 +58,6 @@ export default ({ children }) => {
   const { ens_data } = { ...ens }
   const { router_asset_balances_data } = { ...router_asset_balances }
   const { pools_data } = { ...pools }
-  const { pools_daily_stats_data } = { ...pools_daily_stats }
   const { rpcs } = { ...rpc_providers }
   const { sdk } = { ...dev }
   const { wallet_data } = { ...wallet }
@@ -262,17 +262,20 @@ export default ({ children }) => {
             const response = toArray(await sdk.sdkUtils.getRoutersData())
             const data = _.groupBy(
               response.map(d => {
-                const { domain, adopted, local, balance } = { ...d }
+                const { domain, adopted, local, balance, decimal, asset_usd_price } = { ...d }
                 const chain_data = getChainData(domain, chains_data)
                 const { chain_id } = { ...chain_data }
                 const asset_data = getAssetData(undefined, assets_data, { chain_id, return_all: true }).find(a => [adopted, local].findIndex(c => getContractData(c, toArray(a.contracts), { chain_id })) > -1)
+                const amount = formatUnits(BigInt(balance || '0').toString(), decimal)
+                const value = amount * asset_usd_price
                 return {
                   ...d,
                   chain_id,
                   chain_data,
                   asset_data,
                   contract_address: local,
-                  amount: BigInt(balance || '0').toString(),
+                  amount,
+                  value,
                 }
               }),
               'chain_id',
@@ -303,6 +306,118 @@ export default ({ children }) => {
       getData()
     },
     [chains_data, router_asset_balances_data],
+  )
+
+  // pools
+  useEffect(
+    () => {
+      const getPool = async (chain_data, asset_data) => {
+        const { chain_id, domain_id } = { ...chain_data }
+        const { contracts } = { ...asset_data }
+        const contract_data = getContractData(chain_id, contracts)
+        const { contract_address } = { ...contract_data }
+
+        if (contract_address) {
+          const id = [chain_data.id, asset_data.id].join('_')
+
+          let data
+          try {
+            console.log('[General]', '[getPool]', { domain_id, contract_address })
+            const pool = _.cloneDeep(await sdk.sdkPool.getPool(domain_id, contract_address))
+            console.log('[General]', '[pool]', { domain_id, contract_address, pool })
+            const { lpTokenAddress, adopted, local, symbol } = { ...pool }
+
+            let supply
+            let tvl
+            let stats
+
+            if (adopted) {
+              const { balance, decimals } = { ...adopted }
+              adopted.balance = formatUnits(balance, decimals)
+              pool.adopted = adopted
+            }
+            if (local) {
+              const { balance, decimals } = { ...local }
+              local.balance = formatUnits(balance, decimals)
+              pool.local = local
+            }
+
+            if (lpTokenAddress) {
+              await sleep(1.5 * 1000)
+              console.log('[General]', '[getTokenSupply]', { domain_id, lpTokenAddress })
+              try {
+                supply = await sdk.sdkPool.getTokenSupply(domain_id, lpTokenAddress)
+                supply = formatUnits(supply)
+                console.log('[General]', '[LPTokenSupply]', { domain_id, lpTokenAddress, supply })
+              } catch (error) {
+                console.log('[General]', '[getTokenSupply error]', { domain_id, lpTokenAddress }, error)
+              }
+            }
+            supply = supply || pool?.supply
+            let { price } = { ...getAssetData(asset_data.id, assets_data) }
+            price = price || 0
+            if (isNumber(supply) || (adopted?.balance && local?.balance)) {
+              tvl = Number(supply || _.sum(toArray(_.concat(adopted, local)).map(a => Number(a.balance)))) * price
+            }
+
+            if (pool && (IS_STAGING || ENVIRONMENT === 'production')) {
+              await sleep(1.5 * 1000)
+              const number_of_days = 7
+              console.log('[General]', '[getYieldData]', { domain_id, contract_address, number_of_days })
+              try {
+                stats = _.cloneDeep(await sdk.sdkPool.getYieldData(domain_id, contract_address, number_of_days))
+                console.log('[General]', '[yieldData]', { domain_id, contract_address, number_of_days, stats })
+              } catch (error) {
+                console.log('[General]', '[getYieldData error]', { domain_id, contract_address, number_of_days }, error)
+              }
+            }
+
+            if (equalsIgnoreCase(pool?.domainId, domain_id)) {
+              const { liquidity, volumeFormatted, fees } = { ...stats }
+              data = {
+                ...pool,
+                ...stats,
+                id,
+                chain_id,
+                chain_data,
+                asset_data,
+                contract_data,
+                symbols: split(symbol, 'normal', '-'),
+                supply,
+                tvl,
+                volume: volumeFormatted,
+                rate: 1,
+                liquidity_value: (liquidity || 0) * price,
+                volume_value: (volumeFormatted || 0) * price,
+                fees_value: (fees || 0) * price,
+              }
+            }
+            else {
+              data = getPoolData(id, pools_data)
+            }
+          } catch (error) {
+            console.log('[General]', '[getPool error]', { domain_id, contract_address }, error)
+            data = getPoolData(id, pools_data) || { id, chain_id, chain_data, asset_data, contract_data, error }
+          }
+          if (data) {
+            dispatch({ type: POOLS_DATA, value: data })
+          }
+        }
+      }
+
+      const getChainData = async chain_data => pool_assets_data.forEach(a => getPool(chain_data, a))
+
+      const getData = async () => {
+        if (page_visible && chains_data && pool_assets_data && sdk && pathname && ['/', '/[chain]'].includes(pathname)) {
+          chains_data.filter(c => !pathname.includes('/[') || asPath?.includes(c.id)).forEach(c => getChainData(c))
+        }
+      }
+
+      getData()
+      const interval = setInterval(() => getData(), 1.5 * 60 * 1000)
+      return () => clearInterval(interval)
+    },
+    [page_visible, chains_data, pool_assets_data, sdk, pathname],
   )
 
   const { title, description, image, url } = { ...meta(asPath) }

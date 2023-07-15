@@ -19,7 +19,7 @@ import { isNumber } from '../../lib/number'
 import { toArray, ellipse, equalsIgnoreCase } from '../../lib/utils'
 
 export default ({ data }) => {
-  const { chains, asset } = useSelector(state => ({ chains: state.chains, assets: state.assets }), shallowEqual)
+  const { chains, assets } = useSelector(state => ({ chains: state.chains, assets: state.assets }), shallowEqual)
   const { chains_data } = { ...chains }
   const { assets_data } = { ...assets }
 
@@ -44,7 +44,7 @@ export default ({ data }) => {
 
   const _assets_data = toArray(getAssetData(assetSelected, assets_data, { chain_id, return_all: true })).flatMap(d =>
     toArray(d.contracts).filter(c => getChainData(c.chain_id, chains_data) && (!chain_data || getContractData(c.chain_id, d.contracts)?.chain_id === chain_id)).map((c, i) => {
-      let asset_data = { ...a, ...c, i, chain_data: getChainData(c.chain_id, chains_data) }
+      let asset_data = { ...d, ...c, i, chain_data: getChainData(c.chain_id, chains_data) }
       if (asset_data.contracts) {
         delete asset_data.contracts
       }
@@ -56,7 +56,7 @@ export default ({ data }) => {
         asset_data = { ...asset_data, ...next_asset }
         delete asset_data.next_asset
       }
-      const amount = _.sumBy(_data, 'amount')
+      const amount = _.sumBy(_data.map(d => { return { ...d, amount: Number(d.amount) } }), 'amount')
       const value = amount * (price || 0)
       return { ...asset_data, amount, value }
     })
@@ -65,7 +65,7 @@ export default ({ data }) => {
   return (
     <div className="space-y-2">
       <div className="sm:flex sm:items-center sm:justify-between">
-        <div className="whitespace-nowrap uppercase text-sm font-semibold">
+        <div className="whitespace-nowrap uppercase text-sm font-bold">
           Routers Liquidity
         </div>
         <div className="flex items-center space-x-2 mt-2 sm:mt-0 mb-4 sm:mb-0">
@@ -128,7 +128,7 @@ export default ({ data }) => {
                 const { id, chain_data } = { ...row.original }
                 const { explorer } = { ...chain_data }
                 return value && (
-                  <div className="min-w-max flex items-center space-x-1.5 -mt-1">
+                  <div className="min-w-max flex items-center space-x-1.5">
                     <Copy
                       size={20}
                       value={value}

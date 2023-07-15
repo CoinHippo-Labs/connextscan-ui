@@ -1,5 +1,9 @@
 import Transfers from '../../components/transfers'
 
 export default () => {
-  return <Transfers />
+  return (
+    <div className="px-4">
+      <Transfers />
+    </div>
+  )
 }

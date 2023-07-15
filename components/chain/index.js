@@ -42,7 +42,7 @@ export default () => {
           const { chain_id, domain_id } = { ...getChainData(chain, chains_data) }
           const data = response.filter(d => d.domain === domain_id).map(d => {
             const { local, balance } = { ...d }
-            let asset_data = getAsset(undefined, assets_data, { chain_id, contract_address: local })
+            let asset_data = getAssetData(undefined, assets_data, { chain_id, contract_address: local })
             asset_data = { ...asset_data, ...getContractData(chain_id, asset_data?.contracts) }
             if (asset_data.contracts) {
               delete asset_data.contracts
@@ -182,7 +182,7 @@ export default () => {
   ).map((d, i) => { return { ...d, i } })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4">
       <Metrics data={metrics} numDays={timeframe} />
       <div className="grid lg:grid-cols-4 gap-4 mx-auto">
         <div className="lg:col-span-4 flex items-center justify-end">
@@ -205,6 +205,6 @@ export default () => {
       <div className="w-full">
         <Routers data={routers} />
       </div>
-    </>
+    </div>
   )
 }

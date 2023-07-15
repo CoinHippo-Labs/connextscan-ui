@@ -12,7 +12,7 @@ import Transfers from './transfers'
 import FeeTotal from './fee/total'
 import Fee from './fee'
 import SelectTimeframe from '../select/timeframe'
-import { getDailyTransferMetrics, getDailyTransferVolum } from '../../lib/api/metrics'
+import { getDailyTransferMetrics, getDailyTransferVolume } from '../../lib/api/metrics'
 import { getChainData, getAssetData, getContractData, TIMEFRAMES } from '../../lib/object'
 import { formatUnits } from '../../lib/number'
 import { toArray, equalsIgnoreCase } from '../../lib/utils'
@@ -89,7 +89,7 @@ export default () => {
                     volume: _.sumBy(v, 'volume'),
                   }
                 }),
-                ['volume'], ['asc'],
+                ['volume'], ['desc'],
               ),
               0, 3,
             ),
@@ -114,7 +114,7 @@ export default () => {
                     _.concat(
                       volume_by_chains,
                       chains_data.filter(d => volume_by_chains.findIndex(_d => _d.id === d.id) < 0).map((d, i) => {
-                        const { id, color } = { ...c }
+                        const { id, color } = { ...d }
                         return {
                           id,
                           color,
@@ -145,7 +145,7 @@ export default () => {
                     transfers: _.sumBy(v, 'transfer_count'),
                   }
                 }),
-                ['transfers'], ['asc'],
+                ['transfers'], ['desc'],
               ),
               0, 3,
             ),
@@ -170,7 +170,7 @@ export default () => {
                     _.concat(
                       transfers_by_chains,
                       chains_data.filter(d => transfers_by_chains.findIndex(_d => _d.id === d.id) < 0).map((d, i) => {
-                        const { id, color } = { ...c }
+                        const { id, color } = { ...d }
                         return {
                           id,
                           color,
@@ -203,7 +203,7 @@ export default () => {
   const { volumes, transfers, fees } = { ...data }
 
   return (
-    <div className="grid lg:grid-cols-4 gap-4 mx-auto">
+    <div className="grid lg:grid-cols-4 gap-4 mx-auto px-4">
       <TvlTotal />
       <div className="lg:col-span-3">
         <Tvl />

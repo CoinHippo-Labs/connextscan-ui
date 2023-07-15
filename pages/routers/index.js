@@ -1,5 +1,9 @@
-import Routers from '../../components/pools'
+import Routers from '../../components/routers'
 
 export default () => {
-  return <Routers />
+  return (
+    <div className="px-4">
+      <Routers />
+    </div>
+  )
 }

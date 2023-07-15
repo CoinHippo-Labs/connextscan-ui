@@ -43,7 +43,7 @@ export default () => {
   const { chain_id } = { ...chain_data }
 
   const _pools_data = _.orderBy(
-    toArray(getPoolData(undefined, pools_data, { chain_id, return_all: true })).filter(d => !assetSelect || d.asset_data?.id === assetSelect).map((d, i) => {
+    toArray(getPoolData(undefined, pools_data, { chain_id, return_all: true })).filter(d => !assetSelected || d.asset_data?.id === assetSelected).map((d, i) => {
       return { ...d, i }
     }),
     ['tvl'], ['desc'],
@@ -52,7 +52,7 @@ export default () => {
   return (
     <div className="space-y-2">
       <div className="sm:flex sm:items-center sm:justify-between">
-        <div className="whitespace-nowrap uppercase text-sm font-semibold">
+        <div className="whitespace-nowrap uppercase text-sm font-bold">
           Pools Liquidity
         </div>
         <div className="flex items-center space-x-2 mt-2 sm:mt-0 mb-4 sm:mb-0">

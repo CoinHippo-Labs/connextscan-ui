@@ -316,7 +316,7 @@ export default () => {
                           className="rounded-full"
                         />
                       )}
-                      {number(destination_amount) >= 0 ?
+                      {Number(destination_amount) >= 0 ?
                         <NumberDisplay value={destination_amount} className="text-lg font-semibold" /> :
                         <Spinner width={32} height={32} />
                       }
@@ -432,23 +432,23 @@ export default () => {
                         }
                       </div>
                     </div>
-                    {data[`${s}_transaction_hash`] && (
+                    {data[`${d}_transaction_hash`] && (
                       toArray(
                         _.concat(
                           [
                             'transaction_hash',
                             'block_number',
                             'timestamp',
-                            s === 'reconcile' ? 'message_status' : undefined,
+                            d === 'reconcile' ? 'message_status' : undefined,
                             'caller',
-                            s === 'xcall' ? 'to' : undefined,
-                            s === 'xcall' ? 'recovery' : s === 'execute' ? 'origin_sender' : undefined,
-                            s === 'xcall' ? 'relayer_fee' : undefined,
+                            d === 'xcall' ? 'to' : undefined,
+                            d === 'xcall' ? 'recovery' : d === 'execute' ? 'origin_sender' : undefined,
+                            d === 'xcall' ? 'relayer_fee' : undefined,
                             'gas_price',
                             'gas_limit',
-                            s === 'xcall' && call_data && call_data !== '0x' ? 'call_data' : undefined,
+                            d === 'xcall' && call_data && call_data !== '0x' ? 'call_data' : undefined,
                           ],
-                          s === 'execute' ? ['simulation_from', 'simulation_to', 'simulation_network', 'simulation_input'] : undefined,
+                          d === 'execute' ? ['simulation_from', 'simulation_to', 'simulation_network', 'simulation_input'] : undefined,
                         )
                       )
                       .map(((f, j) => (
@@ -457,12 +457,12 @@ export default () => {
                             {split(f, 'normal', '_').join(' ')}
                           </div>
                           <div className="form-element">
-                            {[undefined, null].includes(data[['message_status', 'to', 'recovery', 'relayer_fee', 'call_data'].includes(f) ? f === 'relayer_fee' && Object.keys({ ...data[`${f}s`] }).length > 0 ? `${f}s` : f : `${s}_${f}`]) ?
+                            {[undefined, null].includes(data[['message_status', 'to', 'recovery', 'relayer_fee', 'call_data'].includes(f) ? f === 'relayer_fee' && Object.keys({ ...data[`${f}s`] }).length > 0 ? `${f}s` : f : `${d}_${f}`]) ?
                               <span className="text-slate-400 dark:text-slate-200">
                                 -
                               </span> :
-                              toArray(data[['message_status', 'to', 'recovery', 'relayer_fee', 'call_data'].includes(f) ? f === 'relayer_fee' && Object.keys({ ...data[`${f}s`] }).length > 0 ? `${f}s` : f : `${s}_${f}`]).map((v, k) => {
-                                const { native_token, explorer } = { ...(s === 'xcall' ? source_chain_data : destination_chain_data) }
+                              toArray(data[['message_status', 'to', 'recovery', 'relayer_fee', 'call_data'].includes(f) ? f === 'relayer_fee' && Object.keys({ ...data[`${f}s`] }).length > 0 ? `${f}s` : f : `${d}_${f}`]).map((v, k) => {
+                                const { native_token, explorer } = { ...(d === 'xcall' ? source_chain_data : destination_chain_data) }
                                 const { symbol, decimals } = { ...native_token }
                                 const { url, block_path, transaction_path, address_path } = { ...explorer }
 

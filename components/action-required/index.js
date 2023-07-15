@@ -9,7 +9,7 @@ import { TiArrowRight } from 'react-icons/ti'
 import { MdClose } from 'react-icons/md'
 import { BiX, BiEditAlt, BiCheckCircle } from 'react-icons/bi'
 
-import WarningSlippage from '../bridge/warning/slippage'
+import WarningSlippage from './warning/slippage'
 import Spinner from '../spinner'
 import Alert from '../alert'
 import Image from '../image'
@@ -626,11 +626,7 @@ export default (
                       Additional required relayer fee
                     </div>
                     {!newRelayerFee && !estimateResponse ?
-                      <Oval
-                        width="20"
-                        height="20"
-                        color={loaderColor(theme)}
-                      /> :
+                      <Spinner width={20} height={20} /> :
                       <span className="whitespace-nowrap text-slate-800 dark:text-slate-200 font-semibold space-x-1.5">
                         <NumberDisplay value={Number(relayerFeeToBump) > 0 ? relayerFeeToBump : 0} className="text-sm" />
                         <span>{relayerFeeAssetType === 'transacting' ? source_symbol : source_gas?.symbol}</span>

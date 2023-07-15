@@ -50,7 +50,7 @@ export default () => {
             const { chain_id } = { ...chain_data }
 
             let asset_data = getAssetData(undefined, assets_data, { chain_id, contract_address: local })
-            asset_data = { ..asset_data, ...getContractData(chain_id, asset_data?.contracts) }
+            asset_data = { ...asset_data, ...getContractData(chain_id, asset_data?.contracts) }
             if (asset_data.contracts) {
               delete asset_data.contracts
             }

@@ -92,7 +92,7 @@ export default (
                 <NumberDisplay
                   value={value}
                   prefix={prefix}
-                  noToolip={true}
+                  noTooltip={true}
                   className="text-base 3xl:text-2xl font-semibold"
                 />
               </div>

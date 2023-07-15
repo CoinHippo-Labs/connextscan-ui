@@ -16,8 +16,8 @@ import ExplorerLink from '../explorer/link'
 import SelectChain from '../select/chain'
 import SelectAsset from '../select/asset'
 import Wallet from '../wallet'
-import { getBalance } from '../lib/chain/evm'
-import { GAS_LIMIT_ADJUSTMENT } from '../lib/config'
+import { getBalance } from '../../lib/chain/evm'
+import { GAS_LIMIT_ADJUSTMENT } from '../../lib/config'
 import { getChainData, getAssetData, getContractData } from '../../lib/object'
 import { toBigNumber, toFixedNumber, formatUnits, parseUnits, isNumber } from '../../lib/number'
 import { toArray, numberToFixed, ellipse, equalsIgnoreCase, normalizeMessage, parseError } from '../../lib/utils'
@@ -61,7 +61,7 @@ export default () => {
     () => {
       const { chain } = { ...data }
       if (chains_data && assets_data && !chain) {
-        const { id, chain_id } = { ...getChainData(undefined chains_data, { not_disabled: true, get_head: true }) }
+        const { id, chain_id } = { ...getChainData(undefined, chains_data, { not_disabled: true, get_head: true }) }
         setData({ ...data, chain: id, asset: getAssetData(undefined, assets_data, { chain_id, get_head: true })?.id })
       }
     },

@@ -16,7 +16,7 @@ export default ({ data }) => {
   return (
     <div className="space-y-4">
       <div className="sm:flex sm:items-center sm:justify-between">
-        <div className="whitespace-nowrap uppercase text-sm font-semibold">
+        <div className="whitespace-nowrap uppercase text-sm font-bold">
           Routers
         </div>
       </div>
@@ -141,7 +141,7 @@ export default ({ data }) => {
                     flatRows.map(d => {
                       const { original } = { ...d }
                       const { total_value } = { ...original }
-                      return { ...original, value_share: total_value * 100 / total }
+                      return { ...original, value_share: (total_value > 0 ? total_value : 0) * 100 / total }
                     }),
                     0, index + 1,
                   ) :
