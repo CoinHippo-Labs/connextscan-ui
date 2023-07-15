@@ -126,7 +126,7 @@ export default () => {
             return {
               asset: k,
               value: _.sumBy(v, 'value'),
-              i: assets_data.findIndex(a => a.id === k),
+              i: toArray(assets_data).findIndex(a => a.id === k),
             }
           }),
           ['i'], ['asc'],
