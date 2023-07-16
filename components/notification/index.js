@@ -31,11 +31,7 @@ export default (
     setOpen(true)
   }
 
-  const hide = () => {
-    if (typeof hidden !== 'boolean') {
-      setOpen(false)
-    }
-  }
+  const hide = () => setOpen(false)
 
   useEffect(
     () => {

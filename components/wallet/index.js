@@ -61,6 +61,16 @@ export default (
             onClick={
               () => {
                 switchNetwork(connectChainId)
+                dispatch({
+                  type: WALLET_DATA,
+                  value: {
+                    chain_id: connectChainId,
+                    provider: _provider,
+                    ethereum_provider: window?.ethereum,
+                    signer,
+                    address,
+                  },
+                })
                 if (onSwitch) {
                   onSwitch()
                 }

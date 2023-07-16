@@ -149,7 +149,7 @@ export default ({ title = 'TVL', description = 'Total value locked by chain' }) 
               </defs>
               <XAxis dataKey="short_name" axisLine={false} tickLine={false} />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
-              <Bar dataKey="value" minPointSize={10} onClick={d => router.push(`/${id}`)}>
+              <Bar dataKey="value" minPointSize={10} onClick={d => router.push(`/${d.id}`)}>
                 <LabelList
                   dataKey="value_string"
                   position="top"
