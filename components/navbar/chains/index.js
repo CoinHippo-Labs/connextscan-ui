@@ -1,57 +1,31 @@
 import { useRouter } from 'next/router'
 import { useState, useEffect, useRef } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
-import { Puff } from 'react-loader-spinner'
 
-import Image from '../../image'
 import Items from './items'
-import { getChain, connext } from '../../../lib/object/chain'
-import { loaderColor } from '../../../lib/utils'
+import Spinner from '../../spinner'
+import Image from '../../image'
+import { CONNEXT, getChainData } from '../../../lib/object'
 
 export default () => {
-  const {
-    preferences,
-    chains,
-  } = useSelector(
-    state => (
-      {
-        preferences: state.preferences,
-        chains: state.chains,
-      }
-    ),
-    shallowEqual,
-  )
-  const {
-    theme,
-  } = { ...preferences }
-  const {
-    chains_data,
-  } = { ...chains }
+  const { chains } = useSelector(state => ({ chains: state.chains }), shallowEqual)
+  const { chains_data } = { ...chains }
 
   const [hidden, setHidden] = useState(true)
-
-  const router = useRouter()
-  const {
-    query,
-  } = { ...router }
-  const {
-    chain,
-  } = { ...query }
 
   const buttonRef = useRef(null)
   const dropdownRef = useRef(null)
 
+  const router = useRouter()
+  const { query } = { ...router }
+  const { chain } = { ...query }
+
   useEffect(
     () => {
       const handleClickOutside = e => {
-        if (
-          hidden ||
-          buttonRef.current.contains(e.target) ||
-          dropdownRef.current.contains(e.target)
-        ) {
+        if (hidden || buttonRef.current.contains(e.target) || dropdownRef.current.contains(e.target)) {
           return false
         }
-
         setHidden(!hidden)
       }
 
@@ -63,12 +37,8 @@ export default () => {
 
   const onClick = () => setHidden(!hidden)
 
-  const chain_data = getChain(chain, chains_data)
-
-  const {
-    short_name,
-    image,
-  } = { ...chain_data }
+  const chain_data = getChainData(chain, chains_data)
+  const { short_name, image } = { ...chain_data }
 
   return (
     <div className="relative">
@@ -83,32 +53,27 @@ export default () => {
               src={image}
               width={24}
               height={24}
-              className="rounded-full"
+              className="3xl:w-8 3xl:h-8 rounded-full"
             /> :
             <span className="font-semibold">
               {short_name}
             </span> :
           chains_data ?
             <Image
-              src={connext.image}
+              src={CONNEXT.image}
               width={24}
               height={24}
+              className="3xl:w-8 3xl:h-8"
             /> :
-            <Puff
-              width="24"
-              height="24"
-              color={loaderColor(theme)}
-            />
+            <Spinner name="Puff" />
         }
       </button>
       <div
         ref={dropdownRef}
         className={`dropdown ${hidden ? '' : 'open'} absolute top-0 right-3 mt-12`}
       >
-        <div className="dropdown-content w-72 bottom-start">
-          <Items
-            onClick={onClick}
-          />
+        <div className="dropdown-content w-40 bottom-start">
+          <Items onClick={onClick} />
         </div>
       </div>
     </div>

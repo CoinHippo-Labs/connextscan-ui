@@ -5,14 +5,20 @@ import { useState, useEffect } from 'react'
 import { Provider } from 'react-redux'
 import NProgress from 'nprogress'
 import TagManager from 'react-gtm-module'
+import { Hydrate, QueryClientProvider } from '@tanstack/react-query'
+import { Web3Modal } from '@web3modal/react'
+import _ from 'lodash'
 
-import Layout from '../layouts'
+import Layout from '../layout'
 import { useStore } from '../store'
 import * as ga from '../lib/ga'
+import { WALLETCONNECT_PROJECT_ID, EVM_CHAIN_CONFIGS, queryClient as wagmiQueryClient, ethereumClient } from '../config/wagmi'
+import WagmiConfigProvider from '../lib/provider/WagmiConfigProvider'
 import '../styles/globals.css'
 import '../styles/animate.css'
 import '../styles/layout.css'
 import '../styles/tailwind.css'
+import '../styles/material.css'
 import '../styles/components/button.css'
 import '../styles/components/dropdown.css'
 import '../styles/components/forms.css'
@@ -28,23 +34,17 @@ Router.events.on('routeChangeStart', () => NProgress.start())
 Router.events.on('routeChangeComplete', () => NProgress.done())
 Router.events.on('routeChangeError', () => NProgress.done())
 
-export default (
-  {
-    Component,
-    pageProps,
-  },
-) => {
+export default ({ Component, pageProps }) => {
   const router = useRouter()
-
   const store = useStore(pageProps.initialReduxState)
 
   const [rendered, setRendered] = useState(false)
-  const [initiated, setInitiated] = useState(null)
+  const [initiated, setInitiated] = useState(false)
+  const [queryClient] = useState(() => wagmiQueryClient)
 
   useEffect(
     () => {
       const handleRouteChange = url => ga.pageview(url)
-
       router.events.on('routeChangeComplete', handleRouteChange)
       return () => router.events.off('routeChangeComplete', handleRouteChange)
     },
@@ -68,6 +68,10 @@ export default (
     [rendered, initiated],
   )
 
+  if (typeof document !== 'undefined' && document.querySelector('w3m-modal')?.shadowRoot) {
+    document.querySelector('w3m-modal').shadowRoot.append(Object.assign(document.createElement('STYLE'), { innerText : `div.w3m-active { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(8px); }` }))
+  }
+
   return (
     <>
       <Head>
@@ -75,9 +79,7 @@ export default (
           name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no"
         />
-        <meta
-          charSet="utf-8"
-        />
+        <meta charSet="utf-8" />
         <link
           rel="manifest"
           href="/manifest.json"
@@ -98,43 +100,68 @@ export default (
           name="theme-color"
           content="#050707"
         />
-        {
-          process.env.NEXT_PUBLIC_GA_TRACKING_ID &&
-          (
-            <>
-              <script
-                async
-                src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_TRACKING_ID}`}
-              />
-              <script
-                dangerouslySetInnerHTML={
-                  {
-                    __html: `
-                      window.dataLayer = window.dataLayer || [];
-                      function gtag(){dataLayer.push(arguments);}
-                      gtag('js', new Date());
-                      gtag('config', '${process.env.NEXT_PUBLIC_GA_TRACKING_ID}', {
-                        page_path: window.location.pathname,
-                      });
-                    `,
-                  }
-                }
-              />
-            </>
-          )
-        }
+        {process.env.NEXT_PUBLIC_GA_TRACKING_ID && (
+          <>
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_TRACKING_ID}`} />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${process.env.NEXT_PUBLIC_GA_TRACKING_ID}', {
+                    page_path: window.location.pathname,
+                  });
+                `,
+              }}
+            />
+          </>
+        )}
       </Head>
       <Provider store={store}>
-        <Layout>
-          <div id="portal" />
-          <div id="modal-chains" />
-          <div id="modal-assets" />
-          <Component
-            { ...pageProps }
-          />
-        </Layout>
+        <QueryClientProvider client={queryClient}>
+          <Hydrate state={pageProps.dehydrateState}>
+            <WagmiConfigProvider>
+              <Layout>
+                <div id="portal" />
+                <div id="modal-chains" />
+                <div id="modal-assets" />
+                <Component { ...pageProps } />
+                {rendered && (
+                  <Web3Modal
+                    projectId={WALLETCONNECT_PROJECT_ID}
+                    ethereumClient={ethereumClient}
+                    defaultChain={_.head(EVM_CHAIN_CONFIGS)}
+                    termsOfServiceUrl={process.env.NEXT_PUBLIC_TERMS_URL}
+                    privacyPolicyUrl={process.env.NEXT_PUBLIC_PRIVACY_POLICY_URL}
+                    explorerRecommendedWalletIds={[
+                      'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96',
+                      '19177a98252e07ddfc9af2083ba8e07ef627cb6103467ffebb3f8f4205fd7927',
+                      '163d2cf19babf05eb8962e9748f9ebe613ed52ebf9c8107c9a0f104bfcf161b3',
+                      'fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa',
+                      '1ae92b26df02f0abca6304df07debccd18262fdf5fe82daa81593582dac9a369',
+                      '4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0',
+                    ]}
+                    enableExplorer={true}
+                    themeMode="dark"
+                    themeVariables={{
+                      '--w3m-font-family': 'Manrope, sans-serif',
+                      '--w3m-background-color': '#1d1c1c',
+                      '--w3m-color-bg-1': '#1d1c1c',
+                      '--w3m-color-bg-2': '#27272a',
+                      '--w3m-color-bg-3': '#1d1c1c',
+                      '--w3m-color-fg-1': '#e4e7e7',
+                      '--w3m-color-fg-2': '#bcc2c2',
+                      '--w3m-color-fg-3': '#6e7777',
+                      '--w3m-logo-image-url': `${process.env.NEXT_PUBLIC_APP_URL}/logos/logo_with_name_white.png`,
+                    }}
+                  />
+                )}
+              </Layout>
+            </WagmiConfigProvider>
+          </Hydrate>
+        </QueryClientProvider>
       </Provider>
-      <div className="lg:grid-cols-3" />
     </>
   )
 }

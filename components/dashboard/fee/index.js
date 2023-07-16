@@ -1,91 +1,13 @@
 import { useState, useEffect } from 'react'
-import { useSelector, shallowEqual } from 'react-redux'
+import { ResponsiveContainer, BarChart, linearGradient, stop, XAxis, Bar, Cell, Tooltip } from 'recharts'
 import _ from 'lodash'
 import moment from 'moment'
-import {
-  ResponsiveContainer,
-  BarChart,
-  linearGradient,
-  stop,
-  XAxis,
-  Bar,
-  Cell,
-  Tooltip,
-} from 'recharts'
-import { TailSpin } from 'react-loader-spinner'
 
-import DecimalsFormat from '../../decimals-format'
+import Spinner from '../../spinner'
+import NumberDisplay from '../../number'
 import Image from '../../image'
-import { timeframes } from '../../../lib/object/timeframe'
-import { currency_symbol } from '../../../lib/object/currency'
-import { chainName } from '../../../lib/object/chain'
-import { toArray, numberFormat, loaderColor } from '../../../lib/utils'
-
-const CustomTooltip = (
-  {
-    active,
-    payload,
-    label,
-  },
-) => {
-  if (active) {
-    const {
-      values,
-    } = { ..._.head(payload)?.payload }
-
-    return (
-      values?.length > 0 &&
-      (
-        <div className="bg-slate-100 dark:bg-slate-800 dark:bg-opacity-75 border border-slate-200 dark:border-slate-800 rounded-lg flex flex-col space-y-1 p-2">
-          {values
-            .map((v, i) => {
-              const {
-                chain_data,
-                fee,
-              } = { ...v }
-
-              const {
-                image,
-              } = { ...chain_data }
-
-              return (
-                <div
-                  key={i}
-                  className="flex items-center justify-between space-x-4"
-                >
-                  <div className="flex items-center space-x-1.5">
-                    {
-                      image &&
-                      (
-                        <Image
-                          src={image}
-                          width={18}
-                          height={18}
-                          className="rounded-full"
-                        />
-                      )
-                    }
-                    <span className="text-xs font-semibold">
-                      {chainName(chain_data)}
-                    </span>
-                  </div>
-                  <DecimalsFormat
-                    value={fee}
-                    prefix={currency_symbol}
-                    noToolip={true}
-                    className="text-xs font-semibold"
-                  />
-                </div>
-              )
-            })
-          }
-        </div>
-      )
-    )
-  }
-
-  return null
-}
+import { TIMEFRAMES } from '../../../lib/object'
+import { toArray, numberFormat } from '../../../lib/utils'
 
 export default (
   {
@@ -96,229 +18,162 @@ export default (
     fees,
   },
 ) => {
-  const {
-    preferences,
-  } = useSelector(
-    state => (
-      {
-        preferences: state.preferences,
-      }
-    ),
-    shallowEqual,
-  )
-  const {
-    theme,
-  } = { ...preferences }
-
   const [data, setData] = useState(null)
-  const [xFocus, setXFocus] = useState(null)
+  const [x, setX] = useState(null)
 
   useEffect(
     () => {
       if (fees) {
-        const _timeframe = timeframes.find(t => t?.day === timeframe)
-
+        const t = TIMEFRAMES.find(d => d.day === timeframe)
         setData(
-          fees
-            .map(d => {
-              const {
-                timestamp,
-                fee,
-                fee_by_chains,
-              } = { ...d }
-
-              return {
-                ...d,
-                id: timestamp,
-                time_string: `${moment(timestamp).startOf(_timeframe?.timeframe).format('MMM D, YYYY')}${_timeframe?.timeframe === 'week' ? ` - ${moment(timestamp).endOf(_timeframe?.timeframe).format('MMM D, YYYY')}` : ''}`,
-                short_name: moment(timestamp).startOf(_timeframe?.timeframe).format('D MMM'),
-                value: fee,
-                value_string: numberFormat(fee, fee > 10000 ? '0,0.00a' : fee > 1000 ? '0,0' : '0,0.00'),
-                values: fee_by_chains,
-                ...(
-                  Object.fromEntries(
-                    toArray(fee_by_chains)
-                      .map(v => {
-                        const {
-                          id,
-                          fee,
-                        } = { ...v }
-
-                        return (
-                          [
-                            id,
-                            fee,
-                          ]
-                        )
-                      })
-                  )
-                ),
-              }
-            })
+          fees.map(d => {
+            const { timestamp, fee, fee_by_chains } = { ...d }
+            return {
+              ...d,
+              id: timestamp,
+              time_string: `${moment(timestamp).startOf(t?.timeframe).format('MMM D, YYYY')}${t?.timeframe === 'week' ? ` - ${moment(timestamp).endOf(t?.timeframe).format('MMM D, YYYY')}` : ''}`,
+              short_name: moment(timestamp).startOf(t?.timeframe).format('D MMM'),
+              value: fee,
+              value_string: numberFormat(fee, '0,0.00a'),
+              values: fee_by_chains,
+              ...Object.fromEntries(
+                toArray(fee_by_chains).map(d => {
+                  const { id, fee } = { ...d }
+                  return [id, fee]
+                })
+              ),
+            }
+          })
         )
+      }
+      else {
+        setData(null)
       }
     },
     [fees],
   )
 
-  const d = toArray(data).find(d => d.id === xFocus) || _.last(data)
+  const CustomTooltip = ({ active, payload }) => {
+    if (active) {
+      const { values } = { ..._.head(payload)?.payload }
+      return toArray(values).length > 0 && (
+        <div className="bg-slate-100 dark:bg-slate-800 dark:bg-opacity-75 border border-slate-200 dark:border-slate-800 flex flex-col space-y-2 p-2">
+          {toArray(values).map((d, i) => {
+            const { chain_data, fee } = { ...d }
+            const { name, image } = { ...chain_data }
+            return (
+              <div key={i} className="flex items-center justify-between space-x-4">
+                <div className="flex items-center space-x-1.5">
+                  {image && (
+                    <Image
+                      src={image}
+                      width={18}
+                      height={18}
+                      className="rounded-full"
+                    />
+                  )}
+                  <span className="text-xs font-semibold">
+                    {name}
+                  </span>
+                </div>
+                <NumberDisplay
+                  value={fee}
+                  prefix="$"
+                  noTooltip={true}
+                  className="text-xs font-semibold"
+                />
+              </div>
+            )
+          })}
+        </div>
+      )
+    }
+    else {
+      return null
+    }
+  }
 
-  const {
-    time_string,
-    value,
-    values,
-  } = { ...d }
+  const d = toArray(data).find(d => d.id === x) || _.last(data)
+  const { time_string, value, values } = { ...d }
+  const gradient_id = 'gradient-fee'
 
   return (
-    <div className="h-80 bg-white dark:bg-slate-900 dark:bg-opacity-75 border border-slate-100 dark:border-slate-900 rounded-lg space-y-0.5 pt-5 pb-0 sm:pb-1 px-5">
-      <div className="flex items-center justify-between">
+    <div className="h-80 bg-slate-50 dark:bg-slate-900 rounded space-y-2 pt-5 pb-0 sm:pb-1 px-5">
+      <div className="flex items-center justify-between space-x-1">
         <div className="flex flex-col space-y-0.5">
-          <span className="font-bold">
+          <span className="3xl:text-2xl font-semibold">
             {title}
           </span>
-          <span className="text-slate-400 dark:text-slate-200 text-xs font-medium space-x-1">
-            <span>
-              {description}
+          {description && (
+            <span className="text-slate-400 dark:text-slate-500 text-xs 3xl:text-xl">
+              {description} {TIMEFRAMES.find(d => d.day === timeframe)?.timeframe}
             </span>
-            <span>
-              {timeframes.find(t => t?.day === timeframe)?.timeframe}
-            </span>
-          </span>
+          )}
         </div>
-        {
-          d &&
-          (
-            <div className="flex flex-col items-end">
-              <DecimalsFormat
-                value={numberFormat(value, '0,0')}
-                prefix={currency_symbol}
-                noToolip={true}
-                className="uppercase font-bold"
-              />
-              <span className="whitespace-nowrap text-slate-400 dark:text-slate-200 text-xs sm:text-sm text-right">
-                {time_string}
-              </span>
-            </div>
-          )
-        }
+        {d && (
+          <div className="flex flex-col items-end space-y-0.5">
+            <NumberDisplay
+              value={value}
+              prefix="$"
+              noTooltip={true}
+              className="text-base 3xl:text-2xl font-bold"
+            />
+            <span className="whitespace-nowrap text-slate-400 dark:text-slate-200 text-xs 3xl:text-xl font-medium text-right">
+              {time_string}
+            </span>
+          </div>
+        )}
       </div>
       <div className="w-full h-64">
         {data ?
           <ResponsiveContainer>
             <BarChart
               data={data}
-              onMouseEnter={
-                e => {
-                  if (e) {
-                    const {
-                      id,
-                    } = { ..._.head(e.activePayload)?.payload }
-
-                    setXFocus(id)
-                  }
-                }
-              }
-              onMouseMove={
-                e => {
-                  if (e) {
-                    const {
-                      id,
-                    } = { ..._.head(e.activePayload)?.payload }
-
-                    setXFocus(id)
-                  }
-                }
-              }
-              onMouseLeave={() => setXFocus(null)}
-              margin={
-                {
-                  top: 10,
-                  right: 2,
-                  bottom: 4,
-                  left: 2,
-                }
-              }
-              className="mobile-hidden-x small-x"
+              onMouseEnter={e => setX(_.head(e?.activePayload)?.payload?.timestamp)}
+              onMouseMove={e => setX(_.head(e?.activePayload)?.payload?.timestamp)}
+              onMouseLeave={() => setX(null)}
+              margin={{ top: 10, right: 2, bottom: 4, left: 2 }}
+              className="small-x"
             >
               <defs>
-                <linearGradient
-                  id="gradient-fee"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop
-                    offset="25%"
-                    stopColor="#eab308"
-                    stopOpacity={0.95}
-                  />
-                  <stop
-                    offset="100%"
-                    stopColor="#eab308"
-                    stopOpacity={0.75}
-                  />
+                <linearGradient id={gradient_id} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="25%" stopColor="#eab308" stopOpacity={0.95} />
+                  <stop offset="100%" stopColor="#eab308" stopOpacity={0.75} />
                 </linearGradient>
               </defs>
-              <XAxis
-                dataKey="short_name"
-                axisLine={false}
-                tickLine={false}
-              />
-              {stacked && values?.length > 0 ?
+              <XAxis dataKey="short_name" axisLine={false} tickLine={false} />
+              {stacked && toArray(values).length > 0 ?
                 <>
-                  <Tooltip
-                    content={<CustomTooltip />}
-                    cursor={
-                      {
-                        fill: 'transparent',
-                      }
-                    }
-                  />
-                  {_.orderBy(values, ['id'], ['asc'])
-                    .map((v, i) => {
-                      const {
-                        id,
-                        color,
-                      } = { ...v }
-
-                      return (
-                        <Bar
-                          key={i}
-                          dataKey={id}
-                          minPointSize={5}
-                          stackId={title}
-                          fill={color}
-                        />
-                      )
-                    })
-                  }
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
+                  {_.orderBy(toArray(values), ['id'], ['asc']).map((d, i) => {
+                    const { id, color } = { ...d }
+                    return (
+                      <Bar
+                        key={i}
+                        dataKey={id}
+                        minPointSize={5}
+                        stackId={title}
+                        fill={color}
+                      />
+                    )
+                  })}
                 </> :
-                <Bar
-                  dataKey="value"
-                  minPointSize={5}
-                >
-                  {data
-                    .map((d, i) => {
-                      return (
-                        <Cell
-                          key={i}
-                          fillOpacity={1}
-                          fill="url(#gradient-fee)"
-                        />
-                      )
-                    })
-                  }
+                <Bar dataKey="value" minPointSize={5}>
+                  {data.map((d, i) => {
+                    return (
+                      <Cell
+                        key={i}
+                        fillOpacity={1}
+                        fill={`url(#${gradient_id})`}
+                      />
+                    )
+                  })}
                 </Bar>
               }
             </BarChart>
           </ResponsiveContainer> :
           <div className="w-full h-4/5 flex items-center justify-center">
-            <TailSpin
-              width="32"
-              height="32"
-              color={loaderColor(theme)}
-            />
+            <Spinner width={32} height={32} />
           </div>
         }
       </div>

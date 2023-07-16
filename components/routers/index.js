@@ -4,142 +4,75 @@ import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
 import moment from 'moment'
-import { utils } from 'ethers'
-import { TailSpin } from 'react-loader-spinner'
 
 import TVLChart from './tvl/chart'
 import Metrics from '../metrics'
-import Copy from '../copy'
+import Spinner from '../spinner'
 import Datatable from '../datatable'
-import DecimalsFormat from '../decimals-format'
-import EnsProfile from '../ens-profile'
+import NumberDisplay from '../number'
+import Copy from '../copy'
 import Image from '../image'
+import EnsProfile from '../profile/ens'
 import { ProgressBar } from '../progress-bars'
 
-import { daily_transfer_metrics, daily_transfer_volume } from '../../lib/api/metrics'
-import { currency_symbol } from '../../lib/object/currency'
-import { getChain } from '../../lib/object/chain'
-import { getAsset } from '../../lib/object/asset'
-import { getContract } from '../../lib/object/contract'
-import { toArray, numberFormat, ellipse, equalsIgnoreCase, loaderColor } from '../../lib/utils'
-
-const NUM_STATS_DAYS = Number(process.env.NEXT_PUBLIC_NUM_STATS_DAYS)
+import { getDailyTransferMetrics, getDailyTransferVolume } from '../../lib/api/metrics'
+import { NUM_STATS_DAYS } from '../../lib/config'
+import { getChainData, getAssetData, getContractData } from '../../lib/object'
+import { formatUnits, isNumber } from '../../lib/number'
+import { toArray, equalsIgnoreCase } from '../../lib/utils'
 
 export default () => {
-  const {
-    preferences,
-    chains,
-    assets,
-    router_asset_balances,
-    dev,
-  } = useSelector(
-    state => (
-      {
-        preferences: state.preferences,
-        chains: state.chains,
-        assets: state.assets,
-        router_asset_balances: state.router_asset_balances,
-        dev: state.dev,
-      }
-    ),
-    shallowEqual,
-  )
-  const {
-    theme,
-  } = { ...preferences }
-  const {
-    chains_data,
-  } = { ...chains }
-  const {
-    assets_data,
-  } = { ...assets }
-  const {
-    sdk,
-  } = { ...dev }
-  const {
-    router_asset_balances_data,
-  } = { ...router_asset_balances }
+  const { chains, assets, router_asset_balances, dev } = useSelector(state => ({ chains: state.chains, assets: state.assets, router_asset_balances: state.router_asset_balances, dev: state.dev }), shallowEqual)
+  const { chains_data } = { ...chains }
+  const { assets_data } = { ...assets }
+  const { router_asset_balances_data } = { ...router_asset_balances }
+  const { sdk } = { ...dev }
 
   const router = useRouter()
-  const {
-    query,
-  } = { ...router }
-  const {
-    mode,
-  } = { ...query }
+  const { query } = { ...router }
+  const { mode } = { ...query }
 
   const [data, setData] = useState(null)
 
   useEffect(
     () => {
       const getData = async () => {
-        if (sdk && chains_data && assets_data) {
+        if (chains_data && assets_data && sdk) {
           const transfer_date = `gt.${moment().subtract(NUM_STATS_DAYS, 'days').startOf('day').format('YYYY-MM-DD')}`
-          const volumes =
-            toArray(await daily_transfer_volume({ transfer_date }))
-              .filter(v => v.transfer_date)
-              .map(v => {
-                const {
-                  origin_chain,
-                  destination_chain,
-                  asset,
-                  volume,
-                  usd_volume,
-                } = { ...v }
 
-                const origin_chain_data = getChain(origin_chain, chains_data)
-                const destination_chain_data = getChain(destination_chain, chains_data)
+          const volumes = toArray(await getDailyTransferVolume({ transfer_date })).filter(d => d.transfer_date).map(d => {
+            const { origin_chain, destination_chain, asset, volume, usd_volume } = { ...d }
+            const origin_chain_data = getChainData(origin_chain, chains_data)
+            const destination_chain_data = getChainData(destination_chain, chains_data)
+            const { chain_id } = { ...origin_chain_data }
 
-                let asset_data = getAsset(null, assets_data, origin_chain_data?.chain_id, asset)
-                asset_data = {
-                  ...asset_data,
-                  ...getContract(origin_chain_data?.chain_id, asset_data?.contracts),
-                }
-                if (asset_data.contracts) {
-                  delete asset_data.contracts
-                }
-                if (asset_data.next_asset && equalsIgnoreCase(asset_data.next_asset.contract_address, asset)) {
-                  asset_data = {
-                    ...asset_data,
-                    ...asset_data.next_asset,
-                  }
-                  delete asset_data.next_asset
-                }
+            let asset_data = getAssetData(undefined, assets_data, { chain_id, contract_address: asset })
+            asset_data = { ...asset_data, ...getContractData(chain_id, asset_data?.contracts) }
+            if (asset_data.contracts) {
+              delete asset_data.contracts
+            }
+            if (asset_data.next_asset && equalsIgnoreCase(asset_data.next_asset.contract_address, asset)) {
+              asset_data = { ...asset_data, ...asset_data.next_asset }
+              delete asset_data.next_asset
+            }
+            const { decimals, price } = { ...asset_data }
+            const amount = formatUnits(volume || '0', decimals)
+            return {
+              ...d,
+              origin_chain_data,
+              destination_chain_data,
+              asset_data,
+              amount,
+              volume: usd_volume || (amount * (price || 0)),
+            }
+          })
 
-                const {
-                  decimals,
-                  price,
-                } = { ...asset_data }
-
-                const amount = Number(utils.formatUnits(BigInt(volume || '0'), decimals || 18))
-                return {
-                  ...v,
-                  origin_chain_data,
-                  destination_chain_data,
-                  asset_data,
-                  amount,
-                  volume: usd_volume || (amount * (price || 0)),
-                }
-              })
-
-          const transfers =
-            toArray(await daily_transfer_metrics({ transfer_date }))
-              .filter(t => t.transfer_date)
-              .map(t => {
-                const {
-                  origin_chain,
-                  destination_chain,
-                } = { ...t }
-
-                const origin_chain_data = getChain(origin_chain, chains_data)
-                const destination_chain_data = getChain(destination_chain, chains_data)
-
-                return {
-                  ...t,
-                  origin_chain_data,
-                  destination_chain_data,
-                }
-              })
+          const transfers = toArray(await getDailyTransferMetrics({ transfer_date })).filter(d => d.transfer_date).map(d => {
+            const { origin_chain, destination_chain } = { ...d }
+            const origin_chain_data = getChainData(origin_chain, chains_data)
+            const destination_chain_data = getChainData(destination_chain, chains_data)
+            return { ...d, origin_chain_data, destination_chain_data }
+          })
 
           setData({
             raw_volumes: volumes,
@@ -165,113 +98,105 @@ export default () => {
           })
         }
       }
-
       getData()
     },
-    [sdk, chains_data, assets_data],
+    [chains_data, assets_data, sdk],
   )
 
-  const {
-    raw_volumes,
-    transfers,
-  } = { ...data }
-
+  const { raw_volumes, transfers } = { ...data }
   const routers = _.orderBy(
-    Object.entries(_.groupBy(Object.values({ ...router_asset_balances_data }).flatMap(t => t), 'address'))
-      .map(([k, v]) => {
-        return {
-          router_address: k,
-          assets: _.orderBy(v, ['value'], ['desc']),
-        }
-      })
-      .map(r => {
-        const {
-          router_address,
-          assets,
-        } = { ...r }
-
-        const {
-          volumes,
-          transfers,
-        } = { ...data }
-
-        return {
-          ...r,
-          total_value: _.sumBy(assets, 'value'),
-          total_volume: _.sumBy(toArray(volumes).filter(d => equalsIgnoreCase(d.router, router_address)), 'volume'),
-          total_transfers: _.sumBy(toArray(transfers).filter(d => equalsIgnoreCase(d.router, router_address)), 'transfers'),
-          // total_fee: 33.33,
-          supported_chains: _.uniq(assets.map(a => a.chain_id)),
-          liquidity_by_assets: _.orderBy(Object.entries(_.groupBy(assets.filter(a => a.asset_data?.id), 'asset_data.id')).map(([k, v]) => { return { asset: k, value: _.sumBy(v, 'value'), i: assets_data.findIndex(a => a.id === k) } }), ['i'], ['asc']),
-          liquidity_by_chains: _.orderBy(Object.entries(_.groupBy(assets.filter(a => a.chain_data?.id), 'chain_data.id')).map(([k, v]) => { return { chain: k, value: _.sumBy(v, 'value'), i: chains_data.findIndex(c => c.id === k) } }), ['i'], ['asc']),
-          liquidity_by_assets_chains: _.orderBy(Object.entries(_.groupBy(assets.filter(a => a.asset_data?.id && a.chain_data?.id), 'asset_data.id')).map(([k, v]) => { return { asset: k, value: _.sumBy(v, 'value'), chains: _.orderBy(Object.entries(_.groupBy(v, 'chain_data.id')).map(([_k, _v]) => { return { chain: _k, value: _.sumBy(_v, 'value'), i: chains_data.findIndex(c => c.id === _k) } }), ['i'], ['asc']), i: assets_data.findIndex(a => a.id === k) } }), ['i'], ['asc']),
-        }
-      })
-      .map(r => {
-        const {
-          router_address,
-          total_value,
-          total_volume,
-          liquidity_by_assets,
-          liquidity_by_chains,
-          liquidity_by_assets_chains,
-        } = { ...r }
-
-        return {
-          ...r,
-          liquidity_utilization: total_value && total_volume ? total_volume / total_value : 0,
-          liquidity_utilization_by_assets:
-            liquidity_by_assets.map(d => {
-              const {
-                asset,
-              } = { ...d }
-              let {
-                value,
-              } = { ...d }
-
-              const volume = _.sumBy(toArray(raw_volumes).filter(d => equalsIgnoreCase(d.router, router_address) && d.asset_data?.id === asset), 'volume')
-              value = value && volume ? volume / value : 0
-              return { asset, value }
-            }),
-          liquidity_utilization_by_chains:
-            liquidity_by_chains.map(d => {
-              const {
-                chain,
-              } = { ...d }
-              let {
-                value,
-              } = { ...d }
-
-              const volume = _.sumBy(toArray(raw_volumes).filter(d => equalsIgnoreCase(d.router, router_address) && d.destination_chain_data?.id === chain), 'volume')
-              value = value && volume ? volume / value : 0
-              return { chain, value }
-            }),
-          liquidity_utilization_by_assets_chains:
-            liquidity_by_assets_chains.map(d => {
-              const {
-                asset,
-                value,
-              } = { ...d }
-              let {
-                chains,
-              } = { ...d }
-
-              const volume = _.sumBy(toArray(raw_volumes).filter(d => equalsIgnoreCase(d.router, router_address) && d.asset_data?.id === asset), 'volume')
-              const utilization = value && volume ? volume / value : 0
-              chains = chains.map(_d => {
-                const {
-                  chain,
-                  value,
-                } = { ..._d }
-
-                const volume = _.sumBy(toArray(raw_volumes).filter(d => equalsIgnoreCase(d.router, router_address) && d.asset_data?.id === asset && d.destination_chain_data?.id === chain), 'volume')
-                const utilization = value && volume ? volume / value : 0
-                return { chain, value, utilization }
-              })
-              return { asset, value, utilization, chains }
-            })
-        }
-      }),
+    Object.entries(_.groupBy(Object.values({ ...router_asset_balances_data }).flatMap(d => d), 'address')).map(([k, v]) => {
+      return {
+        router_address: k,
+        assets: _.orderBy(v, ['value'], ['desc']),
+      }
+    })
+    .map(d => {
+      const { router_address, assets } = { ...d }
+      const { volumes, transfers } = { ...data }
+      return {
+        ...d,
+        total_value: _.sumBy(assets, 'value'),
+        total_volume: _.sumBy(toArray(volumes).filter(_d => equalsIgnoreCase(_d.router, router_address)), 'volume'),
+        total_transfers: _.sumBy(toArray(transfers).filter(_d => equalsIgnoreCase(_d.router, router_address)), 'transfers'),
+        // total_fee: 33.33,
+        supported_chains: _.uniq(assets.map(_d => _d.chain_id)),
+        liquidity_by_assets: _.orderBy(
+          Object.entries(_.groupBy(assets.filter(_d => _d.asset_data?.id), 'asset_data.id')).map(([k, v]) => {
+            return {
+              asset: k,
+              value: _.sumBy(v, 'value'),
+              i: toArray(assets_data).findIndex(a => a.id === k),
+            }
+          }),
+          ['i'], ['asc'],
+        ),
+        liquidity_by_chains: _.orderBy(
+          Object.entries(_.groupBy(assets.filter(_d => _d.chain_data?.id), 'chain_data.id')).map(([k, v]) => {
+            return {
+              chain: k,
+              value: _.sumBy(v, 'value'),
+              i: chains_data.findIndex(c => c.id === k),
+            }
+          }),
+          ['i'], ['asc'],
+        ),
+        liquidity_by_assets_chains: _.orderBy(
+          Object.entries(_.groupBy(assets.filter(_d => _d.asset_data?.id && _d.chain_data?.id), 'asset_data.id')).map(([k, v]) => {
+            return {
+              asset: k,
+              value: _.sumBy(v, 'value'),
+              chains: _.orderBy(
+                Object.entries(_.groupBy(v, 'chain_data.id')).map(([_k, _v]) => {
+                  return {
+                    chain: _k,
+                    value: _.sumBy(_v, 'value'),
+                    i: chains_data.findIndex(c => c.id === _k),
+                  }
+                }),
+                ['i'], ['asc'],
+              ),
+              i: toArray(assets_data).findIndex(a => a.id === k),
+            }
+          }),
+          ['i'], ['asc'],
+        ),
+      }
+    })
+    .map(d => {
+      const { router_address, total_value, total_volume, liquidity_by_assets, liquidity_by_chains, liquidity_by_assets_chains } = { ...d }
+      return {
+        ...d,
+        liquidity_utilization: total_value && total_volume ? total_volume / total_value : 0,
+        liquidity_utilization_by_assets: liquidity_by_assets.map(_d => {
+          const { asset } = { ..._d }
+          let { value } = { ..._d }
+          const volume = _.sumBy(toArray(raw_volumes).filter(v => equalsIgnoreCase(v.router, router_address) && v.asset_data?.id === asset), 'volume')
+          value = value && volume ? volume / value : 0
+          return { asset, value }
+        }),
+        liquidity_utilization_by_chains: liquidity_by_chains.map(_d => {
+          const { chain } = { ..._d }
+          let { value } = { ..._d }
+          const volume = _.sumBy(toArray(raw_volumes).filter(v => equalsIgnoreCase(v.router, router_address) && v.destination_chain_data?.id === chain), 'volume')
+          value = value && volume ? volume / value : 0
+          return { chain, value }
+        }),
+        liquidity_utilization_by_assets_chains: liquidity_by_assets_chains.map(_d => {
+          const { asset, value } = { ..._d }
+          let { chains } = { ..._d }
+          const volume = _.sumBy(toArray(raw_volumes).filter(v => equalsIgnoreCase(v.router, router_address) && v.asset_data?.id === asset), 'volume')
+          const utilization = value && volume ? volume / value : 0
+          chains = chains.map(c => {
+            const { chain, value } = { ...c }
+            const volume = _.sumBy(toArray(raw_volumes).filter(v => equalsIgnoreCase(v.router, router_address) && v.asset_data?.id === asset && v.destination_chain_data?.id === chain), 'volume')
+            const utilization = value && volume ? volume / value : 0
+            return { chain, value, utilization }
+          })
+          return { asset, value, utilization, chains }
+        })
+      }
+    }),
     ['total_value'], ['desc'],
   )
 
@@ -280,33 +205,37 @@ export default () => {
     volume: _.sumBy(routers, 'total_volume'),
     transfers: _.sumBy(transfers, 'transfers'),
     // fee: 33.33,
-    supported_chains: _.uniq(routers.flatMap(r => r.supported_chains)),
-    liquidity_by_assets: Object.entries(_.groupBy(routers.flatMap(r => toArray(r.liquidity_by_assets)), 'asset')).map(([k, v]) => { return { asset: k, value: _.sumBy(v, 'value') } }),
-    liquidity_by_chains: Object.entries(_.groupBy(routers.flatMap(r => toArray(r.liquidity_by_chains)), 'chain')).map(([k, v]) => { return { chain: k, value: _.sumBy(v, 'value') } }),
-    liquidity_by_assets_chains: Object.entries(_.groupBy(routers.flatMap(r => toArray(r.liquidity_by_assets_chains)), 'asset')).map(([k, v]) => { return { asset: k, value: _.sumBy(v, 'value'), chains: Object.entries(_.groupBy(v.flatMap(_v => _v.chains), 'chain')).map(([_k, _v]) => { return { chain: _k, value: _.sumBy(_v, 'value') } }) } }),
+    supported_chains: _.uniq(routers.flatMap(d => d.supported_chains)),
+    liquidity_by_assets: Object.entries(_.groupBy(routers.flatMap(d => toArray(d.liquidity_by_assets)), 'asset')).map(([k, v]) => { return { asset: k, value: _.sumBy(v, 'value') } }),
+    liquidity_by_chains: Object.entries(_.groupBy(routers.flatMap(d => toArray(d.liquidity_by_chains)), 'chain')).map(([k, v]) => { return { chain: k, value: _.sumBy(v, 'value') } }),
+    liquidity_by_assets_chains: Object.entries(_.groupBy(routers.flatMap(d => toArray(d.liquidity_by_assets_chains)), 'asset')).map(([k, v]) => {
+      return {
+        asset: k,
+        value: _.sumBy(v, 'value'),
+        chains: Object.entries(_.groupBy(v.flatMap(_v => _v.chains), 'chain')).map(([_k, _v]) => {
+          return {
+            chain: _k,
+            value: _.sumBy(_v, 'value'),
+          }
+        }),
+      }
+    }),
     liquidity_by_routers: Object.entries(_.groupBy(routers, 'router_address')).map(([k, v]) => { return { address: k, value: _.sumBy(v, 'total_value') } }),
-    liquidity_utilization_by_assets_chains:
-      Object.entries(_.groupBy(routers.flatMap(r => toArray(r.liquidity_utilization_by_assets_chains)), 'asset')).map(([k, v]) => {
-        const volume = _.sumBy(toArray(raw_volumes).filter(d => d.asset_data?.id === k), 'volume')
-        let value = _.sumBy(v, 'value')
-        value = value && volume ? volume / value : 0
-
-        return {
-          asset: k,
-          value,
-          chains:
-            Object.entries(_.groupBy(v.flatMap(_v => _v.chains), 'chain')).map(([_k, _v]) => {
-              const volume = _.sumBy(toArray(raw_volumes).filter(d => d.asset_data?.id === k && d.destination_chain_data?.id === _k), 'volume')
-              let value = _.sumBy(_v, 'value')
-              value = value && volume ? volume / value : 0
-
-              return {
-                chain: _k,
-                value,
-              }
-            }),
-        }
-      }),
+    liquidity_utilization_by_assets_chains: Object.entries(_.groupBy(routers.flatMap(r => toArray(r.liquidity_utilization_by_assets_chains)), 'asset')).map(([k, v]) => {
+      const volume = _.sumBy(toArray(raw_volumes).filter(d => d.asset_data?.id === k), 'volume')
+      let value = _.sumBy(v, 'value')
+      value = value && volume ? volume / value : 0
+      return {
+        asset: k,
+        value,
+        chains: Object.entries(_.groupBy(v.flatMap(_v => _v.chains), 'chain')).map(([_k, _v]) => {
+          const volume = _.sumBy(toArray(raw_volumes).filter(d => d.asset_data?.id === k && d.destination_chain_data?.id === _k), 'volume')
+          let value = _.sumBy(_v, 'value')
+          value = value && volume ? volume / value : 0
+          return { chain: _k, value }
+        }),
+      }
+    }),
   }
 
   return (
@@ -317,18 +246,18 @@ export default () => {
       {metrics && mode && (
         <div className="grid gap-4 my-4 sm:my-6">
           <TVLChart
+            field="utilization"
             title="Utilization"
             description="Utilization by chain + by asset"
             liquidity={metrics.liquidity_by_assets_chains}
             utilization={metrics.liquidity_utilization_by_assets_chains}
-            field="utilization"
-            prefix=""
           />
           <TVLChart
             title="TVL"
             description="Total Value Locked by chain + by asset"
             liquidity={metrics.liquidity_by_assets_chains}
             utilization={metrics.liquidity_utilization_by_assets_chains}
+            prefix="$"
           />
         </div>
       )}
@@ -341,7 +270,7 @@ export default () => {
                 accessor: 'i',
                 sortType: (a, b) => a.original.i > b.original.i ? 1 : -1,
                 Cell: props => (
-                  <span className="font-semibold">
+                  <span className="text-black dark:text-white font-medium">
                     {(props.flatRows?.indexOf(props.row) > -1 ? props.flatRows.indexOf(props.row) : props.value) + 1}
                   </span>
                 ),
@@ -351,26 +280,14 @@ export default () => {
                 accessor: 'router_address',
                 disableSortBy: true,
                 Cell: props => {
-                  const {
-                    value,
-                  } = { ...props }
-
+                  const { value } = { ...props }
                   return value && (
                     <div className="flex items-center space-x-1">
                       <Link href={`/router/${value}`}>
                         <EnsProfile
                           address={value}
                           noCopy={true}
-                          fallback={
-                            <span className="text-slate-400 dark:text-slate-200 text-sm font-semibold">
-                              <span className="xl:hidden">
-                                {ellipse(value, 8)}
-                              </span>
-                              <span className="hidden xl:block">
-                                {ellipse(value, 12)}
-                              </span>
-                            </span>
-                          }
+                          noImage={true}
                         />
                       </Link>
                       <Copy value={value} />
@@ -383,67 +300,45 @@ export default () => {
                 accessor: 'total_value',
                 sortType: (a, b) => a.original.total_value > b.original.total_value ? 1 : -1,
                 Cell: props => {
-                  const {
-                    value,
-                  } = { ...props }
-
+                  const { value } = { ...props }
                   return (
-                    <div className="text-base font-bold text-right">
-                      {typeof value === 'number' ?
-                        <DecimalsFormat
+                    <div className="text-right">
+                      {isNumber(value) ?
+                        <NumberDisplay
                           value={value}
-                          prefix={currency_symbol}
+                          prefix="$"
                           noTooltip={true}
-                          className="uppercase"
+                          className="text-base font-bold"
                         /> :
-                        <span className="text-slate-400 dark:text-slate-500">-</span>
+                        <span className="text-slate-400 dark:text-slate-500">
+                          -
+                        </span>
                       }
                     </div>
                   )
                 },
-                headerClassName: 'whitespace-nowrap justify-end text-right',
+                headerClassName: 'justify-end whitespace-nowrap text-right',
               },
               {
                 Header: 'Relative Share %',
                 accessor: 'share',
                 sortType: (a, b) => a.original.total_value > b.original.total_value ? 1 : -1,
                 Cell: props => {
-                  const {
-                    flatRows,
-                    row,
-                  } = { ...props }
-
+                  const { flatRows, row } = { ...props }
                   const index = flatRows?.indexOf(row)
                   const total = _.sumBy(routers, 'total_value')
-
-                  const _data =
-                    index > -1 ?
-                      _.slice(
-                        flatRows.map(d => {
-                          const {
-                            original,
-                          } = { ...d }
-
-                          const {
-                            total_value,
-                          } = { ...original }
-
-                          return {
-                            ...original,
-                            value_share: total_value * 100 / total,
-                          }
-                        }),
-                        0,
-                        index + 1,
-                      ) :
-                      []
-
-                  const {
-                    value_share,
-                  } = { ..._.last(_data) }
-
+                  const _data = index > -1 ?
+                    _.slice(
+                      flatRows.map(d => {
+                        const { original } = { ...d }
+                        const { total_value } = { ...original }
+                        return { ...original, value_share: (total_value > 0 ? total_value : 0) * 100 / total }
+                      }),
+                      0, index + 1,
+                    ) :
+                    []
+                  const { value_share } = { ..._.last(_data) }
                   const total_share = value_share // _.sumBy(_data, 'value_share')
-
                   return (
                     <div className="flex items-start space-x-1.5 mt-0.5">
                       <div className="w-20 bg-zinc-200 dark:bg-zinc-800 mt-0.5">
@@ -456,13 +351,17 @@ export default () => {
                           />
                         </div>
                       </div>
-                      <span className="text-slate-600 dark:text-slate-200 text-2xs font-medium">
-                        {numberFormat(total_share, '0,0.0')}%
-                      </span>
+                      <NumberDisplay
+                        value={total_share}
+                        format="0,0.0"
+                        suffix="%"
+                        noTooltip={true}
+                        className="text-slate-600 dark:text-slate-200 text-2xs font-medium"
+                      />
                     </div>
                   )
                 },
-                headerClassName: 'whitespace-nowrap justify-start',
+                headerClassName: 'whitespace-nowrap',
               },
               {
                 Header: 'By Asset',
@@ -473,10 +372,10 @@ export default () => {
                   const { liquidity_utilization_by_assets } = { ...row.original }
                   return (
                     <div className="min-w-max grid grid-cols-2 gap-2">
-                      {toArray(value).map((v, i) => {
-                        const { asset, value } = { ...v }
-                        const utilization = toArray(liquidity_utilization_by_assets).find(d => d.asset === asset)?.value
-                        const asset_data = getAsset(asset, assets_data)
+                      {toArray(value).map((d, i) => {
+                        const { asset, value } = { ...d }
+                        const utilization = toArray(liquidity_utilization_by_assets).find(_d => _d.asset === asset)?.value
+                        const asset_data = getAssetData(asset, assets_data)
                         const { symbol, image } = { ...asset_data }
                         return (
                           <div key={i} className="flex items-start space-x-2 mt-0.5">
@@ -495,11 +394,11 @@ export default () => {
                                   <span className="text-slate-400 dark:text-slate-500 text-2xs font-medium">
                                     Liquidity:
                                   </span>
-                                  <DecimalsFormat
+                                  <NumberDisplay
                                     value={value}
-                                    prefix={currency_symbol}
+                                    prefix="$"
                                     noTooltip={true}
-                                    className="uppercase text-2xs font-semibold"
+                                    className="text-2xs font-semibold"
                                   />
                                 </div>
                                 {raw_volumes && (
@@ -507,10 +406,10 @@ export default () => {
                                     <span className="text-slate-400 dark:text-slate-500 text-2xs font-medium">
                                       Utilization:
                                     </span>
-                                    <DecimalsFormat
+                                    <NumberDisplay
                                       value={utilization}
                                       format="0,0.00a"
-                                      className="uppercase text-2xs font-semibold"
+                                      className="text-2xs font-semibold"
                                     />
                                   </div>
                                 )}
@@ -522,7 +421,7 @@ export default () => {
                     </div>
                   )
                 },
-                headerClassName: 'w-64 whitespace-nowrap justify-start',
+                headerClassName: 'w-64 whitespace-nowrap',
               },
               {
                 Header: 'By Chain',
@@ -533,10 +432,10 @@ export default () => {
                   const { liquidity_utilization_by_chains } = { ...row.original }
                   return (
                     <div className="min-w-max grid grid-cols-2 gap-2">
-                      {toArray(value).map((v, i) => {
-                        const { chain, value } = { ...v }
-                        const utilization = toArray(liquidity_utilization_by_chains).find(d => d.chain === chain)?.value
-                        const chain_data = getChain(chain, chains_data)
+                      {toArray(value).map((d, i) => {
+                        const { chain, value } = { ...d }
+                        const utilization = toArray(liquidity_utilization_by_chains).find(_d => _d.chain === chain)?.value
+                        const chain_data = getChainData(chain, chains_data)
                         const { name, image } = { ...chain_data }
                         return (
                           <div key={i} className="flex items-start space-x-2 mt-0.5">
@@ -555,11 +454,11 @@ export default () => {
                                   <span className="text-slate-400 dark:text-slate-500 text-2xs font-medium">
                                     Liquidity:
                                   </span>
-                                  <DecimalsFormat
+                                  <NumberDisplay
                                     value={value}
-                                    prefix={currency_symbol}
+                                    prefix="$"
                                     noTooltip={true}
-                                    className="uppercase text-2xs font-semibold"
+                                    className="text-2xs font-semibold"
                                   />
                                 </div>
                                 {raw_volumes && (
@@ -567,10 +466,10 @@ export default () => {
                                     <span className="text-slate-400 dark:text-slate-500 text-2xs font-medium">
                                       Utilization:
                                     </span>
-                                    <DecimalsFormat
+                                    <NumberDisplay
                                       value={utilization}
                                       format="0,0.00a"
-                                      className="uppercase text-2xs font-semibold"
+                                      className="text-2xs font-semibold"
                                     />
                                   </div>
                                 )}
@@ -582,103 +481,91 @@ export default () => {
                     </div>
                   )
                 },
-                headerClassName: 'w-64 whitespace-nowrap justify-start',
+                headerClassName: 'w-64 whitespace-nowrap',
               },
               {
                 Header: 'Transfers',
                 accessor: 'total_transfers',
                 sortType: (a, b) => a.original.total_transfers > b.original.total_transfers ? 1 : -1,
                 Cell: props => {
-                  const {
-                    value,
-                  } = { ...props }
-
+                  const { value } = { ...props }
                   return (
-                    <div className="text-base font-bold text-right">
-                      {typeof value === 'number' ?
-                        <DecimalsFormat value={value} className="uppercase" /> :
-                        <span className="text-slate-400 dark:text-slate-500">-</span>
+                    <div className="text-right">
+                      {isNumber(value) ?
+                        <NumberDisplay value={value} className="text-base font-bold" /> :
+                        <span className="text-slate-400 dark:text-slate-500">
+                          -
+                        </span>
                       }
                     </div>
                   )
                 },
-                headerClassName: 'whitespace-nowrap justify-end text-right',
+                headerClassName: 'justify-end whitespace-nowrap text-right',
               },
               {
                 Header: `Volume ${NUM_STATS_DAYS}D`,
                 accessor: 'total_volume',
                 sortType: (a, b) => a.original.total_volume > b.original.total_volume ? 1 : -1,
                 Cell: props => {
-                  const {
-                    value,
-                  } = { ...props }
-
+                  const { value } = { ...props }
                   return (
-                    <div className="text-base font-bold text-right">
+                    <div className="text-right">
                       {raw_volumes ?
-                        typeof value === 'number' ?
-                          <DecimalsFormat
+                        isNumber(value) ?
+                          <NumberDisplay
                             value={value}
-                            prefix={currency_symbol}
-                            className="uppercase"
+                            prefix="$"
+                            noTooltip={true}
+                            className="text-base font-bold"
                           /> :
-                          <span className="text-slate-400 dark:text-slate-500">-</span> :
-                          <div className="flex justify-end mt-1">
-                            <TailSpin
-                              width="18"
-                              height="18"
-                              color={loaderColor(theme)}
-                            />
+                          <span className="text-slate-400 dark:text-slate-500">
+                            -
+                          </span> :
+                          <div className="flex justify-end">
+                            <Spinner width={18} height={18} />
                           </div>
                       }
                     </div>
                   )
                 },
-                headerClassName: 'whitespace-nowrap justify-end text-right',
+                headerClassName: 'justify-end whitespace-nowrap text-right',
               },
               {
                 Header: 'Fee',
                 accessor: 'total_fee',
                 sortType: (a, b) => a.original.total_fee > b.original.total_fee ? 1 : -1,
                 Cell: props => {
-                  const {
-                    value,
-                  } = { ...props }
-
+                  const { value } = { ...props }
                   return (
-                    <div className="text-base font-semibold text-right">
-                      {typeof value === 'number' ?
-                        <DecimalsFormat
+                    <div className="text-right">
+                      {isNumber(value) ?
+                        <NumberDisplay
                           value={value}
-                          prefix={currency_symbol}
-                          className="uppercase"
+                          prefix="$"
+                          noTooltip={true}
+                          className="text-base font-semibold"
                         /> :
-                        <span className="text-slate-400 dark:text-slate-500">-</span>
+                        <span className="text-slate-400 dark:text-slate-500">
+                          -
+                        </span>
                       }
                     </div>
                   )
                 },
-                headerClassName: 'whitespace-nowrap justify-end text-right',
+                headerClassName: 'justify-end whitespace-nowrap text-right',
               },
               {
                 Header: 'Supported Chains',
                 accessor: 'supported_chains',
-                sortType: (a, b) => a.original.supported_chains?.length > b.original.supported_chains?.length ? 1 : -1,
+                sortType: (a, b) => toArray(a.original.supported_chains).length > toArray(b.original.supported_chains).length ? 1 : -1,
                 Cell: props => {
-                  const {
-                    value,
-                  } = { ...props }
-
-                  return (
-                    <div className={`xl:w-${value?.length > 5 ? '56' : '32'} flex flex-wrap items-center justify-end ml-auto`}>
-                      {value?.length > 0 ?
+                  const { value } = { ...props }
+                  return value && (
+                    <div className={`xl:w-${value.length > 5 ? '56' : '32'} flex flex-wrap items-center justify-end ml-auto`}>
+                      {value.length > 0 ?
                         toArray(
                           value.map((id, i) => {
-                            const {
-                              name,
-                              image,
-                            } = { ...getChain(id, chains_data) }
-
+                            const { name, image } = { ...getChainData(id, chains_data) }
                             return image && (
                               <div key={i} title={name} className="mr-1">
                                 <Image
@@ -698,21 +585,16 @@ export default () => {
                     </div>
                   )
                 },
-                headerClassName: 'whitespace-nowrap justify-end text-right',
+                headerClassName: 'justify-end whitespace-nowrap text-right',
               },
-            ]
-            .filter(c => !mode ? !['share', 'liquidity_by_assets', 'liquidity_by_chains', 'total_transfers', 'total_fee'].includes(c.accessor) : !['total_transfers', 'total_fee'].includes(c.accessor))}
+            ].filter(c => !mode ? !['share', 'liquidity_by_assets', 'liquidity_by_chains', 'total_transfers', 'total_fee'].includes(c.accessor) : !['total_transfers', 'total_fee'].includes(c.accessor))}
             data={routers}
-            noPagination={routers.length <= 10}
             defaultPageSize={50}
-            className="no-border"
+            noPagination={routers.length <= 10}
+            className="no-border no-shadow"
           /> :
-          <div className="flex items-center m-3">
-            <TailSpin
-              width="32"
-              height="32"
-              color={loaderColor(theme)}
-            />
+          <div className="loading">
+            <Spinner width={32} height={32} />
           </div>
         }
       </div>

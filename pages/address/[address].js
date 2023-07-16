@@ -2,7 +2,7 @@ import Address from '../../components/address'
 
 export default () => {
   return (
-    <div className="mx-auto">
+    <div className="px-4">
       <Address />
     </div>
   )

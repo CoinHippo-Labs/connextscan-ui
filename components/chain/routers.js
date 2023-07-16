@@ -1,26 +1,22 @@
 import Link from 'next/link'
-import { useSelector, shallowEqual } from 'react-redux'
 import _ from 'lodash'
-import { TailSpin } from 'react-loader-spinner'
 
-import Copy from '../copy'
+import Spinner from '../spinner'
 import Datatable from '../datatable'
-import DecimalsFormat from '../decimals-format'
-import EnsProfile from '../ens-profile'
+import NumberDisplay from '../number'
+import Copy from '../copy'
 import Image from '../image'
+import EnsProfile from '../profile/ens'
 import { ProgressBar } from '../progress-bars'
 
-import { currency_symbol } from '../../lib/object/currency'
-import { toArray, ellipse, loaderColor } from '../../lib/utils'
+import { isNumber } from '../../lib/number'
+import { toArray } from '../../lib/utils'
 
 export default ({ data }) => {
-  const { preferences } = useSelector(state => ({ preferences: state.preferences }), shallowEqual)
-  const { theme } = { ...preferences }
-
   return (
     <div className="space-y-4">
       <div className="sm:flex sm:items-center sm:justify-between">
-        <div className="whitespace-nowrap uppercase text-sm font-semibold">
+        <div className="whitespace-nowrap uppercase text-sm font-bold">
           Routers
         </div>
       </div>
@@ -30,10 +26,10 @@ export default ({ data }) => {
             {
               Header: '#',
               accessor: 'i',
-              sortType: (a, b) => a.original.i > b.original.i ? 1 : -1,
+              disableSortBy: true,
               Cell: props => (
-                <span className="font-semibold">
-                  {(props.flatRows?.indexOf(props.row) > -1 ? props.flatRows.indexOf(props.row) : props.value) + 1}
+                <span className="text-black dark:text-white font-medium">
+                  {props.flatRows?.indexOf(props.row) + 1}
                 </span>
               ),
             },
@@ -50,16 +46,6 @@ export default ({ data }) => {
                         address={value}
                         noCopy={true}
                         noImage={true}
-                        fallback={
-                          <span className="text-slate-400 dark:text-slate-200 text-sm font-semibold">
-                            <span className="xl:hidden">
-                              {ellipse(value, 8)}
-                            </span>
-                            <span className="hidden xl:block">
-                              {ellipse(value, 12)}
-                            </span>
-                          </span>
-                        }
                       />
                     </Link>
                     <Copy value={value} />
@@ -75,8 +61,8 @@ export default ({ data }) => {
                 const { value } = { ...props }
                 return (
                   <div className="min-w-max grid grid-cols-2 gap-2">
-                    {toArray(value).filter(v => v.asset_data?.symbol).map((v, i) => {
-                      const { asset_data, amount, value } = { ...v }
+                    {toArray(value).filter(d => d.asset_data?.symbol).map((d, i) => {
+                      const { asset_data, amount, value } = { ...d }
                       const { symbol, image } = { ...asset_data }
                       return (
                         <div key={i} className="flex items-start space-x-2 mt-0.5">
@@ -95,21 +81,21 @@ export default ({ data }) => {
                                 <span className="text-slate-400 dark:text-slate-500 text-2xs font-medium">
                                   Amount:
                                 </span>
-                                <DecimalsFormat
+                                <NumberDisplay
                                   value={amount}
                                   noTooltip={true}
-                                  className="uppercase text-2xs font-semibold"
+                                  className="text-2xs font-semibold"
                                 />
                               </div>
                               <div className="h-4 flex items-center space-x-1">
                                 <span className="text-slate-400 dark:text-slate-500 text-2xs font-medium">
                                   Liquidity:
                                 </span>
-                                <DecimalsFormat
+                                <NumberDisplay
                                   value={value}
-                                  prefix={currency_symbol}
+                                  prefix="$"
                                   noTooltip={true}
-                                  className="uppercase text-2xs font-semibold"
+                                  className="text-2xs font-semibold"
                                 />
                               </div>
                             </div>
@@ -120,7 +106,7 @@ export default ({ data }) => {
                   </div>
                 )
               },
-              headerClassName: 'w-64 whitespace-nowrap justify-start',
+              headerClassName: 'w-64 whitespace-nowrap',
             },
             {
               Header: 'Liquidity',
@@ -129,20 +115,22 @@ export default ({ data }) => {
               Cell: props => {
                 const { value } = { ...props }
                 return (
-                  <div className="text-base font-bold text-right">
-                    {typeof value === 'number' ?
-                      <DecimalsFormat
+                  <div className="text-right">
+                    {isNumber(value) ?
+                      <NumberDisplay
                         value={value}
-                        prefix={currency_symbol}
+                        prefix="$"
                         noTooltip={true}
-                        className="uppercase"
+                        className="text-base font-bold"
                       /> :
-                      <span className="text-slate-400 dark:text-slate-500">-</span>
+                      <span className="text-slate-400 dark:text-slate-500">
+                        -
+                      </span>
                     }
                   </div>
                 )
               },
-              headerClassName: 'whitespace-nowrap justify-end text-right',
+              headerClassName: 'justify-end whitespace-nowrap text-right',
             },
             {
               Header: 'Relative Share %',
@@ -157,16 +145,11 @@ export default ({ data }) => {
                     flatRows.map(d => {
                       const { original } = { ...d }
                       const { total_value } = { ...original }
-                      return {
-                        ...original,
-                        value_share: total_value * 100 / total,
-                      }
+                      return { ...original, value_share: (total_value > 0 ? total_value : 0) * 100 / total }
                     }),
-                    0,
-                    index + 1,
+                    0, index + 1,
                   ) :
                   []
-
                 const { value_share } = { ..._.last(_data) }
                 const total_share = value_share // _.sumBy(_data, 'value_share')
                 return (
@@ -181,7 +164,7 @@ export default ({ data }) => {
                         />
                       </div>
                     </div>
-                    <DecimalsFormat
+                    <NumberDisplay
                       value={total_share}
                       format="0,0.0"
                       suffix="%"
@@ -191,20 +174,16 @@ export default ({ data }) => {
                   </div>
                 )
               },
-              headerClassName: 'whitespace-nowrap justify-start',
+              headerClassName: 'whitespace-nowrap',
             },
           ]}
           data={data}
-          noPagination={data.length <= 10}
           defaultPageSize={50}
-          className="no-border"
+          noPagination={data.length <= 10}
+          className="no-border no-shadow"
         /> :
-        <div className="flex items-center my-3">
-          <TailSpin
-            width="32"
-            height="32"
-            color={loaderColor(theme)}
-          />
+        <div className="loading">
+          <Spinner width={32} height={32} />
         </div>
       }
     </div>
