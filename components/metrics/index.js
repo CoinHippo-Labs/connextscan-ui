@@ -34,6 +34,7 @@ export default ({ data, numDays = NUM_STATS_DAYS }) => {
               value={liquidity}
               format="0,0.00a"
               prefix="$"
+              noTooltip={true}
               className={valueClassName}
             /> :
             <Spinner width={32} height={32} />
@@ -50,6 +51,7 @@ export default ({ data, numDays = NUM_STATS_DAYS }) => {
               value={volume}
               format="0,0.00a"
               prefix="$"
+              noTooltip={true}
               className={valueClassName}
             /> :
             <Spinner width={32} height={32} />
