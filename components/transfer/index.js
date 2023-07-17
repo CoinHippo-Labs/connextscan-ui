@@ -156,7 +156,7 @@ export default () => {
 
   const destination_symbol = destination_asset_data?.symbol
   const destination_asset_image = destination_asset_data?.image
-  const destination_amount = destination_transacting_amount ? formatUnits(destination_transacting_amount, destination_decimals) : source_amount * (1 - PERCENT_ROUTER_FEE / 100)
+  const destination_amount = destination_transacting_amount ? formatUnits(destination_transacting_amount, destination_decimals) : source_amount ? source_amount * (1 - PERCENT_ROUTER_FEE / 100) : null
 
   const id = transfer_id || tx
   const details = _.concat('xcall', routers?.length > 0 ? ['execute', 'reconcile'] : ['reconcile', 'execute']).filter(d => d !== 'reconcile' || reconcile_transaction_hash || execute_transaction_hash)

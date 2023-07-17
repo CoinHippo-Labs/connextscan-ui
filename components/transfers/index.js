@@ -198,7 +198,7 @@ export default () => {
             .map(d => {
               const { source_asset_data, destination_asset_data, origin_transacting_asset, origin_transacting_amount, destination_transacting_amount, source_decimals, destination_decimals, relayer_fees } = { ...d }
               const source_amount = origin_transacting_amount && formatUnits(BigInt(origin_transacting_amount) + BigInt(relayer_fees?.[origin_transacting_asset] || 0), source_decimals)
-              const destination_amount = destination_transacting_amount ? formatUnits(BigInt(destination_transacting_amount), destination_decimals) : source_amount * (1 - PERCENT_ROUTER_FEE / 100)
+              const destination_amount = destination_transacting_amount ? formatUnits(BigInt(destination_transacting_amount), destination_decimals) : source_amount ? source_amount * (1 - PERCENT_ROUTER_FEE / 100) : null
               return {
                 ...d,
                 source_asset_data: { ...source_asset_data, amount: source_amount },
