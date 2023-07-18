@@ -173,6 +173,10 @@ a {
   height: 1.75rem !important;
 }
 
+.p-4\.5 {
+  padding: 1.125rem !important;
+}
+
 #modal-chains,
 #modal-assets {
   .show {
