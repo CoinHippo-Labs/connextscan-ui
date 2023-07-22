@@ -259,11 +259,18 @@ export default () => {
                         transferData={data}
                         buttonTitle={
                           <Tooltip content={error_status === XTransferErrorStatus.NoBidsReceived || bumped ? 'Transfer processing' : error_status}>
-                            <div className={`flex items-center ${error_status === XTransferErrorStatus.NoBidsReceived || bumped ? 'text-blue-500 dark:text-blue-300' : 'text-red-500 dark:text-red-400'} space-x-1`}>
+                            <div className={`flex items-start ${error_status === XTransferErrorStatus.NoBidsReceived || bumped ? 'text-blue-500 dark:text-blue-300' : 'text-red-500 dark:text-red-400'} space-x-1`}>
                               {!(error_status === XTransferErrorStatus.NoBidsReceived || bumped) && <IoWarning size={24} />}
-                              <span className="normal-case text-base font-bold">
-                                {error_status === XTransferErrorStatus.NoBidsReceived || bumped ? 'Transfer processing' : error_status}
-                              </span>
+                              <div className="flex flex-col">
+                                <span className="normal-case text-base font-bold">
+                                  {error_status === XTransferErrorStatus.NoBidsReceived || bumped ? 'Transfer processing' : error_status}
+                                </span>
+                                {!(error_status === XTransferErrorStatus.NoBidsReceived || bumped) && (
+                                  <span className="underline text-xs">
+                                    Click here to bump
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </Tooltip>
                         }
