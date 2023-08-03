@@ -75,6 +75,7 @@ export default (
       }
       buttonClassName={className || `min-w-max h-8 sm:h-10 ${disabled ? 'cursor-not-allowed' : ''} flex items-center justify-center`}
       buttonStyle={{ boxShadow, WebkitBoxShadow: boxShadow, MozBoxShadow: boxShadow }}
+      ignoreSVG={canClose}
       title={
         <span className="flex items-center space-x-1 pt-1 pb-2">
           <span className="capitalize">
