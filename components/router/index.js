@@ -115,14 +115,14 @@ export default () => {
             }
           })
 
-          const transfers = toArray(await getDailyTransferMetrics({ router: `eq.${address?.toLowerCase()}`, transfer_date })).filter(d => d.transfer_date).map(d => {
-            const { origin_chain, destination_chain } = { ...d }
-            const origin_chain_data = getChainData(origin_chain, chains_data)
-            const destination_chain_data = getChainData(destination_chain, chains_data)
-            return { ...d, origin_chain_data, destination_chain_data }
-          })
+          // const transfers = toArray(await getDailyTransferMetrics({ router: `eq.${address?.toLowerCase()}`, transfer_date })).filter(d => d.transfer_date).map(d => {
+          //   const { origin_chain, destination_chain } = { ...d }
+          //   const origin_chain_data = getChainData(origin_chain, chains_data)
+          //   const destination_chain_data = getChainData(destination_chain, chains_data)
+          //   return { ...d, origin_chain_data, destination_chain_data }
+          // })
 
-          setData({ total_volume: _.sumBy(volumes, 'volume'), total_transfers: _.sumBy(transfers, 'transfer_count') })
+          setData({ total_volume: _.sumBy(volumes, 'volume')/*, total_transfers: _.sumBy(transfers, 'transfer_count')*/ })
         }
       }
       getData()
