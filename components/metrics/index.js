@@ -46,7 +46,7 @@ export default ({ data, numDays = NUM_STATS_DAYS }) => {
           Volume{numDays ? ` ${numDays}D` : ''}
         </span>
         <div>
-          {data && volume > 0 ?
+          {data && typeof volume === 'number' ?
             <NumberDisplay
               value={volume}
               format="0,0.00a"
