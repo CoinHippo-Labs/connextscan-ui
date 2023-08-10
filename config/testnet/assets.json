@@ -297,7 +297,7 @@
     "id": "xEURe",
     "symbol": "xEURe",
     "name": "xTokenFrontend",
-    "image": "",
+    "image": "/logos/assets/eur.png",
     "is_stablecoin": false,
     "contracts": [
       {
