@@ -43,13 +43,13 @@ export default () => {
           </div>
           <span>Connext Protocol</span>
         </a>
-        {dependencies?.['@connext/sdk'] && (
+        {dependencies?.['@connext/sdk-core'] && (
           <a
             href="https://github.com/connext/monorepo"
             target="_blank"
             rel="noopener noreferrer"
           >
-            SDK v{dependencies['@connext/sdk'].replace('^', '')}
+            SDK v{dependencies['@connext/sdk-core'].replace('^', '')}
           </a>
         )}
       </div>
