@@ -676,9 +676,9 @@
     "color": "#8200FF"
   },
   {
-    "id": "BTRST",
+    "id": "btrst",
     "symbol": "BTRST",
-    "name": "BTRST",
+    "name": "Braintrust",
     "image": "/logos/assets/btrst.png",
     "is_stablecoin": false,
     "contracts": [
