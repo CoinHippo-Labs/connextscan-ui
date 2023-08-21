@@ -122,7 +122,7 @@ export default function Navbar() {
   useEffect(() => {
     const getData = async () => {
       if (chains_data) {
-        const chain = chains_data.find(c => c?.id === blockchain_id?.toLowerCase()) || connext
+        const chain = chains_data.find(c => c?.id === blockchain_id?.toLowerCase())// || connext
 
         if (chain) {
           const extra_data = chainExtraData(chain.chain_id)
