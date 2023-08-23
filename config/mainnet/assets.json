@@ -170,7 +170,6 @@
     "name": "Dai",
     "image": "/logos/assets/dai.png",
     "is_stablecoin": true,
-    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
