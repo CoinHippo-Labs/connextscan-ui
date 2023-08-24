@@ -27,6 +27,8 @@ import { getChainData, getAssetData, getContractData } from '../../lib/object'
 import { formatUnits, isNumber } from '../../lib/number'
 import { split, toArray, ellipse, equalsIgnoreCase } from '../../lib/utils'
 
+const MAX_RETRY = 10
+
 export default () => {
   const { preferences, chains, assets, dev, latest_bumped_transfers } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, assets: state.assets, dev: state.dev, latest_bumped_transfers: state.latest_bumped_transfers }), shallowEqual)
   const { page_visible } = { ...preferences }
@@ -40,12 +42,14 @@ export default () => {
   const { tx } = { ...query }
 
   const [data, setData] = useState(null)
+  const [retry, setRetry] = useState(null)
 
   useEffect(
     () => {
       const getData = async is_interval => {
         const { xcall_transaction_hash, status } = { ...data }
-        if (page_visible && sdk && tx && (!data || ![XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status) || !equalsIgnoreCase(xcall_transaction_hash, tx))) {
+        const { retryCount, retryTime } = { ...retry }
+        if (page_visible && sdk && tx && (data || !retry || (retryCount < MAX_RETRY && moment().diff(moment(retryTime), 'seconds') >= 30)) && (!data || ![XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(status) || !equalsIgnoreCase(xcall_transaction_hash, tx))) {
           let response = toArray(await sdk.sdkUtils.getTransfers({ transferId: tx }))
           let _data = _.head(response)
           if (!_data) {
@@ -109,17 +113,27 @@ export default () => {
               errored: error_status && !execute_transaction_hash && [XTransferStatus.XCalled, XTransferStatus.Reconciled].includes(status) && !(bumped && error_status === XTransferErrorStatus.ExecutionError),
             })
           }
-          else if (!is_interval) {
-            setData(false)
+          else {
+            if (!is_interval) {
+              setData(false)
+            }
+            setRetry({ retryCount: (retryCount || 0) + 1, retryTime: moment().valueOf() })
           }
         }
       }
 
       getData()
-      const interval = setInterval(() => getData(true), 0.25 * 60 * 1000)
+      const interval = setInterval(() => getData(true), (!data ? 30 : 15) * 1000)
       return () => clearInterval(interval)
     },
-    [page_visible, sdk, tx]
+    [page_visible, sdk, tx, retry],
+  )
+
+  useEffect(
+    () => {
+      setRetry(null)
+    },
+    [tx],
   )
 
   const {
@@ -177,11 +191,37 @@ export default () => {
       </div>
       <div className="space-y-6">
         {!data && typeof data === 'boolean' ?
-          <div className="h-32 flex items-center justify-center">
-            <span className="text-xl font-medium">
-              404: Transfer not found
-            </span>
-          </div> :
+          <>
+            <div className="max-w-2xl h-32 sm:h-64 flex items-center mx-auto p-3 sm:p-4">
+              <div className="flex flex-col space-y-2">
+                <span className="text-xl font-semibold">
+                  Transfer not found
+                </span>
+                <span className="text-slate-400 dark:text-slate-500 text-sm font-medium">
+                  If you just submit a new transfer, there will be a delay in displaying your transfer data here.
+                </span>
+              </div>
+            </div>
+            <div className="max-w-2xl bg-slate-50 dark:bg-slate-900 rounded flex flex-col space-y-1 mx-auto p-3 sm:p-4">
+              <span className="text-slate-600 dark:text-slate-500 text-sm font-light">
+                1. Please wait for at least 30 seconds before refreshing this page.
+              </span>
+              <span className="text-slate-600 dark:text-slate-500 text-sm font-light">
+                2. When the network is busy it can take a while for your transaction to propagate through the network and for us to index it.
+              </span>
+              <span className="text-slate-600 dark:text-slate-500 text-sm font-light">
+                {'3. If it still does not show up after at least 5 minutes, double check that you have the correct transaction ID in the URL, and '}
+                <a
+                  href="https://discord.gg/connext"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-blue-500 font-medium"
+                >
+                  reach out to us for support here
+                </a>.
+              </span>
+            </div>
+          </> :
           !data ?
             <div className="h-32 flex items-center justify-center">
               <Spinner width={32} height={32} />
