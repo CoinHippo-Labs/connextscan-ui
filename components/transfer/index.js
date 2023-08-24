@@ -27,7 +27,7 @@ import { getChainData, getAssetData, getContractData } from '../../lib/object'
 import { formatUnits, isNumber } from '../../lib/number'
 import { split, toArray, ellipse, equalsIgnoreCase } from '../../lib/utils'
 
-const MAX_RETRY = 5
+const MAX_RETRY = 10
 
 export default () => {
   const { preferences, chains, assets, dev, latest_bumped_transfers } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, assets: state.assets, dev: state.dev, latest_bumped_transfers: state.latest_bumped_transfers }), shallowEqual)
@@ -192,23 +192,33 @@ export default () => {
       <div className="space-y-6">
         {!data && typeof data === 'boolean' ?
           <>
-            <div className="h-32 sm:h-64 flex items-center justify-center">
-              <span className="text-xl font-medium">
-                404: Transfer not found
-              </span>
+            <div className="max-w-2xl h-32 sm:h-64 flex items-center mx-auto p-3 sm:p-4">
+              <div className="flex flex-col space-y-2">
+                <span className="text-xl font-semibold">
+                  Transfer not found
+                </span>
+                <span className="text-slate-400 dark:text-slate-500 text-sm font-medium">
+                  If you just submit a new transfer, there will be a delay in displaying your transfer data here.
+                </span>
+              </div>
             </div>
-            <div className="max-w-3xl bg-slate-50 dark:bg-slate-900 rounded flex flex-col space-y-1 mx-auto p-3 sm:p-4">
-              <span className="text-sm font-light">
-                1. If you have just submitted a transaction please wait for at least 30 seconds before refreshing this page.
+            <div className="max-w-2xl bg-slate-50 dark:bg-slate-900 rounded flex flex-col space-y-1 mx-auto p-3 sm:p-4">
+              <span className="text-slate-600 dark:text-slate-500 text-sm font-light">
+                1. Please wait for at least 30 seconds before refreshing this page.
               </span>
-              <span className="text-sm font-light">
-                2. It could still be in the TX Pool of a different node, waiting to be broadcasted.
+              <span className="text-slate-600 dark:text-slate-500 text-sm font-light">
+                2. When the network is busy it can take a while for your transaction to propagate through the network and for us to index it.
               </span>
-              <span className="text-sm font-light">
-                3. When the network is busy it can take a while for your transaction to propagate through the network and for us to index it.
-              </span>
-              <span className="text-sm font-light">
-                4. If it still does not show up after 1 hour, please check with your sender/exchange/wallet/transaction provider for additional information.
+              <span className="text-slate-600 dark:text-slate-500 text-sm font-light">
+                {'3. If it still does not show up after at least 5 minutes, double check that you have the correct transaction ID in the URL, and '}
+                <a
+                  href="https://discord.gg/connext"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-blue-500 font-medium"
+                >
+                  reach out to us for support here
+                </a>.
               </span>
             </div>
           </> :
