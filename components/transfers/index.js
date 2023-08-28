@@ -270,7 +270,7 @@ export default () => {
               {
                 Header: 'Transfer ID',
                 accessor: 'transfer_id',
-                disableSortBy: true,
+                sortType: (a, b) => a.original.xcall_timestamp > b.original.xcall_timestamp ? 1 : -1,
                 Cell: props => {
                   const { value, row } = { ...props }
                   const { execute_transaction_hash, xcall_timestamp, execute_timestamp, routers, call_data, status, error_status, pending, errored } = { ...row.original }
@@ -358,7 +358,7 @@ export default () => {
               {
                 Header: 'Timestamp',
                 accessor: 'xcall_timestamp',
-                disableSortBy: true,
+                sortType: (a, b) => a.original.xcall_timestamp > b.original.xcall_timestamp ? 1 : -1,
                 Cell: props => {
                   const { value } = { ...props }
                   return value && (
@@ -371,7 +371,7 @@ export default () => {
               {
                 Header: 'Status',
                 accessor: 'status',
-                disableSortBy: true,
+                sortType: (a, b) => a.original.execute_timestamp && !b.original.execute_timestamp ? 1 : !a.original.execute_timestamp && b.original.execute_timestamp ? -1 : a.original.execute_timestamp - a.original.xcall_timestamp === b.original.execute_timestamp - b.original.xcall_timestamp ? a.original.xcall_timestamp > b.original.xcall_timestamp ? 1 : -1 : a.original.execute_timestamp - a.original.xcall_timestamp < b.original.execute_timestamp - b.original.xcall_timestamp ? 1 : -1,
                 Cell: props => {
                   const { value, row } = { ...props }
                   const { transfer_id, execute_transaction_hash, xcall_timestamp, execute_timestamp, routers, call_data, error_status, pending, errored } = { ...row.original }
@@ -437,7 +437,7 @@ export default () => {
               {
                 Header: 'Origin',
                 accessor: 'source_chain_data',
-                disableSortBy: true,
+                sortType: (a, b) => a.original.source_chain_data?.name > b.original.source_chain_data?.name ? 1 : -1,
                 Cell: props => {
                   const { value, row } = { ...props }
                   const { source_asset_data, xcall_caller } = { ...row.original }
@@ -514,7 +514,7 @@ export default () => {
               {
                 Header: 'Destination',
                 accessor: 'destination_chain_data',
-                disableSortBy: true,
+                sortType: (a, b) => a.original.source_chain_data?.name > b.original.source_chain_data?.name ? 1 : -1,
                 Cell: props => {
                   const { value, row } = { ...props }
                   const { destination_asset_data, to } = { ...row.original }
@@ -591,7 +591,7 @@ export default () => {
               {
                 Header: 'Xcall Status',
                 accessor: 'xcall_status',
-                disableSortBy: true,
+                sortType: (a, b) => a.original.status === XTransferStatus.CompletedFast ? 1 : a.original.status === XTransferStatus.CompletedSlow ? 0.5 : a.original.status === XTransferStatus.XCalled ? -1 : 0,
                 Cell: props => {
                   const { row } = { ...props }
                   const { transfer_id, status } = { ...row.original }
@@ -610,7 +610,7 @@ export default () => {
               {
                 Header: 'Error Status',
                 accessor: 'error_status',
-                disableSortBy: true,
+                sortType: (a, b) => !a.original.error_status ? 1 : [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.LowSlippage].includes(a.original.error_status) ? -1 : 0,
                 Cell: props => {
                   const { row } = { ...props }
                   let { value } = { ...props }
