@@ -639,6 +639,7 @@ export default () => {
             data={dataFiltered}
             defaultPageSize={address ? 10 : 25}
             noPagination={dataFiltered.length <= 10}
+            noRecordPerPage={!address}
             extra={
               data.length > 0 && (
                 <div className="flex justify-center">
