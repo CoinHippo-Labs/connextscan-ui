@@ -591,7 +591,7 @@ export default () => {
               {
                 Header: 'Xcall Status',
                 accessor: 'xcall_status',
-                sortType: (a, b) => a.original.status === XTransferStatus.CompletedFast ? 1 : a.original.status === XTransferStatus.CompletedSlow ? 0.5 : a.original.status === XTransferStatus.XCalled ? -1 : 0,
+                sortType: (a, b) => a.original.status === XTransferStatus.CompletedFast && b.original.status !== XTransferStatus.CompletedFast ? 1 : a.original.status !== XTransferStatus.CompletedFast && b.original.status === XTransferStatus.CompletedFast ? -1 : a.original.status === XTransferStatus.CompletedSlow && ![XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(b.original.status) ? 1 : b.original.status === XTransferStatus.CompletedSlow && ![XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow].includes(a.original.status) ? -1 : a.original.status === XTransferStatus.XCalled ? -1 : a.original.status === XTransferStatus.Executed && ![XTransferStatus.CompletedFast, XTransferStatus.CompletedSlow, XTransferStatus.Executed].includes(b.original.status) ? 1 : -1,
                 Cell: props => {
                   const { row } = { ...props }
                   const { transfer_id, status } = { ...row.original }
