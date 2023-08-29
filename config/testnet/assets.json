@@ -292,7 +292,7 @@
     "color": "#141414"
   },
   {
-    "id": "xEURe",
+    "id": "xeure",
     "symbol": "xEURe",
     "name": "xTokenFrontend",
     "image": "/logos/assets/eur.png",
@@ -340,5 +340,5 @@
       }
     ],
     "color": "#000000"
-  },
+  }
 ]
