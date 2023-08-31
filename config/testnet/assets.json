@@ -233,7 +233,7 @@
     "is_stablecoin": false,
     "contracts": [
       {
-        "contract_address": "0x369e5C58F6c09c1CE947CA313f03c0d558B77b3e",
+        "contract_address": "0x4c781E4D22cfaAdA520cAe4aF9097C5ecf9C3A71",
         "chain_id": 5,
         "decimals": 18,
         "symbol": "RADAR"
