@@ -6,29 +6,34 @@
     "image": "/logos/assets/next.png",
     "contracts": [
       {
-        "contract_address": "",
+        "contract_address": "0xeA581cA64e4A384aE4dEA39bb083173CcBd2D817",
         "chain_id": 1,
-        "decimals": 18
+        "decimals": 18,
+        "symbol": "NEXT"
       },
       {
-        "contract_address": "",
+        "contract_address": "0xeA581cA64e4A384aE4dEA39bb083173CcBd2D817",
         "chain_id": 137,
-        "decimals": 18
+        "decimals": 18,
+        "symbol": "NEXT"
       },
       {
-        "contract_address": "",
+        "contract_address": "0xeA581cA64e4A384aE4dEA39bb083173CcBd2D817",
         "chain_id": 10,
-        "decimals": 18
+        "decimals": 18,
+        "symbol": "NEXT"
       },
       {
-        "contract_address": "",
+        "contract_address": "0xeA581cA64e4A384aE4dEA39bb083173CcBd2D817",
         "chain_id": 42161,
-        "decimals": 18
+        "decimals": 18,
+        "symbol": "NEXT"
       },
       {
-        "contract_address": "",
+        "contract_address": "0xeA581cA64e4A384aE4dEA39bb083173CcBd2D817",
         "chain_id": 100,
-        "decimals": 18
+        "decimals": 18,
+        "symbol": "NEXT"
       }
     ],
     "color": "#4243d0"
