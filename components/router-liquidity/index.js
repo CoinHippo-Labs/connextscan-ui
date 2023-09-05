@@ -80,8 +80,8 @@ export default () => {
           const { contracts } = { ...getAssetData(asset, assets_data) }
           const contract_data = getContractData(chain_id, contracts)
           const { next_asset } = { ...contract_data }
-          let { contract_address, decimals } = { ...contract_data }
-          contract_address = next_asset?.contract_address || contract_address
+          let { contract_address, xERC20, decimals } = { ...contract_data }
+          contract_address = next_asset?.contract_address || xERC20 || contract_address
           decimals = next_asset?.decimals || decimals || 18
 
           switch (action) {

@@ -14,6 +14,7 @@ import { parseUnits, isNumber } from '../../lib/number'
 import { numberToFixed, parseError } from '../../lib/utils'
 import { GET_BALANCES_DATA } from '../../reducers/types'
 
+const GAS_LIMIT = 500000
 const ABI = [
   // Read-Only Functions
   'function balanceOf(address owner) view returns (uint256)',
@@ -102,7 +103,7 @@ export default (
 
       console.log('[wrap]', { contract_address, amount: _amount })
       const contract = new Contract(contract_address, ABI, signer)
-      const response = await contract.deposit(_amount)
+      const response = await contract.deposit(_amount, { gasLimit: GAS_LIMIT })
       const { hash } = { ...response }
       const receipt = await signer.provider.waitForTransaction(hash)
       const { status } = { ...receipt }
