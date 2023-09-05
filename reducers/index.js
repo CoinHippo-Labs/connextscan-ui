@@ -11,6 +11,7 @@ import pools from './pools'
 import rpc_providers from './rpc-providers'
 import dev from './dev'
 import wallet from './wallet'
+import balances from './balances'
 import web3 from './web3'
 import latest_bumped_transfers from './latest-bumped-transfers'
 
@@ -26,6 +27,7 @@ export default combineReducers({
   rpc_providers,
   dev,
   wallet,
+  balances,
   web3,
   latest_bumped_transfers,
 })

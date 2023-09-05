@@ -16,6 +16,7 @@ import ExplorerLink from '../explorer/link'
 import SelectChain from '../select/chain'
 import SelectAsset from '../select/asset'
 import Wallet from '../wallet'
+import Wrapper from '../wrapper/xERC20'
 import { getBalance } from '../../lib/chain/evm'
 import { GAS_LIMIT_ADJUSTMENT } from '../../lib/config'
 import { getChainData, getAssetData, getContractData } from '../../lib/object'
@@ -607,6 +608,12 @@ export default () => {
                   )
                 })}
               </div>
+              {contract_data?.xERC20 && (
+                <Wrapper
+                  tokenId={asset}
+                  contractData={contract_data}
+                />
+              )}
             </div>
           </div>
         }
