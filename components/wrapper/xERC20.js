@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSelector, useDispatch, shallowEqual } from 'react-redux'
-import { Contract } from 'ethers'
+import { Contract, constants } from 'ethers'
+const { MaxUint256 } = { ...constants }
 import moment from 'moment'
 import { BiChevronDown, BiChevronUp } from 'react-icons/bi'
 
@@ -14,15 +15,9 @@ import { parseUnits, isNumber } from '../../lib/number'
 import { numberToFixed, parseError } from '../../lib/utils'
 import { GET_BALANCES_DATA } from '../../reducers/types'
 
-const GAS_LIMIT = 500000
 const ABI = [
-  // Read-Only Functions
-  'function balanceOf(address owner) view returns (uint256)',
-  'function decimals() view returns (uint8)',
-  'function symbol() view returns (string)',
-  // Authenticated Functions
-  'function transfer(address to, uint amount) returns (boolean)',
-  'function mint(address account, uint256 amount)',
+  'function allowance(address owner, address spender) view returns (uint256)',
+  'function approve(address spender, uint256 amount)',
   'function deposit(uint256 amount) payable',
   'function withdraw(uint256 amount)',
 ]
@@ -53,7 +48,7 @@ export default (
   const { balances_data } = { ...balances }
 
   const [data, setData] = useState(null)
-  const [collapse, setCollapse] = useState(true)
+  const [collapse, setCollapse] = useState(false)
   const [minting, setMinting] = useState(null)
   const [mintResponse, setMintResponse] = useState(null)
   const [withdrawing, setWithdrawing] = useState(null)
@@ -100,19 +95,33 @@ export default (
       const contract_data = contractData || getContractData(chain_id, contracts)
       const { contract_address, xERC20, decimals } = { ...contract_data }
       const _amount = parseUnits(data?.amount, decimals)
+      const erc20 = new Contract(contract_address, ABI, signer)
 
-      console.log('[wrap]', { contract_address, amount: _amount })
-      const contract = new Contract(contract_address, ABI, signer)
-      const response = await contract.deposit(_amount, { gasLimit: GAS_LIMIT })
-      const { hash } = { ...response }
-      const receipt = await signer.provider.waitForTransaction(hash)
-      const { status } = { ...receipt }
+      let failed
+      const allowance = await erc20.allowance(address, xERC20)
+      if (allowance.lt(MaxUint256)) {
+        try {
+          const tx = await erc20.approve(xERC20, MaxUint256)
+          await tx.wait()
+        } catch (error) {
+          failed = true
+        }
+      }
 
-      setMintResponse({
-        status: !status ? 'failed' : 'success',
-        message: !status ? 'Failed to wrap' : 'Wrap Successful',
-        ...response,
-      })
+      if (!failed) {
+        console.log('[wrap]', { contract_address: xERC20, amount: _amount })
+        const contract = new Contract(xERC20, ABI, signer)
+        const response = await contract.deposit(_amount)
+        const { hash } = { ...response }
+        const receipt = await signer.provider.waitForTransaction(hash)
+        const { status } = { ...receipt }
+
+        setMintResponse({
+          status: !status ? 'failed' : 'success',
+          message: !status ? 'Failed to wrap' : 'Wrap Successful',
+          ...response,
+        })
+      }
     } catch (error) {
       const response = parseError(error)
       console.log('[wrap error]', error)
