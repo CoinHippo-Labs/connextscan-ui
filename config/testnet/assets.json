@@ -231,12 +231,16 @@
     "name": "DappRadar",
     "image": "/logos/assets/radar.png",
     "is_stablecoin": false,
+    "is_xERC20": true,
     "contracts": [
       {
-        "contract_address": "0x4c781E4D22cfaAdA520cAe4aF9097C5ecf9C3A71",
+        "contract_address": "0x718BAD5717932fd30Bf37804332c4db69c840A8E",
         "chain_id": 5,
         "decimals": 18,
-        "symbol": "RADAR"
+        "symbol": "RADAR",
+        "xERC20": "0x4c781E4D22cfaAdA520cAe4aF9097C5ecf9C3A71",
+        "lockbox": "0x025253a41d1460889CD7421071c54dD6D68FA21d",
+        "lockbox_adapter": "0x29547e813bA01569735ff828Bc57AB7F10c83823"
       },
       {
         "contract_address": "0xb6932c8363354df7620a7a7bF3a933A253015cA3",
