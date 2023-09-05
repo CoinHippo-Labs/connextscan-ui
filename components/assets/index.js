@@ -57,7 +57,7 @@ export default ({ data }) => {
         asset_data = { ...asset_data, ...next_asset }
         delete asset_data.next_asset
       }
-      if (xERC20 && equalsIgnoreCase(contract_data?.contract_address, xERC20)) {
+      if (xERC20) {
         asset_data = { ...asset_data, contract_address: xERC20 }
         delete asset_data.next_asset
       }

@@ -83,7 +83,7 @@ export default (
     toArray(_assets_data).filter(d => !inputSearch || d).flatMap(d => {
       const { symbol, image, contracts } = { ...d }
       const contract_data = getContractData(chain_id, contracts)
-      const { xERC20, next_asset, wrappable } = { ...contract_data }
+      const { contract_address, xERC20, next_asset, wrappable } = { ...contract_data }
 
       const contracts_data = toArray(
         _.concat(
@@ -93,8 +93,7 @@ export default (
             symbol: symbol === 'DAI' ? `X${symbol}` : symbol,
             image: image?.replace('/dai.', '/xdai.'),
           },
-          (!showOnlyWrappable || wrappable) && { ...contract_data },
-          xERC20 && { ...contract_data, contract_address: xERC20 },
+          (!showOnlyWrappable || wrappable) && { ...contract_data, contract_address: xERC20 || contract_address },
           next_asset && isBridge && showNextAssets && {
             ...contract_data,
             ...next_asset,

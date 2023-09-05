@@ -83,6 +83,11 @@ export default (
       <span className="whitespace-nowrap text-sm sm:text-base font-semibold">
         {symbol}
       </span>
+      {contract_data?.xERC20 && (
+        <span className="whitespace-nowrap text-sm sm:text-base font-medium">
+          (xERC20)
+        </span>
+      )}
       {/*!fixed && <BiChevronDown size={18} className="3xl:w-6 3xl:h-6 text-slate-400 dark:text-slate-200" />*/}
       {canClose && value && (
         <div onClick={() => onClick(null)} className="cursor-pointer">

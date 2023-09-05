@@ -472,7 +472,7 @@ export default () => {
                       onSelect={(a, c) => { setData({ ...data, asset: a, amount: null }) }}
                       chain={chain}
                       canClose={false}
-                      className="flex items-center space-x-1.5 sm:space-x-2 sm:-ml-1"
+                      className="flex items-center space-x-1.5 sm:space-x-2"
                     />
                     <DebounceInput
                       debounceTimeout={750}
