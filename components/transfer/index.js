@@ -241,13 +241,13 @@ export default () => {
               </div>
             </div>
             <div className="max-w-2xl bg-slate-50 dark:bg-slate-900 rounded flex flex-col space-y-1 mx-auto p-3 sm:p-4">
-              <span className="text-slate-600 dark:text-slate-500 text-sm font-light">
-                1. Please wait for at least 30 seconds before refreshing this page.
+              <span className="text-slate-600 dark:text-slate-200 text-sm font-light">
+                1. Please wait for at least 2 minutes before refreshing this page.
               </span>
-              <span className="text-slate-600 dark:text-slate-500 text-sm font-light">
+              <span className="text-slate-600 dark:text-slate-200 text-sm font-light">
                 2. When the network is busy it can take a while for your transaction to propagate through the network and for us to index it.
               </span>
-              <span className="text-slate-600 dark:text-slate-500 text-sm font-light">
+              <span className="text-slate-600 dark:text-slate-200 text-sm font-light">
                 {'3. If it still does not show up after at least 5 minutes, double check that you have the correct transaction ID in the URL, and '}
                 <a
                   href="https://discord.gg/connext"
