@@ -442,15 +442,31 @@ export default () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between space-x-4">
                 <div className="w-fit border-b dark:border-slate-800 flex items-center justify-between space-x-4">
-                  {ACTIONS.map((a, i) => (
-                    <div
-                      key={i}
-                      onClick={() => setAction(a)}
-                      className={`w-fit border-b-2 ${action === a ? 'border-slate-300 dark:border-slate-200' : 'border-transparent text-slate-400 dark:text-slate-500'} cursor-pointer capitalize text-sm font-semibold text-left py-3 px-0`}
-                    >
-                      {a}
-                    </div>
-                  ))}
+                  {ACTIONS.map((a, i) => {
+                    const disabled = a === 'remove' && !equalsIgnoreCase(wallet_address, address)
+                    const selectComponent = (
+                      <div
+                        key={i}
+                        onClick={
+                          () => {
+                            if (!disabled) {
+                              setAction(a)
+                            }
+                          }
+                        }
+                        className={`w-fit border-b-2 ${action === a ? 'border-slate-300 dark:border-slate-200' : 'border-transparent text-slate-400 dark:text-slate-500'} ${disabled ? 'cursor-not-allowed text-slate-400 dark:text-slate-500' : 'cursor-pointer'} capitalize text-sm font-semibold text-left py-3 px-0`}
+                      >
+                        {a}
+                      </div>
+                    )
+                    return (
+                      a === 'remove' && disabled ?
+                        <Tooltip content="Only router can remove liquidity.">
+                          {selectComponent}
+                        </Tooltip> :
+                        selectComponent
+                    )
+                  })}
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-sm">
