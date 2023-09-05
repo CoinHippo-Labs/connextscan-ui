@@ -18,7 +18,7 @@ import { GET_BALANCES_DATA } from '../../reducers/types'
 const ABI = [
   'function allowance(address owner, address spender) view returns (uint256)',
   'function approve(address spender, uint256 amount)',
-  'function deposit(uint256 amount) payable',
+  'function deposit(uint256 amount) external',
   'function withdraw(uint256 amount)',
 ]
 
@@ -93,15 +93,15 @@ export default (
 
     try {
       const contract_data = contractData || getContractData(chain_id, contracts)
-      const { contract_address, xERC20, decimals } = { ...contract_data }
+      const { contract_address, xERC20, lockbox, decimals } = { ...contract_data }
       const _amount = parseUnits(data?.amount, decimals)
-      const erc20 = new Contract(contract_address, ABI, signer)
+      const token = new Contract(xERC20, ABI, signer)
 
       let failed
-      const allowance = await erc20.allowance(address, xERC20)
+      const allowance = await token.allowance(address, lockbox)
       if (allowance.lt(MaxUint256)) {
         try {
-          const tx = await erc20.approve(xERC20, MaxUint256)
+          const tx = await token.approve(lockbox, MaxUint256)
           await tx.wait()
         } catch (error) {
           failed = true
@@ -109,8 +109,8 @@ export default (
       }
 
       if (!failed) {
-        console.log('[wrap]', { contract_address: xERC20, amount: _amount })
-        const contract = new Contract(xERC20, ABI, signer)
+        console.log('[wrap]', { contract_address: lockbox, amount: _amount })
+        const contract = new Contract(lockbox, ABI, signer)
         const response = await contract.deposit(_amount)
         const { hash } = { ...response }
         const receipt = await signer.provider.waitForTransaction(hash)
