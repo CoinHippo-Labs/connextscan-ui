@@ -235,10 +235,10 @@ export default () => {
       const { chain_id, domain_id } = { ...chain_data }
 
       const asset_data = getAssetData(asset, assets_data)
-      const { contracts } = { ...asset_data }
+      const { contracts, is_xERC20 } = { ...asset_data }
       const contract_data = getContractData(chain_id, contracts)
       const { next_asset } = { ...contract_data }
-      let { contract_address, decimals, symbol } = { ...contract_data }
+      let { contract_address, decimals, symbol, xERC20 } = { ...contract_data }
       contract_address = next_asset?.contract_address || contract_address
       decimals = next_asset?.decimals || decimals || 18
       symbol = next_asset?.symbol || symbol || asset_data?.symbol
@@ -246,7 +246,7 @@ export default () => {
       const params = {
         domainId: domain_id,
         amount: parseUnits(amount, decimals),
-        tokenAddress: contract_address,
+        tokenAddress: is_xERC20 ? xERC20 : contract_address,
         router: address,
         recipient: wallet_address,
       }
