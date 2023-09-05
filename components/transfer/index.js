@@ -22,7 +22,7 @@ import Image from '../image'
 import EnsProfile from '../profile/ens'
 import AddMetamask from '../metamask/add-button'
 import TimeSpent from '../time/timeSpent'
-import { NATIVE_WRAPPABLE_SYMBOLS, PERCENT_ROUTER_FEE } from '../../lib/config'
+import { NATIVE_WRAPPABLE_SYMBOLS, PERCENT_ROUTER_FEE, getDistributors } from '../../lib/config'
 import { getChainData, getAssetData, getContractData } from '../../lib/object'
 import { formatUnits, isNumber } from '../../lib/number'
 import { split, toArray, ellipse, equalsIgnoreCase } from '../../lib/utils'
@@ -65,6 +65,11 @@ export default () => {
             const source_chain_data = getChainData(origin_domain, chains_data)
             const source_asset_data = getAssetData(undefined, assets_data, { chain_id: source_chain_data?.chain_id, contract_address: origin_transacting_asset })
             let source_contract_data = getContractData(source_chain_data?.chain_id, source_asset_data?.contracts)
+            // xERC20 asset
+            if (source_contract_data?.xERC20 && equalsIgnoreCase(source_contract_data.xERC20, origin_transacting_asset)) {
+              source_contract_data = { ...source_contract_data, contract_address: source_contract_data.xERC20 }
+              delete source_contract_data.next_asset
+            }
             // next asset
             if (source_contract_data?.next_asset && equalsIgnoreCase(source_contract_data.next_asset.contract_address, origin_transacting_asset)) {
               source_contract_data = { ...source_contract_data, ...source_contract_data.next_asset }
@@ -84,6 +89,11 @@ export default () => {
             const _contract_data = getContractData(destination_chain_data?.chain_id, _asset_data?.contracts)
             const destination_asset_data = getAssetData(undefined, assets_data, { chain_id: destination_chain_data?.chain_id, contract_addresses: [destination_transacting_asset, _asset_data ? (receive_local ? _contract_data?.next_asset : _contract_data)?.contract_address : destination_local_asset] })
             let destination_contract_data = getContractData(destination_chain_data?.chain_id, destination_asset_data?.contracts)
+            // xERC20 asset
+            if (destination_contract_data?.xERC20 && equalsIgnoreCase(destination_contract_data.xERC20, destination_transacting_asset)) {
+              destination_contract_data = { ...destination_contract_data, contract_address: destination_contract_data.xERC20 }
+              delete destination_contract_data.next_asset
+            }
             // next asset
             if (destination_contract_data?.next_asset && (equalsIgnoreCase(destination_contract_data.next_asset.contract_address, destination_transacting_asset) || receive_local)) {
               destination_contract_data = { ...destination_contract_data, ...destination_contract_data.next_asset }
@@ -141,6 +151,7 @@ export default () => {
     source_chain_data,
     source_asset_data,
     source_decimals,
+    origin_sender,
     origin_transacting_asset,
     origin_transacting_amount,
     destination_chain_data,
@@ -175,6 +186,33 @@ export default () => {
   const id = transfer_id || tx
   const details = _.concat('xcall', routers?.length > 0 ? ['execute', 'reconcile'] : ['reconcile', 'execute']).filter(d => d !== 'reconcile' || reconcile_transaction_hash || execute_transaction_hash)
   const bumped = [XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.ExecutionError].includes(error_status) && toArray(latest_bumped_transfers_data).findIndex(d => equalsIgnoreCase(d.transfer_id, transfer_id) && moment().diff(moment(d.updated), 'minutes', true) <= 5) > -1
+  const is_from_distributor = getDistributors().findIndex(d => equalsIgnoreCase(d, origin_sender)) > -1
+  const sourceAssetComponent = (
+    <div className="flex items-center justify-center sm:justify-start xl:justify-center space-x-1 sm:space-x-2">
+      {is_from_distributor && (
+        <span className="text-lg">
+          🎉
+        </span>
+      )}
+      {source_asset_image && (
+        <Image
+          src={source_asset_image}
+          width={24}
+          height={24}
+          className="rounded-full"
+        />
+      )}
+      {Number(source_amount) >= 0 ?
+        <NumberDisplay value={source_amount} className="text-lg font-semibold" /> :
+        <Spinner width={32} height={32} />
+      }
+      {source_asset_data && source_symbol && (
+        <span className="text-base font-medium">
+          {source_symbol}
+        </span>
+      )}
+    </div>
+  )
 
   return (
     <div className="space-y-4 px-4">
@@ -262,31 +300,18 @@ export default () => {
                     )}
                   </div>
                   <div className="flex items-center justify-center sm:justify-start xl:justify-center space-x-1 sm:space-x-2">
-                    {source_asset_image && (
-                      <Image
-                        src={source_asset_image}
-                        width={24}
-                        height={24}
-                        className="rounded-full"
-                      />
-                    )}
-                    {Number(source_amount) >= 0 ?
-                      <NumberDisplay value={source_amount} className="text-lg font-semibold" /> :
-                      <Spinner width={32} height={32} />
+                    {is_from_distributor ?
+                      <Tooltip content="NOTE: Connext has added an additional token amount (5bps) to cover fast claiming fees for your airdrop!">
+                        {sourceAssetComponent}
+                      </Tooltip> :
+                      sourceAssetComponent
                     }
                     {source_asset_data && (
-                      <>
-                        {source_symbol && (
-                          <span className="text-base font-medium">
-                            {source_symbol}
-                          </span>
-                        )}
-                        <AddMetamask
-                          chain={source_chain_data?.id}
-                          asset={source_asset_data.id}
-                          address={source_asset_data.contract_address}
-                        />
-                      </>
+                      <AddMetamask
+                        chain={source_chain_data?.id}
+                        asset={source_asset_data.id}
+                        address={source_asset_data.contract_address}
+                      />
                     )}
                   </div>
                 </div>
@@ -355,31 +380,31 @@ export default () => {
                 <div className="grid grid-cols-1 xl:grid-cols-2 items-center gap-8 sm:gap-4 xl:gap-8">
                   <div className="order-1 sm:order-2 xl:order-1 flex flex-col sm:items-end">
                     <div className="flex items-center justify-center sm:justify-end xl:justify-center space-x-1 sm:space-x-2">
-                      {destination_asset_image && (
-                        <Image
-                          src={destination_asset_image}
-                          width={24}
-                          height={24}
-                          className="rounded-full"
-                        />
-                      )}
-                      {Number(destination_amount) >= 0 ?
-                        <NumberDisplay value={destination_amount} className="text-lg font-semibold" /> :
-                        <Spinner width={32} height={32} />
-                      }
-                      {destination_asset_data && (
-                        <>
-                          {destination_symbol && (
-                            <span className="text-base font-medium">
-                              {destination_symbol}
-                            </span>
-                          )}
-                          <AddMetamask
-                            chain={destination_chain_data?.id}
-                            asset={destination_asset_data.id}
-                            address={destination_asset_data.contract_address}
+                      <div className="flex items-center justify-center sm:justify-end xl:justify-center space-x-1 sm:space-x-2">
+                        {destination_asset_image && (
+                          <Image
+                            src={destination_asset_image}
+                            width={24}
+                            height={24}
+                            className="rounded-full"
                           />
-                        </>
+                        )}
+                        {Number(destination_amount) >= 0 ?
+                          <NumberDisplay value={destination_amount} className="text-lg font-semibold" /> :
+                          <Spinner width={32} height={32} />
+                        }
+                        {destination_asset_data && destination_symbol && (
+                          <span className="text-base font-medium">
+                            {destination_symbol}
+                          </span>
+                        )}
+                      </div>
+                      {destination_asset_data && (
+                        <AddMetamask
+                          chain={destination_chain_data?.id}
+                          asset={destination_asset_data.id}
+                          address={destination_asset_data.contract_address}
+                        />
                       )}
                     </div>
                   </div>

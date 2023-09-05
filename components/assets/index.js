@@ -49,12 +49,16 @@ export default ({ data }) => {
       if (asset_data.contracts) {
         delete asset_data.contracts
       }
-      const { chain_id, contract_address, next_asset, price } = { ...asset_data }
-      const contract_addresses = toArray([next_asset?.contract_address, contract_address])
+      const { chain_id, contract_address, xERC20, next_asset, price } = { ...asset_data }
+      const contract_addresses = toArray([next_asset?.contract_address, xERC20, contract_address])
       const _data = toArray(data).filter(d => d.chain_id === chain_id && contract_addresses.findIndex(a => equalsIgnoreCase(d.contract_address, a)) > -1)
       const contract_data = _.head(_data)
       if (next_asset && (!contract_data?.contract_address || equalsIgnoreCase(contract_data.contract_address, next_asset.contract_address))) {
         asset_data = { ...asset_data, ...next_asset }
+        delete asset_data.next_asset
+      }
+      if (xERC20) {
+        asset_data = { ...asset_data, contract_address: xERC20 }
         delete asset_data.next_asset
       }
       const amount = _.sumBy(_data.map(d => { return { ...d, amount: Number(d.amount) } }), 'amount')

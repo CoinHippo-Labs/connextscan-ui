@@ -83,7 +83,7 @@ export default (
     toArray(_assets_data).filter(d => !inputSearch || d).flatMap(d => {
       const { symbol, image, contracts } = { ...d }
       const contract_data = getContractData(chain_id, contracts)
-      const { next_asset, wrappable } = { ...contract_data }
+      const { contract_address, xERC20, next_asset, wrappable } = { ...contract_data }
 
       const contracts_data = toArray(
         _.concat(
@@ -93,7 +93,7 @@ export default (
             symbol: symbol === 'DAI' ? `X${symbol}` : symbol,
             image: image?.replace('/dai.', '/xdai.'),
           },
-          (!showOnlyWrappable || wrappable) && { ...contract_data },
+          (!showOnlyWrappable || wrappable) && { ...contract_data, contract_address: xERC20 || contract_address },
           next_asset && isBridge && showNextAssets && {
             ...contract_data,
             ...next_asset,
@@ -190,7 +190,7 @@ export default (
         {assets_data_sorted.map((d, i) => {
           const { id, name, contracts, group, disabled } = { ...d }
           const contract_data = getContractData(chain_id, contracts)
-          const { contract_address } = { ...contract_data }
+          const { contract_address, xERC20 } = { ...contract_data }
           let { symbol, image } = { ...contract_data }
           symbol = symbol || d.symbol || name
           image = image || d.image
@@ -214,6 +214,11 @@ export default (
               <span className={`whitespace-nowrap text-base ${selected ? 'font-bold' : 'font-medium'}`}>
                 {symbol}
               </span>
+              {xERC20 && equalsIgnoreCase(contract_address, xERC20) && (
+                <span className="whitespace-nowrap text-base font-medium">
+                  (xERC20)
+                </span>
+              )}
             </div>
           )
           const className = `dropdown-item ${disabled/* || !contract_data*/ ? 'cursor-not-allowed text-slate-400 dark:text-slate-600' : selected ? 'bg-slate-100 dark:bg-slate-800 cursor-pointer' : 'hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer'} rounded flex items-center justify-between space-x-2 my-1 p-2`

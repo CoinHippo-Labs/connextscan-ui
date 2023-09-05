@@ -16,6 +16,7 @@ import ExplorerLink from '../explorer/link'
 import SelectChain from '../select/chain'
 import SelectAsset from '../select/asset'
 import Wallet from '../wallet'
+import Wrapper from '../wrapper/xERC20'
 import { getBalance } from '../../lib/chain/evm'
 import { GAS_LIMIT_ADJUSTMENT } from '../../lib/config'
 import { getChainData, getAssetData, getContractData } from '../../lib/object'
@@ -79,8 +80,8 @@ export default () => {
           const { contracts } = { ...getAssetData(asset, assets_data) }
           const contract_data = getContractData(chain_id, contracts)
           const { next_asset } = { ...contract_data }
-          let { contract_address, decimals } = { ...contract_data }
-          contract_address = next_asset?.contract_address || contract_address
+          let { contract_address, xERC20, decimals } = { ...contract_data }
+          contract_address = next_asset?.contract_address || xERC20 || contract_address
           decimals = next_asset?.decimals || decimals || 18
 
           switch (action) {
@@ -131,10 +132,11 @@ export default () => {
       const { chain_id, domain_id } = { ...chain_data }
 
       const asset_data = getAssetData(asset, assets_data)
-      const { contracts } = { ...asset_data }
+
+      const { contracts, is_xERC20 } = { ...asset_data }
       const contract_data = getContractData(chain_id, contracts)
       const { next_asset } = { ...contract_data }
-      let { contract_address, decimals, symbol } = { ...contract_data }
+      let { contract_address, decimals, symbol, xERC20 } = { ...contract_data }
       contract_address = next_asset?.contract_address || contract_address
       decimals = next_asset?.decimals || decimals || 18
       symbol = next_asset?.symbol || symbol || asset_data?.symbol
@@ -142,7 +144,7 @@ export default () => {
       const params = {
         domainId: domain_id,
         amount: parseUnits(amount, decimals),
-        tokenAddress: contract_address,
+        tokenAddress: is_xERC20 ? xERC20 : contract_address,
         router: address,
       }
 
@@ -233,10 +235,10 @@ export default () => {
       const { chain_id, domain_id } = { ...chain_data }
 
       const asset_data = getAssetData(asset, assets_data)
-      const { contracts } = { ...asset_data }
+      const { contracts, is_xERC20 } = { ...asset_data }
       const contract_data = getContractData(chain_id, contracts)
       const { next_asset } = { ...contract_data }
-      let { contract_address, decimals, symbol } = { ...contract_data }
+      let { contract_address, decimals, symbol, xERC20 } = { ...contract_data }
       contract_address = next_asset?.contract_address || contract_address
       decimals = next_asset?.decimals || decimals || 18
       symbol = next_asset?.symbol || symbol || asset_data?.symbol
@@ -244,7 +246,7 @@ export default () => {
       const params = {
         domainId: domain_id,
         amount: parseUnits(amount, decimals),
-        tokenAddress: contract_address,
+        tokenAddress: is_xERC20 ? xERC20 : contract_address,
         router: address,
         recipient: wallet_address,
       }
@@ -440,15 +442,31 @@ export default () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between space-x-4">
                 <div className="w-fit border-b dark:border-slate-800 flex items-center justify-between space-x-4">
-                  {ACTIONS.map((a, i) => (
-                    <div
-                      key={i}
-                      onClick={() => setAction(a)}
-                      className={`w-fit border-b-2 ${action === a ? 'border-slate-300 dark:border-slate-200' : 'border-transparent text-slate-400 dark:text-slate-500'} cursor-pointer capitalize text-sm font-semibold text-left py-3 px-0`}
-                    >
-                      {a}
-                    </div>
-                  ))}
+                  {ACTIONS.map((a, i) => {
+                    const disabled = a === 'remove' && !equalsIgnoreCase(wallet_address, address)
+                    const selectComponent = (
+                      <div
+                        key={i}
+                        onClick={
+                          () => {
+                            if (!disabled) {
+                              setAction(a)
+                            }
+                          }
+                        }
+                        className={`w-fit border-b-2 ${action === a ? 'border-slate-300 dark:border-slate-200' : 'border-transparent text-slate-400 dark:text-slate-500'} ${disabled ? 'cursor-not-allowed text-slate-400 dark:text-slate-500' : 'cursor-pointer'} capitalize text-sm font-semibold text-left py-3 px-0`}
+                      >
+                        {a}
+                      </div>
+                    )
+                    return (
+                      a === 'remove' && disabled ?
+                        <Tooltip content="Only router can remove liquidity.">
+                          {selectComponent}
+                        </Tooltip> :
+                        selectComponent
+                    )
+                  })}
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-sm">
@@ -472,7 +490,7 @@ export default () => {
                       onSelect={(a, c) => { setData({ ...data, asset: a, amount: null }) }}
                       chain={chain}
                       canClose={false}
-                      className="flex items-center space-x-1.5 sm:space-x-2 sm:-ml-1"
+                      className="flex items-center space-x-1.5 sm:space-x-2"
                     />
                     <DebounceInput
                       debounceTimeout={750}
@@ -607,6 +625,12 @@ export default () => {
                   )
                 })}
               </div>
+              {contract_data?.xERC20 && (
+                <Wrapper
+                  tokenId={asset}
+                  contractData={contract_data}
+                />
+              )}
             </div>
           </div>
         }
