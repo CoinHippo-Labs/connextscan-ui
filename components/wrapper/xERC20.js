@@ -18,7 +18,7 @@ import { GET_BALANCES_DATA } from '../../reducers/types'
 const ABI = [
   'function allowance(address owner, address spender) view returns (uint256)',
   'function approve(address spender, uint256 amount)',
-  'function deposit(uint256 amount) external',
+  'function deposit(uint256 _amount) external',
   'function withdraw(uint256 amount)',
 ]
 
@@ -95,8 +95,7 @@ export default (
       const contract_data = contractData || getContractData(chain_id, contracts)
       const { contract_address, xERC20, lockbox, decimals } = { ...contract_data }
       const _amount = parseUnits(data?.amount, decimals)
-      const token = new Contract(xERC20, ABI, signer)
-
+      const token = new Contract(contract_address, ABI, signer)
       let failed
       const allowance = await token.allowance(address, lockbox)
       if (allowance.lt(MaxUint256)) {
@@ -151,11 +150,11 @@ export default (
 
     try {
       const contract_data = contractData || getContractData(chain_id, contracts)
-      const { xERC20, decimals } = { ...contract_data }
+      const { xERC20, decimals, lockbox } = { ...contract_data }
       const _amount = parseUnits(data?.amount, decimals)
 
       console.log('[unwrap]', { contract_address: xERC20, amount: _amount })
-      const contract = new Contract(xERC20, ABI, signer)
+      const contract = new Contract(lockbox, ABI, signer)
       const response = await contract.withdraw(_amount)
       const { hash } = { ...response }
       const receipt = await signer.provider.waitForTransaction(hash)
