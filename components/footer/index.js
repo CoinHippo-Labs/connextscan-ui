@@ -1,7 +1,8 @@
 import { useSelector, shallowEqual } from 'react-redux'
 import moment from 'moment'
 import { FaHeart, FaDiscord } from 'react-icons/fa'
-import { BsTwitter, BsTelegram, BsGithub } from 'react-icons/bs'
+import { FaXTwitter } from 'react-icons/fa6'
+import { BsTelegram, BsGithub } from 'react-icons/bs'
 
 import Image from '../image'
 import _package from '../../package.json'
@@ -60,7 +61,7 @@ export default () => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <BsTwitter size={20} className="3xl:w-8 3xl:h-8 text-blue-400 dark:text-white" />
+            <FaXTwitter size={20} className="3xl:w-8 3xl:h-8 text-black dark:text-white" />
           </a>
         )}
         {process.env.NEXT_PUBLIC_TELEGRAM_USERNAME && (
