@@ -625,12 +625,7 @@ export default () => {
                   )
                 })}
               </div>
-              {contract_data?.xERC20 && (
-                <Wrapper
-                  tokenId={asset}
-                  contractData={contract_data}
-                />
-              )}
+              {contract_data?.xERC20 && <Wrapper tokenId={asset} contractData={contract_data} />}
             </div>
           </div>
         }
