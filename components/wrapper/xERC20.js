@@ -19,7 +19,7 @@ const ABI = [
   'function allowance(address owner, address spender) view returns (uint256)',
   'function approve(address spender, uint256 amount)',
   'function deposit(uint256 _amount) external',
-  'function withdraw(uint256 amount)',
+  'function withdraw(uint256 _amount)',
 ]
 
 const getInputFields = () => [
