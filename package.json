@@ -23,7 +23,7 @@
   "dependencies": {
     "@connext/sdk-core": "2.1.3-alpha.1",
     "@material-tailwind/react": "^2.1.0",
-    "@tanstack/react-query": "4.32.6",
+    "@tanstack/react-query": "^4.32.6",
     "@wagmi/chains": "^1.7.0",
     "@web3modal/ethereum": "^2.7.1",
     "@web3modal/react": "^2.7.1",
@@ -32,7 +32,7 @@
     "html-react-parser": "^4.2.1",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
-    "next": "^13.4.13",
+    "next": "13.4.13",
     "next-secure-headers": "^2.2.0",
     "nprogress": "^0.2.0",
     "numeral": "^2.0.6",
