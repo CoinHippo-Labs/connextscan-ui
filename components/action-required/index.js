@@ -9,6 +9,7 @@ import _ from 'lodash'
 import { TiArrowRight } from 'react-icons/ti'
 import { MdClose } from 'react-icons/md'
 import { BiX, BiEditAlt, BiCheckCircle } from 'react-icons/bi'
+import { TbLogout } from 'react-icons/tb'
 
 import WarningSlippage from './warning/slippage'
 import Spinner from '../spinner'
@@ -495,6 +496,17 @@ export default (
   const wrong_chain = chain_id !== chain_data?.chain_id && !updateResponse
   const is_walletconnect = ethereum_provider?.constructor?.name === 'WalletConnectProvider'
 
+  const disconnectButton = (
+    <Wallet>
+      <div className="flex items-center justify-center space-x-1">
+        <TbLogout size={18} className="3xl:w-6 3xl:h-6 text-slate-500 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300" />
+        <span className="text-slate-500 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300">
+          Disconnect
+        </span>
+      </div>
+    </Wallet>
+  )
+
   return data && buttonTitle && (
     <Modal
       hidden={hidden || ![XTransferErrorStatus.LowRelayerFee, XTransferErrorStatus.LowSlippage].includes(error_status)}
@@ -682,29 +694,32 @@ export default (
           }
           {ethereum_provider && (wrong_chain || isNumber(error_status === XTransferErrorStatus.LowSlippage ? newSlippage : error_status === XTransferErrorStatus.LowRelayerFee ? newRelayerFee : null)) ?
             wrong_chain ?
-              <Wallet
-                connectChainId={chain_data?.chain_id}
-                onSwitch={
-                  async () => {
-                    await sleep(1000)
-                    router.reload()
+              <div className="flex flex-col items-end space-y-2">
+                <Wallet
+                  connectChainId={chain_data?.chain_id}
+                  onSwitch={
+                    async () => {
+                      await sleep(1000)
+                      router.reload()
+                    }
                   }
-                }
-                className="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 rounded flex items-center justify-center text-white text-base font-medium space-x-1.5 sm:space-x-2 py-3 sm:py-4 px-2 sm:px-3"
-              >
-                <span>{is_walletconnect ? 'Reconnect' : 'Switch'} to</span>
-                {chain_data?.image && (
-                  <Image
-                    src={chain_data.image}
-                    width={28}
-                    height={28}
-                    className="rounded-full"
-                  />
-                )}
-                <span className="font-semibold">
-                  {chain_data?.name}
-                </span>
-              </Wallet> :
+                  className="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 rounded flex items-center justify-center text-white text-base font-medium space-x-1.5 sm:space-x-2 py-3 sm:py-4 px-2 sm:px-3"
+                >
+                  <span>{is_walletconnect ? 'Reconnect' : 'Switch'} to</span>
+                  {chain_data?.image && (
+                    <Image
+                      src={chain_data.image}
+                      width={28}
+                      height={28}
+                      className="rounded-full"
+                    />
+                  )}
+                  <span className="font-semibold">
+                    {chain_data?.name}
+                  </span>
+                </Wallet>
+                {disconnectButton}
+              </div> :
               !updateResponse && !updating && isNumber(error_status === XTransferErrorStatus.LowSlippage ? newSlippage : error_status === XTransferErrorStatus.LowRelayerFee ? newRelayerFee : null) && (error_status === XTransferErrorStatus.LowSlippage ? newSlippage <= _slippage : error_status === XTransferErrorStatus.LowRelayerFee ? !newRelayerFee : null) ?
                 <Alert status="failed" closeDisabled={true}>
                   <span>
@@ -725,21 +740,24 @@ export default (
                         </span>
                       </div>
                     </Alert> :
-                    <button
-                      disabled={disabled}
-                      onClick={
-                        () => {
-                          setSlippageEditing(false)
-                          update()
+                    <div className="flex flex-col items-end space-y-2">
+                      <button
+                        disabled={disabled}
+                        onClick={
+                          () => {
+                            setSlippageEditing(false)
+                            update()
+                          }
                         }
-                      }
-                      className={`w-full ${disabled ? 'bg-blue-400 dark:bg-blue-500' : 'bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700'} rounded flex items-center justify-center text-white text-base py-3 sm:py-4 px-2 sm:px-3`}
-                    >
-                      <span className={`flex items-center justify-center ${updating && updateProcessing ? 'space-x-3 ml-1.5' : 'space-x-3'}`}>
-                        {disabled && <div><Spinner width={20} height={20} color="white" /></div>}
-                        <span>{updating ? updateProcessing ? 'Update in progress ...' : 'Please Confirm' : 'Apply'}</span>
-                      </span>
-                    </button> :
+                        className={`w-full ${disabled ? 'bg-blue-400 dark:bg-blue-500' : 'bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700'} rounded flex items-center justify-center text-white text-base py-3 sm:py-4 px-2 sm:px-3`}
+                      >
+                        <span className={`flex items-center justify-center ${updating && updateProcessing ? 'space-x-3 ml-1.5' : 'space-x-3'}`}>
+                          {disabled && <div><Spinner width={20} height={20} color="white" /></div>}
+                          <span>{updating ? updateProcessing ? 'Update in progress ...' : 'Please Confirm' : 'Apply'}</span>
+                        </span>
+                      </button>
+                      {disconnectButton}
+                    </div> :
                   toArray(updateResponse || estimateResponse).map((d, i) => {
                     const { status, message, tx_hash } = { ...d }
                     return (
@@ -786,12 +804,15 @@ export default (
                     )
                   }) :
             ethereum_provider ?
-              <button
-                disabled={true}
-                className="w-full bg-slate-100 dark:bg-slate-800 cursor-not-allowed rounded text-slate-400 dark:text-slate-500 text-base text-center py-3 sm:py-4 px-2 sm:px-3"
-              >
-                <span>Apply</span>
-              </button> :
+              <div className="flex flex-col items-end space-y-2">
+                <button
+                  disabled={true}
+                  className="w-full bg-slate-100 dark:bg-slate-800 cursor-not-allowed rounded text-slate-400 dark:text-slate-500 text-base text-center py-3 sm:py-4 px-2 sm:px-3"
+                >
+                  <span>Apply</span>
+                </button>
+                 {disconnectButton}
+              </div> :
               <Wallet
                 connectChainId={chain_data?.chain_id}
                 buttonConnectTitle="Connect Wallet"
