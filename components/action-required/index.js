@@ -21,7 +21,7 @@ import Wallet from '../wallet'
 import { NETWORK, RELAYER_FEE_ASSET_TYPES, PERCENT_ROUTER_FEE, GAS_LIMIT_ADJUSTMENT, DEFAULT_PERCENT_BRIDGE_SLIPPAGE } from '../../lib/config'
 import { getChainData, getAssetData, getContractData } from '../../lib/object'
 import { toBigNumber, toFixedNumber, formatUnits, parseUnits, isNumber } from '../../lib/number'
-import { toArray, includesStringList, numberToFixed, ellipse, equalsIgnoreCase, normalizeMessage, parseError } from '../../lib/utils'
+import { toArray, includesStringList, numberToFixed, ellipse, equalsIgnoreCase, sleep, normalizeMessage, parseError } from '../../lib/utils'
 import { LATEST_BUMPED_TRANSFERS_DATA } from '../../reducers/types'
 
 export default (
@@ -684,7 +684,12 @@ export default (
             wrong_chain ?
               <Wallet
                 connectChainId={chain_data?.chain_id}
-                onSwitch={() => router.reload()}
+                onSwitch={
+                  async () => {
+                    await sleep(1000)
+                    router.reload()
+                  }
+                }
                 className="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 rounded flex items-center justify-center text-white text-base font-medium space-x-1.5 sm:space-x-2 py-3 sm:py-4 px-2 sm:px-3"
               >
                 <span>{is_walletconnect ? 'Reconnect' : 'Switch'} to</span>
