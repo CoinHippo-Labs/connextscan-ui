@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useSelector, useDispatch, shallowEqual } from 'react-redux'
 import { XTransferErrorStatus } from '@connext/nxtp-utils'
@@ -41,6 +42,8 @@ export default (
   const { sdk } = { ...dev }
   const { wallet_data } = { ...wallet }
   const { chain_id, ethereum_provider, signer, address } = { ...wallet_data }
+
+  const router = useRouter()
 
   const [hidden, setHidden] = useState(initialHidden)
   const [data, setData] = useState(null)
@@ -681,6 +684,13 @@ export default (
             wrong_chain ?
               <Wallet
                 connectChainId={chain_data?.chain_id}
+                onSwitch={
+                  () => {
+                    if (!initialHidden) {
+                      router.reload()
+                    }
+                  }
+                }
                 className="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 rounded flex items-center justify-center text-white text-base font-medium space-x-1.5 sm:space-x-2 py-3 sm:py-4 px-2 sm:px-3"
               >
                 <span>{is_walletconnect ? 'Reconnect' : 'Switch'} to</span>
