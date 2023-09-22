@@ -469,7 +469,7 @@ export default () => {
                           <HiCheckCircle size={32} className="bg-slate-100 dark:bg-slate-200 rounded-full text-green-500 dark:text-green-400" /> :
                           errored ?
                             d === 'execute' ?
-                              <ActionRequired
+                              null && <ActionRequired
                                 forceDisabled={[XTransferErrorStatus.ExecutionError, XTransferErrorStatus.NoBidsReceived].includes(error_status) || bumped}
                                 transferData={data}
                                 buttonTitle={
