@@ -180,6 +180,7 @@ export default () => {
 
       if (!failed) {
         try {
+          console.log('[addLiquidityForRouter]', { params })
           const request = await sdk.sdkRouter.addLiquidityForRouter(params)
           if (request) {
             try {
@@ -199,6 +200,7 @@ export default () => {
 
             setAddProcessing(true)
             const receipt = await signer.provider.waitForTransaction(hash)
+            console.log('[addLiquidityForRouter]', { params, receipt })
             const { status } = { ...receipt }
             failed = !status
             setAddResponse({
@@ -213,6 +215,7 @@ export default () => {
           }
         } catch (error) {
           const response = parseError(error)
+          console.log('[addLiquidityForRouter error]', { params }, error)
           setAddResponse({ status: 'failed', ...response, chain_data })
           failed = true
         }
@@ -254,6 +257,7 @@ export default () => {
       let failed = false
       if (!failed) {
         try {
+          console.log('[removeRouterLiquidityFor]', { params })
           const request = await sdk.sdkRouter.removeRouterLiquidityFor(params)
           if (request) {
             const response = await signer.sendTransaction(request)
@@ -267,6 +271,7 @@ export default () => {
 
             setRemoveProcessing(true)
             const receipt = await signer.provider.waitForTransaction(hash)
+            console.log('[removeRouterLiquidityFor]', { params, receipt })
             const { status } = { ...receipt }
             failed = !status
             setRemoveResponse({
@@ -281,6 +286,7 @@ export default () => {
           }
         } catch (error) {
           const response = parseError(error)
+          console.log('[removeRouterLiquidityFor error]', { params }, error)
           setRemoveResponse({ status: 'failed', ...response, chain_data })
           failed = true
         }
