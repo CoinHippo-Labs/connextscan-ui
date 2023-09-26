@@ -24,14 +24,7 @@ export default () => {
       buttonTitle={
         <div className="navbar-search mr-1 sm:mx-2">
           <div className="relative flex items-center">
-            <input
-              disabled={true}
-              onClick={() => inputSearchRef?.current?.focus()}
-              type="search"
-              placeholder="Search"
-              className="w-56 h-10 appearance-none focus:ring-0 rounded text-sm pl-3 pr-10"
-            />
-            <FiSearch size={16} className="absolute right-0 mr-2" />
+            <FiSearch size={16} className="absolute right-0" />
           </div>
         </div>
       }

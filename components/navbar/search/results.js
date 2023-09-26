@@ -29,7 +29,7 @@ export default ({ inputSearch, onSelect }) => {
         let input = inputSearch
         let input_type = getKeyType(input)
 
-        if(input_type !== 'ens' || input.endsWith('.eth')) {
+        if (input_type !== 'ens' || input.endsWith('.eth')) {
           if (input_type) {
             const { resolvedAddress } = { ...Object.values({ ...ens_data }).find(v => equalsIgnoreCase(v.name, input)) }
 
@@ -73,7 +73,7 @@ export default ({ inputSearch, onSelect }) => {
           }
           if (routerIds && _data.findIndex(d => d.group === 'router') < 0) {
             routerIds.forEach(id => {
-              _data.push({ name: id, group: 'router', path: `/router/${id}` })
+              _data.push({ id, name: ens_data?.[id]?.name || id, group: 'router', path: `/router/${id}` })
             })
           }
           setData(_data)
@@ -81,7 +81,7 @@ export default ({ inputSearch, onSelect }) => {
       }
       getData()
     },
-    [inputSearch, chains_data, assets_data, router_asset_balances_data],
+    [inputSearch, chains_data, assets_data, ens_data, router_asset_balances_data],
   )
 
   const data_sorted = _.orderBy(
@@ -96,7 +96,11 @@ export default ({ inputSearch, onSelect }) => {
               inputSearch.length > 1 ?
                 inputSearch.length / d[f].length :
                 inputSearch.length > 0 ? .1 : .5 :
-              -1
+              split(d[f], 'lower', ' ').join(' ').includes(inputSearch.toLowerCase()) ?
+                inputSearch.length > 1 ?
+                  inputSearch.length / d[f].length :
+                  inputSearch.length > 0 ? .1 : .5 :
+                -1
           ),
       }
     })
