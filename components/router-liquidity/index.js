@@ -69,7 +69,9 @@ export default () => {
             try {
               const contract = await sdk.sdkBase.getConnext(domain_id)
               if (contract) {
-                setRouterOwner(await contract.getRouterOwner(address))
+                const router_owner = await contract.getRouterOwner(address)
+                console.log('[getRouterOwner]', { domain_id, address, router_owner })
+                setRouterOwner(router_owner)
               }
             } catch (error) {
               setRouterOwner(null)
