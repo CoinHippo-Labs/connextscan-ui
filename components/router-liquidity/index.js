@@ -42,6 +42,7 @@ export default () => {
   const { address } = { ...query }
 
   const [hidden, setHidden] = useState(true)
+  const [routerOwner, setRouterOwner] = useState(null)
   const [data, setData] = useState(null)
   const [balance, setBalance] = useState(null)
   const [action, setAction] = useState(_.head(ACTIONS))
@@ -57,6 +58,31 @@ export default () => {
   const [removing, setRemoving] = useState(null)
   const [removeProcessing, setRemoveProcessing] = useState(null)
   const [removeResponse, setRemoveResponse] = useState(null)
+
+  useEffect(
+    () => {
+      const getData = async () => {
+        const { chain } = { ...data }
+        if (chains_data && sdk && address && chain) {
+          const { domain_id } = { ...getChainData(chain, chains_data) }
+          if (domain_id) {
+            try {
+              const contract = await sdk.sdkBase.getConnext(domain_id)
+              if (contract) {
+                const router_owner = await contract.getRouterOwner(address)
+                console.log('[getRouterOwner]', { domain_id, address, router_owner })
+                setRouterOwner(router_owner)
+              }
+            } catch (error) {
+              setRouterOwner(null)
+            }
+          }
+        }
+      }
+      getData()
+    },
+    [chains_data, sdk, address, data],
+  )
 
   useEffect(
     () => {
@@ -449,7 +475,7 @@ export default () => {
               <div className="flex items-center justify-between space-x-4">
                 <div className="w-fit border-b dark:border-slate-800 flex items-center justify-between space-x-4">
                   {ACTIONS.map((a, i) => {
-                    const disabled = a === 'remove' && !equalsIgnoreCase(wallet_address, address)
+                    const disabled = a === 'remove' && routerOwner && toArray([routerOwner, address]).findIndex(a => equalsIgnoreCase(wallet_address, a)) < 0
                     const selectComponent = (
                       <div
                         key={i}
