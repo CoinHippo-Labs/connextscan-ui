@@ -10,6 +10,7 @@ export default (
     chain,
     destinationChain,
     isBridge = false,
+    isRouterLiquidity = false,
     isPool = false,
     showNextAssets = false,
     showNativeAssets = false,
@@ -46,6 +47,7 @@ export default (
             chain={chain}
             destinationChain={destinationChain}
             isBridge={isBridge}
+            isRouterLiquidity={isRouterLiquidity}
             isPool={isPool}
             showNextAssets={showNextAssets}
             showNativeAssets={showNativeAssets}

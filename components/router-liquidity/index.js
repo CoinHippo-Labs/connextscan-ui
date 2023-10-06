@@ -526,7 +526,7 @@ export default () => {
                       value={asset}
                       onSelect={(a, c) => { setData({ ...data, asset: a, symbol: c, amount: null }) }}
                       chain={chain}
-                      isBridge={true}
+                      isRouterLiquidity={true}
                       showNextAssets={true}
                       canClose={false}
                       data={{ symbol, image }}
