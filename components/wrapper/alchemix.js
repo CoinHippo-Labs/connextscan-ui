@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSelector, shallowEqual } from 'react-redux'
-import { Contract, constants } from 'ethers'
-const { MaxUint256 } = { ...constants }
+import { utils } from 'ethers'
+const { Interface } = { ...utils }
 import moment from 'moment'
 import { BiChevronDown, BiChevronUp } from 'react-icons/bi'
 
@@ -14,13 +14,6 @@ import { getChainData, getAssetData, getContractData, getBalanceData } from '../
 import { parseUnits, isNumber } from '../../lib/number'
 import { numberToFixed, parseError } from '../../lib/utils'
 
-const ABI = [
-  'function allowance(address owner, address spender) view returns (uint256)',
-  'function approve(address spender, uint256 amount)',
-  'function deposit(uint256 _amount) external',
-  'function withdraw(uint256 _amount)',
-]
-
 const getInputFields = () => [
   {
     label: 'Amount',
@@ -32,7 +25,7 @@ const getInputFields = () => [
 
 export default (
   {
-    tokenId = 'next',
+    tokenId = 'alusd',
     contractData,
     titleClassName = '',
     className = '',
@@ -81,7 +74,11 @@ export default (
   const { explorer, image } = { ...chain_data }
   const { url, transaction_path } = { ...explorer }
 
-  const { contract_address, xERC20, decimals } = { ...(contractData || getContractData(chain_data?.chain_id, contracts)) }
+  const { contract_address, next_asset, decimals } = { ...(contractData || getContractData(chain_data?.chain_id, contracts)) }
+  const _interface = new Interface([
+    'function exchangeOldForCanonical(address bridgeTokenAddress, uint256 tokenAmount)',
+    'function exchangeCanonicalForOld(address bridgeTokenAddress, uint256 tokenAmount)',
+  ])
 
   const mint = async () => {
     setMinting(true)
@@ -91,34 +88,22 @@ export default (
 
     try {
       const contract_data = contractData || getContractData(chain_id, contracts)
-      const { contract_address, lockbox, decimals } = { ...contract_data }
+      const { contract_address, next_asset, decimals } = { ...contract_data }
       const _amount = parseUnits(data?.amount, decimals)
-      const token = new Contract(contract_address, ABI, signer)
-      let failed
-      const allowance = await token.allowance(address, lockbox)
-      if (allowance.lt(MaxUint256)) {
-        try {
-          const tx = await token.approve(lockbox, MaxUint256)
-          await tx.wait()
-        } catch (error) {
-          failed = true
-        }
-      }
 
-      if (!failed) {
-        console.log('[wrap]', { contract_address: lockbox, amount: _amount })
-        const contract = new Contract(lockbox, ABI, signer)
-        const response = await contract.deposit(_amount)
-        const { hash } = { ...response }
-        const receipt = await signer.provider.waitForTransaction(hash)
-        const { status } = { ...receipt }
+      console.log('[wrap]', { contract_address, next_asset: next_asset?.contract_address, amount: _amount })
+      const exchangeData = _interface.encodeFunctionData('exchangeCanonicalForOld', [next_asset?.contract_address, _amount])
+      const response = await signer.sendTransaction({ chainId: chain_id, data: exchangeData, from: address, to: contract_address })
+      const { hash } = { ...response }
+      setMintResponse({ status: 'pending', message: 'Wrapping', tx_hash: hash })
 
-        setMintResponse({
-          status: !status ? 'failed' : 'success',
-          message: !status ? 'Failed to wrap' : 'Wrap Successful',
-          ...response,
-        })
-      }
+      const receipt = await signer.provider.waitForTransaction(hash)
+      const { status } = { ...receipt }
+      setMintResponse({
+        status: !status ? 'failed' : 'success',
+        message: !status ? 'Failed to wrap' : 'Wrap Successful',
+        ...response,
+      })
     } catch (error) {
       const response = parseError(error)
       console.log('[wrap error]', error)
@@ -148,16 +133,17 @@ export default (
 
     try {
       const contract_data = contractData || getContractData(chain_id, contracts)
-      const { xERC20, decimals, lockbox } = { ...contract_data }
+      const { contract_address, next_asset, decimals } = { ...contract_data }
       const _amount = parseUnits(data?.amount, decimals)
 
-      console.log('[unwrap]', { contract_address: xERC20, amount: _amount })
-      const contract = new Contract(lockbox, ABI, signer)
-      const response = await contract.withdraw(_amount)
+      console.log('[unwrap]', { contract_address, next_asset: next_asset?.contract_address, amount: _amount })
+      const exchangeData = _interface.encodeFunctionData('exchangeOldForCanonical', [contract_address, _amount])
+      const response = await signer.sendTransaction({ chainId: chain_id, data: exchangeData, from: address, to: next_asset?.contract_address })
       const { hash } = { ...response }
+      setWithdrawResponse({ status: 'pending', message: 'Unwrapping', tx_hash: hash })
+
       const receipt = await signer.provider.waitForTransaction(hash)
       const { status } = { ...receipt }
-
       setWithdrawResponse({
         status: !status ? 'failed' : 'success',
         message: !status ? 'Failed to unwrap' : 'Unwrap Successful',
@@ -188,7 +174,7 @@ export default (
   const has_all_fields = fields.length === fields.filter(f => data?.[f.name]).length
 
   const native_amount = getBalanceData(chain_data?.chain_id, contract_address, balances_data)?.amount
-  const wrapped_amount = getBalanceData(chain_data?.chain_id, xERC20, balances_data)?.amount
+  const wrapped_amount = getBalanceData(chain_data?.chain_id, next_asset?.contract_address, balances_data)?.amount
   const wrap_disabled = !!(isNumber(native_amount) && isNumber(data?.amount) && (Number(native_amount) < Number(data.amount) || Number(data.amount) <= 0))
   const unwrap_disabled = !!(isNumber(wrapped_amount) && isNumber(data?.amount) && (Number(wrapped_amount) < Number(data.amount) || Number(data.amount) <= 0))
 
@@ -233,9 +219,9 @@ export default (
                 <Balance
                   chainId={contractData?.chain_id || chain_id}
                   asset={tokenId}
-                  contractAddress={xERC20}
-                  decimals={decimals || asset_data?.decimals}
-                  symbol={`x${symbol}`}
+                  contractAddress={next_asset?.contract_address}
+                  decimals={next_asset?.decimals || decimals || asset_data?.decimals}
+                  symbol={next_asset?.symbol}
                   trigger={trigger}
                   className="bg-slate-100 dark:bg-slate-800 rounded py-1.5 px-2.5"
                 />
