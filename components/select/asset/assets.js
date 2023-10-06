@@ -137,10 +137,10 @@ export default (
       )
     })
     .map(d => {
-      const { is_next_asset, group, scores } = { ...d }
+      const { is_next_asset, is_xERC20, is_alchemix, group, scores } = { ...d }
       return {
         ...d,
-        group: group || (is_next_asset ? 'NextAssets' : ''),
+        group: group || (is_next_asset ? 'next_assets' : is_xERC20 ? 'xerc20' : is_alchemix ? 'alchemix' : ''),
         max_score: _.max(scores),
       }
     })
@@ -148,7 +148,7 @@ export default (
       const { group } = { ...d }
       let group_index = !group ? -1 : null
       switch (group) {
-        case 'NextAssets':
+        case 'next_assets':
           group_index = 0
           break
         case 'xerc20':

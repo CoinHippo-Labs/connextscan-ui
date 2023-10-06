@@ -130,7 +130,6 @@
     "symbol": "RADAR",
     "name": "DappRadar",
     "image": "/logos/assets/radar.png",
-    "is_stablecoin": false,
     "is_xERC20": true,
     "contracts": [
       {
@@ -155,14 +154,14 @@
         "symbol": "RADAR"
       }
     ],
-    "color": "#000000",
-    "group": "xerc20"
+    "color": "#000000"
   },
   {
     "id": "alusd",
     "symbol": "alUSD",
     "name": "Alchemix USD",
     "image": "/logos/assets/alusd.png",
+    "is_alchemix": true,
     "is_stablecoin": true,
     "contracts": [
       {
@@ -184,15 +183,14 @@
         "symbol": "nextAlUSD"
       }
     ],
-    "color": "#000000",
-    "group": "alchemix"
+    "color": "#000000"
   },
   {
     "id": "aleth",
     "symbol": "alETH",
     "name": "Alchemix ETH",
     "image": "/logos/assets/aleth.png",
-    "is_stablecoin": false,
+    "is_alchemix": true,
     "contracts": [
       {
         "contract_address": "0xF6DD52cdF1614Cd649077Aa283840657617faa07",
@@ -213,8 +211,7 @@
         "symbol": "nextAlETH"
       }
     ],
-    "color": "#000000",
-    "group": "alchemix"
+    "color": "#000000"
   },
   {
     "id": "tkn",
@@ -244,7 +241,6 @@
     "symbol": "IXT",
     "name": "IXT",
     "image": "/logos/assets/tkn.png",
-    "is_stablecoin": false,
     "contracts": [
       {
         "contract_address": "0x9B11e38299F2E2094793640B67b5e29678792ab4",
@@ -267,7 +263,6 @@
     "symbol": "P8",
     "name": "P8",
     "image": "/logos/assets/p8.png",
-    "is_stablecoin": false,
     "contracts": [
       {
         "contract_address": "0x772fCe4B8E88BD19e86dC92428d242704aC480a0",
@@ -284,7 +279,6 @@
     "symbol": "BTRST",
     "name": "Braintrust",
     "image": "/logos/assets/btrst.png",
-    "is_stablecoin": false,
     "contracts": [
       {
         "contract_address": "0x39e09359F5a7396937504Eb2766722e2bf4650e8",
@@ -307,7 +301,6 @@
     "symbol": "xEURe",
     "name": "xTokenFrontend",
     "image": "/logos/assets/eur.png",
-    "is_stablecoin": false,
     "contracts": [
       {
         "contract_address": "0x6984384D6abE16221769BD9400de72b8F4Aa572C",
@@ -336,7 +329,6 @@
     "symbol": "WorkshopToken",
     "name": "WorkshopToken",
     "image": "/logos/assets/tkn.png",
-    "is_stablecoin": false,
     "contracts": [
       {
         "contract_address": "0x02E82fB078893EC64BC57e55Fe34f6669D8104BC",
