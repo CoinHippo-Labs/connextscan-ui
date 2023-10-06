@@ -107,8 +107,9 @@ export default () => {
           const contract_data = getContractData(chain_id, contracts)
           const { next_asset } = { ...contract_data }
           let { contract_address, xERC20, decimals } = { ...contract_data }
-          contract_address = next_asset?.contract_address || xERC20 || contract_address
-          decimals = next_asset?.decimals || decimals || 18
+          const isNextAsset = equalsIgnoreCase(next_asset?.symbol, data.symbol)
+          contract_address = (isNextAsset ? next_asset?.contract_address : null) || xERC20 || contract_address
+          decimals = (isNextAsset ? next_asset?.decimals : null) || decimals || 18
 
           switch (action) {
             case 'remove':
@@ -158,14 +159,14 @@ export default () => {
       const { chain_id, domain_id } = { ...chain_data }
 
       const asset_data = getAssetData(asset, assets_data)
-
       const { contracts } = { ...asset_data }
       const contract_data = getContractData(chain_id, contracts)
       const { xERC20, next_asset } = { ...contract_data }
       let { contract_address, decimals, symbol } = { ...contract_data }
-      contract_address = next_asset?.contract_address || contract_address
-      decimals = next_asset?.decimals || decimals || 18
-      symbol = next_asset?.symbol || symbol || asset_data?.symbol
+      const isNextAsset = equalsIgnoreCase(next_asset?.symbol, data.symbol)
+      contract_address = (isNextAsset ? next_asset?.contract_address : null) || contract_address
+      decimals = (isNextAsset ? next_asset?.decimals : null) || decimals || 18
+      symbol = (isNextAsset ? next_asset?.symbol : null) || symbol || asset_data?.symbol
 
       const params = {
         domainId: domain_id,
@@ -268,9 +269,10 @@ export default () => {
       const contract_data = getContractData(chain_id, contracts)
       const { xERC20, next_asset } = { ...contract_data }
       let { contract_address, decimals, symbol } = { ...contract_data }
-      contract_address = next_asset?.contract_address || contract_address
-      decimals = next_asset?.decimals || decimals || 18
-      symbol = next_asset?.symbol || symbol || asset_data?.symbol
+      const isNextAsset = equalsIgnoreCase(next_asset?.symbol, data.symbol)
+      contract_address = (isNextAsset ? next_asset?.contract_address : null) || contract_address
+      decimals = (isNextAsset ? next_asset?.decimals : null) || decimals || 18
+      symbol = (isNextAsset ? next_asset?.symbol: null) || symbol || asset_data?.symbol
 
       const params = {
         domainId: domain_id,
@@ -332,10 +334,12 @@ export default () => {
   const { contracts } = { ...asset_data }
   const contract_data = getContractData(chain_id, contracts)
   const { next_asset } = { ...contract_data }
-  let { contract_address, decimals, symbol } = { ...contract_data }
-  contract_address = next_asset?.contract_address || contract_address
-  decimals = next_asset?.decimals || decimals || 18
-  symbol = next_asset?.symbol || symbol || asset_data?.symbol
+  let { contract_address, decimals, symbol, image } = { ...contract_data }
+  const isNextAsset = equalsIgnoreCase(next_asset?.symbol, data?.symbol)
+  contract_address = (isNextAsset ? next_asset?.contract_address : null) || contract_address
+  decimals = (isNextAsset ? next_asset?.decimals : null) || decimals || 18
+  symbol = (isNextAsset ? next_asset?.symbol : null) || symbol || asset_data?.symbol
+  image = (isNextAsset ? next_asset?.image : null) || image || asset_data?.image
   const max_amount = balance || 0
 
   const fields = [
@@ -519,9 +523,12 @@ export default () => {
                     <SelectAsset
                       disabled={disabled}
                       value={asset}
-                      onSelect={(a, c) => { setData({ ...data, asset: a, amount: null }) }}
+                      onSelect={(a, c) => { setData({ ...data, asset: a, symbol: c, amount: null }) }}
                       chain={chain}
+                      isBridge={true}
+                      showNextAssets={true}
                       canClose={false}
+                      data={{ symbol, image }}
                       className="flex items-center space-x-1.5 sm:space-x-2"
                     />
                     <DebounceInput
