@@ -16,7 +16,8 @@ import ExplorerLink from '../explorer/link'
 import SelectChain from '../select/chain'
 import SelectAsset from '../select/asset'
 import Wallet from '../wallet'
-import Wrapper from '../wrapper/xERC20'
+import XERC20Wrapper from '../wrapper/xERC20'
+import AlchemixWrapper from '../wrapper/alchemix'
 import { getBalance } from '../../lib/chain/evm'
 import { GAS_LIMIT_ADJUSTMENT } from '../../lib/config'
 import { getChainData, getAssetData, getContractData } from '../../lib/object'
@@ -331,7 +332,7 @@ export default () => {
   const { chain_id } = { ...chain_data }
 
   const asset_data = getAssetData(asset, assets_data)
-  const { contracts } = { ...asset_data }
+  const { is_alchemix, contracts } = { ...asset_data }
   const contract_data = getContractData(chain_id, contracts)
   const { next_asset } = { ...contract_data }
   let { contract_address, decimals, symbol, image } = { ...contract_data }
@@ -525,7 +526,7 @@ export default () => {
                       value={asset}
                       onSelect={(a, c) => { setData({ ...data, asset: a, symbol: c, amount: null }) }}
                       chain={chain}
-                      isBridge={true}
+                      isRouterLiquidity={true}
                       showNextAssets={true}
                       canClose={false}
                       data={{ symbol, image }}
@@ -664,7 +665,8 @@ export default () => {
                   )
                 })}
               </div>
-              {contract_data?.xERC20 && <Wrapper tokenId={asset} contractData={contract_data} />}
+              {contract_data?.xERC20 && <XERC20Wrapper tokenId={asset} contractData={contract_data} />}
+              {is_alchemix && contract_data?.next_asset && <AlchemixWrapper tokenId={asset} contractData={contract_data} />}
             </div>
           </div>
         }
