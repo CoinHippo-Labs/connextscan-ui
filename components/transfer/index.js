@@ -504,7 +504,7 @@ export default () => {
                         }
                       </div>
                     </div>
-                    {data[`${d}_transaction_hash`] && (
+                    {(data[`${d}_transaction_hash`] || data[`${d}_simulation_from`]) && (
                       toArray(
                         _.concat(
                           [
