@@ -786,7 +786,7 @@
         "symbol": "GRUMPYCAT",
         "xERC20": "0x3B350F202473932411772C8Cb76DB7975f42397E",
         "lockbox": "0x713F8CE92B4369f2206AFEE90bD13464Bbfb28bE",
-        "lockbox_adapter": "0x9bA95982A52574CeBaBD3fcad6AA355a3034A58F"
+        "lockbox_adapter": "0x6e7Ab4b68f1B184F677ED5e8e6e8f9348c3957a4"
       },
       {
         "contract_address": "0x3B350F202473932411772C8Cb76DB7975f42397E",
