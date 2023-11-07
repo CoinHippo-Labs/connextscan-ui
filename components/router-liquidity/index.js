@@ -200,7 +200,15 @@ export default () => {
         setApproving(false)
       } catch (error) {
         const response = parseError(error)
-        setApproveResponse({ status: 'failed', ...response, chain_data })
+        const { code } = { ...response }
+        switch (code) {
+          case 'user_rejected':
+            reset()
+            break
+          default:
+            setApproveResponse({ status: 'failed', ...response, chain_data })
+            break
+        }
         setApproveProcessing(false)
         setApproving(false)
         failed = true
