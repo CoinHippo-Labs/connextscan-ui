@@ -755,7 +755,7 @@
         "next_asset": {
           "contract_address": "0xBB1B173cdFBe464caaaCeaB2a9c8C44229d62D14",
           "decimals": 18,
-          "symbol": "ZOOMER",
+          "symbol": "nextZOOMER",
           "image": "/logos/assets/zoomer.png"
         }
       },
@@ -767,7 +767,7 @@
         "next_asset": {
           "contract_address": "0xb2588731d8f6F854037936d6ffac4c13d0b6bd62",
           "decimals": 18,
-          "symbol": "ZOOMER",
+          "symbol": "nextZOOMER",
           "image": "/logos/assets/zoomer.png"
         }
       }

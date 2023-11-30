@@ -94,7 +94,7 @@ export default (
             symbol: symbol === 'DAI' ? `X${symbol}` : symbol,
             image: image?.replace('/dai.', '/xdai.'),
           },
-          (!showOnlyWrappable || wrappable) && (!isRouterLiquidity || !is_alchemix || !next_asset) && { ...contract_data, contract_address: xERC20 || contract_address },
+          (!showOnlyWrappable || wrappable) && (!isRouterLiquidity || !next_asset) && (!is_alchemix || isRouterLiquidity) && { ...contract_data, contract_address: xERC20 || contract_address },
           next_asset && (isBridge || isRouterLiquidity) && showNextAssets && {
             ...contract_data,
             ...next_asset,
@@ -218,7 +218,7 @@ export default (
           symbol = symbol || d.symbol || name
           image = image || d.image
 
-          const selected = data?.contract_address ? equalsIgnoreCase(contract_address, data.contract_address) : id === value
+          const selected = data?.contract_address ? equalsIgnoreCase(contract_address, data.contract_address) : id === value && (!symbol || !data?.symbol || equalsIgnoreCase(symbol, data.symbol))
           const header = group && !equalsIgnoreCase(group, assets_data_sorted[i - 1]?.group) && (
             <div className={`text-slate-400 dark:text-slate-500 text-xs mt-${i === 0 ? 0.5 : 3} mb-2 ml-2`}>
               {getTitle(group)}
