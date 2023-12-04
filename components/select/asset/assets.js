@@ -84,18 +84,18 @@ export default (
     toArray(_assets_data).filter(d => !inputSearch || d).flatMap(d => {
       const { symbol, image, is_alchemix, contracts } = { ...d }
       const contract_data = getContractData(chain_id, contracts)
-      const { contract_address, xERC20, next_asset, wrappable } = { ...contract_data }
+      const { contract_address, xERC20, next_asset, wrappable, liquidity_disabled } = { ...contract_data }
 
       const contracts_data = toArray(
         _.concat(
-          wrappable && (isBridge || isRouterLiquidity) && (showNativeAssets || showOnlyWrappable) && {
+          wrappable && (isBridge || (isRouterLiquidity && !liquidity_disabled)) && (showNativeAssets || showOnlyWrappable) && {
             ...contract_data,
             contract_address: ZeroAddress,
             symbol: symbol === 'DAI' ? `X${symbol}` : symbol,
             image: image?.replace('/dai.', '/xdai.'),
           },
           (!showOnlyWrappable || wrappable) && (!isRouterLiquidity || !next_asset) && (!is_alchemix || isRouterLiquidity) && { ...contract_data, contract_address: xERC20 || contract_address },
-          next_asset && (isBridge || isRouterLiquidity) && showNextAssets && {
+          next_asset && (isBridge || (isRouterLiquidity && !liquidity_disabled)) && showNextAssets && {
             ...contract_data,
             ...next_asset,
             is_next_asset: true,
