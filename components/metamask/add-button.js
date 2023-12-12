@@ -157,13 +157,10 @@ export default (
 
   const tooltip = already_on ? 'No action needed. Your MetaMask wallet is currently on this chain.' : split(`Add ${asset ? token_data.symbol || asset : ''} ${chain && asset ? 'on' : ''} ${name || chain} to MetaMask`, 'normal', ' ').join(' ')
 
-  return (
-    chainId &&
-    (!noTooltip ?
-      <Tooltip content={tooltip}>
-        {button}
-      </Tooltip> :
-      button
-    )
+  return chainId && (!noTooltip ?
+    <Tooltip content={tooltip}>
+      {button}
+    </Tooltip> :
+    button
   )
 }

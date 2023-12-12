@@ -115,14 +115,7 @@ export default () => {
             }
           })
 
-          // const transfers = toArray(await getDailyTransferMetrics({ router: `eq.${address?.toLowerCase()}`, transfer_date })).filter(d => d.transfer_date).map(d => {
-          //   const { origin_chain, destination_chain } = { ...d }
-          //   const origin_chain_data = getChainData(origin_chain, chains_data)
-          //   const destination_chain_data = getChainData(destination_chain, chains_data)
-          //   return { ...d, origin_chain_data, destination_chain_data }
-          // })
-
-          setData({ total_volume: _.sumBy(volumes, 'volume')/*, total_transfers: _.sumBy(transfers, 'transfer_count')*/ })
+          setData({ total_volume: _.sumBy(volumes, 'volume') })
         }
       }
       getData()
@@ -130,12 +123,10 @@ export default () => {
     [chains_data, assets_data, sdk],
   )
 
-  const { total_volume, total_transfers } = { ...data }
+  const { total_volume } = { ...data }
   const metrics = liquidity && data && {
     liquidity: _.sumBy(liquidity, 'value'),
     volume: total_volume,
-    transfers: total_transfers,
-    // fee: 33.33,
     supported_chains: _.uniq(liquidity.map(d => d.chain_id)),
   }
 

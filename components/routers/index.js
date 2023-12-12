@@ -119,7 +119,6 @@ export default () => {
         total_value: _.sumBy(assets, 'value'),
         total_volume: _.sumBy(toArray(volumes).filter(_d => equalsIgnoreCase(_d.router, router_address)), 'volume'),
         total_transfers: _.sumBy(toArray(transfers).filter(_d => equalsIgnoreCase(_d.router, router_address)), 'transfers'),
-        // total_fee: 33.33,
         supported_chains: _.uniq(assets.map(_d => _d.chain_id)),
         liquidity_by_assets: _.orderBy(
           Object.entries(_.groupBy(assets.filter(_d => _d.asset_data?.id), 'asset_data.id')).map(([k, v]) => {
@@ -204,7 +203,6 @@ export default () => {
     liquidity: _.sumBy(routers, 'total_value'),
     volume: _.sumBy(routers, 'total_volume'),
     transfers: _.sumBy(transfers, 'transfers'),
-    // fee: 33.33,
     supported_chains: _.uniq(routers.flatMap(d => d.supported_chains)),
     liquidity_by_assets: Object.entries(_.groupBy(routers.flatMap(d => toArray(d.liquidity_by_assets)), 'asset')).map(([k, v]) => { return { asset: k, value: _.sumBy(v, 'value') } }),
     liquidity_by_chains: Object.entries(_.groupBy(routers.flatMap(d => toArray(d.liquidity_by_chains)), 'chain')).map(([k, v]) => { return { chain: k, value: _.sumBy(v, 'value') } }),
@@ -531,30 +529,6 @@ export default () => {
                 headerClassName: 'justify-end whitespace-nowrap text-right',
               },
               {
-                Header: 'Fee',
-                accessor: 'total_fee',
-                sortType: (a, b) => a.original.total_fee > b.original.total_fee ? 1 : -1,
-                Cell: props => {
-                  const { value } = { ...props }
-                  return (
-                    <div className="text-right">
-                      {isNumber(value) ?
-                        <NumberDisplay
-                          value={value}
-                          prefix="$"
-                          noTooltip={true}
-                          className="text-base font-semibold"
-                        /> :
-                        <span className="text-slate-400 dark:text-slate-500">
-                          -
-                        </span>
-                      }
-                    </div>
-                  )
-                },
-                headerClassName: 'justify-end whitespace-nowrap text-right',
-              },
-              {
                 Header: 'Supported Chains',
                 accessor: 'supported_chains',
                 sortType: (a, b) => toArray(a.original.supported_chains).length > toArray(b.original.supported_chains).length ? 1 : -1,
@@ -587,7 +561,7 @@ export default () => {
                 },
                 headerClassName: 'justify-end whitespace-nowrap text-right',
               },
-            ].filter(c => !mode ? !['share', 'liquidity_by_assets', 'liquidity_by_chains', 'total_transfers', 'total_fee'].includes(c.accessor) : !['total_transfers', 'total_fee'].includes(c.accessor))}
+            ].filter(c => !mode ? !['share', 'liquidity_by_assets', 'liquidity_by_chains', 'total_transfers'].includes(c.accessor) : !['total_transfers'].includes(c.accessor))}
             data={routers}
             defaultPageSize={50}
             noPagination={routers.length <= 10}

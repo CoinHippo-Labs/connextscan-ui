@@ -14,7 +14,7 @@ import meta from '../lib/meta'
 import { getTokensPrice } from '../lib/api/tokens'
 import { getENS } from '../lib/api/ens'
 import { getProvider, getBalance } from '../lib/chain/evm'
-import { NETWORK, ENVIRONMENT, IS_STAGING, getChainsData, getAssetsData } from '../lib/config'
+import { NETWORK, ENVIRONMENT, getChainsData, getAssetsData } from '../lib/config'
 import { getChainData, getAssetData, getChainContractsData, getContractData, getPoolData, getBalanceData } from '../lib/object'
 import { formatUnits, isNumber } from '../lib/number'
 import { split, toArray, equalsIgnoreCase, sleep } from '../lib/utils'
@@ -22,38 +22,7 @@ import { THEME, PAGE_VISIBLE, CHAINS_DATA, ASSETS_DATA, POOL_ASSETS_DATA, GAS_TO
 
 export default ({ children }) => {
   const dispatch = useDispatch()
-  const {
-    preferences,
-    chains,
-    assets,
-    pool_assets,
-    gas_tokens_price,
-    ens,
-    router_asset_balances,
-    pools,
-    rpc_providers,
-    dev,
-    wallet,
-    balances,
-  } = useSelector(
-    state => (
-      {
-        preferences: state.preferences,
-        chains: state.chains,
-        assets: state.assets,
-        pool_assets: state.pool_assets,
-        gas_tokens_price: state.gas_tokens_price,
-        ens: state.ens,
-        router_asset_balances: state.router_asset_balances,
-        pools: state.pools,
-        rpc_providers: state.rpc_providers,
-        dev: state.dev,
-        wallet: state.wallet,
-        balances: state.balances,
-      }
-    ),
-    shallowEqual,
-  )
+  const { preferences, chains, assets, pool_assets, gas_tokens_price, ens, router_asset_balances, pools, rpc_providers, dev, wallet, balances } = useSelector(state => ({ preferences: state.preferences, chains: state.chains, assets: state.assets, pool_assets: state.pool_assets, gas_tokens_price: state.gas_tokens_price, ens: state.ens, router_asset_balances: state.router_asset_balances, pools: state.pools, rpc_providers: state.rpc_providers, dev: state.dev, wallet: state.wallet, balances: state.balances }), shallowEqual)
   const { theme, page_visible } = { ...preferences }
   const { chains_data } = { ...chains }
   const { assets_data } = { ...assets }
@@ -348,35 +317,12 @@ export default ({ children }) => {
               pool.local = local
             }
 
-            /*if (lpTokenAddress) {
-              await sleep(1.5 * 1000)
-              console.log('[General]', '[getTokenSupply]', { domain_id, lpTokenAddress })
-              try {
-                supply = await sdk.sdkPool.getTokenSupply(domain_id, lpTokenAddress)
-                supply = formatUnits(supply)
-                console.log('[General]', '[LPTokenSupply]', { domain_id, lpTokenAddress, supply })
-              } catch (error) {
-                console.log('[General]', '[getTokenSupply error]', { domain_id, lpTokenAddress }, error)
-              }
-            }*/
             supply = supply || pool?.supply
             let { price } = { ...getAssetData(asset_data.id, assets_data) }
             price = price || 0
             if (isNumber(supply) || (adopted?.balance && local?.balance)) {
               tvl = Number(supply || _.sum(toArray(_.concat(adopted, local)).map(a => Number(a.balance)))) * price
             }
-
-            /*if (pool && (IS_STAGING || ENVIRONMENT === 'production')) {
-              await sleep(1.5 * 1000)
-              const number_of_days = 7
-              console.log('[General]', '[getYieldData]', { domain_id, contract_address, number_of_days })
-              try {
-                stats = _.cloneDeep(await sdk.sdkPool.getYieldData(domain_id, contract_address, number_of_days))
-                console.log('[General]', '[yieldData]', { domain_id, contract_address, number_of_days, stats })
-              } catch (error) {
-                console.log('[General]', '[getYieldData error]', { domain_id, contract_address, number_of_days }, error)
-              }
-            }*/
 
             if (equalsIgnoreCase(pool?.domainId, domain_id)) {
               const { liquidity, volumeFormatted, fees } = { ...stats }
