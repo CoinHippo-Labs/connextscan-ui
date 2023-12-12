@@ -161,7 +161,7 @@ export default () => {
     [page_visible, chains_data, assets_data, sdk, chain, timeframe],
   )
 
-  const { chain_id } = { ...getChainData(chain, chains_data) }
+  const { chain_id, no_pool } = { ...getChainData(chain, chains_data) }
   const { total_volume, volumes, total_transfers, transfers } = { ...data }
   const metrics = liquidity && pools_data && data && {
     liquidity: _.sumBy(liquidity, 'value') + (pools_data ? _.sumBy(pools_data.filter(d => d.chain_id === chain_id), 'tvl') : 0),
@@ -195,7 +195,7 @@ export default () => {
       </div>
       <div className="w-full grid lg:grid-cols-2 gap-4">
         <Assets data={liquidity} />
-        <Pools data={pools_data} />
+        {!no_pool && <Pools data={pools_data} />}
       </div>
       <div className="w-full">
         <Routers data={routers} />

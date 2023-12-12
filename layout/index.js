@@ -357,7 +357,15 @@ export default ({ children }) => {
         }
       }
 
-      const getChainData = async chain_data => pool_assets_data.forEach(a => getPool(chain_data, a))
+      const getChainData = async chain_data => {
+        const { no_pool } = { ...chain_data }
+        if (no_pool) {
+          dispatch({ type: POOLS_DATA, value: [] })
+        }
+        else {
+          pool_assets_data.forEach(a => getPool(chain_data, a))
+        }
+      }
 
       const getData = async () => {
         if (page_visible && chains_data && pool_assets_data && sdk && pathname && ['/', '/[chain]'].includes(pathname)) {
