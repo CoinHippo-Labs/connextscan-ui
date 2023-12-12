@@ -387,7 +387,7 @@ export default (
                 if (!equalsIgnoreCase(delegate, address)) {
                   message = 'Must update slippage with delegate'
                   setUpdateResponse({ status: 'failed', ...response, message })
-                  break 
+                  break
                 }
               default:
                 setUpdateResponse({ status: 'failed', ...response })
