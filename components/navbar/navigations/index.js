@@ -55,7 +55,7 @@ const Group = ({ title, items, pathname, className = '' }) => {
                   {item}
                 </div>
               </Link>
-           )}
+          })}
         </div>
       </MenuList>
     </Menu>
