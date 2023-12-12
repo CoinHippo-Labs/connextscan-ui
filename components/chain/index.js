@@ -9,7 +9,6 @@ import Metrics from '../metrics'
 import SelectTimeframe from '../select/timeframe'
 import Volume from '../dashboard/volume'
 import Transfers from '../dashboard/transfers'
-import Fee from '../dashboard/fee'
 import Assets from '../assets'
 import Pools from '../pools'
 import { getDailyTransferMetrics, getDailyTransferVolume } from '../../lib/api/metrics'
@@ -162,13 +161,12 @@ export default () => {
     [page_visible, chains_data, assets_data, sdk, chain, timeframe],
   )
 
-  const { chain_id } = { ...getChainData(chain, chains_data) }
-  const { total_volume, volumes, total_transfers, transfers, /*fees*/ } = { ...data }
+  const { chain_id, no_pool } = { ...getChainData(chain, chains_data) }
+  const { total_volume, volumes, total_transfers, transfers } = { ...data }
   const metrics = liquidity && pools_data && data && {
     liquidity: _.sumBy(liquidity, 'value') + (pools_data ? _.sumBy(pools_data.filter(d => d.chain_id === chain_id), 'tvl') : 0),
     volume: total_volume,
     transfers: total_transfers,
-    // fee: 33.33,
   }
   const routers = router_asset_balances_data && _.orderBy(
     Object.entries(_.groupBy(toArray(router_asset_balances_data[chain_id]), 'router_address')).map(([k, v]) => {
@@ -194,13 +192,10 @@ export default () => {
         <div className="lg:col-span-4">
           <Transfers timeframe={timeframe} transfers={transfers} />
         </div>
-        {/*<div className="lg:col-span-4">
-          <Fee timeframe={timeframe} fees={fees} />
-        </div>*/}
       </div>
       <div className="w-full grid lg:grid-cols-2 gap-4">
         <Assets data={liquidity} />
-        <Pools data={pools_data} />
+        {!no_pool && <Pools data={pools_data} />}
       </div>
       <div className="w-full">
         <Routers data={routers} />

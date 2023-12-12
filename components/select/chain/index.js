@@ -3,7 +3,6 @@ import { useSelector, shallowEqual } from 'react-redux'
 import { BiX, BiChevronDown } from 'react-icons/bi'
 
 import Search from './search'
-import Spinner from '../../spinner'
 import Image from '../../image'
 import Modal from '../../modal'
 import { chainName, getChainData } from '../../../lib/object'
@@ -71,7 +70,7 @@ export default (
               </div>
             )}
           </div> :
-          null//<Spinner name="Puff" />
+          null
       }
       buttonClassName={className || `min-w-max h-8 sm:h-10 ${disabled ? 'cursor-not-allowed' : ''} flex items-center justify-center`}
       buttonStyle={{ boxShadow, WebkitBoxShadow: boxShadow, MozBoxShadow: boxShadow }}

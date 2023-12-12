@@ -504,13 +504,11 @@ export default () => {
                         {a}
                       </div>
                     )
-                    return (
-                      a === 'remove' && disabled ?
-                        <Tooltip key={i} content="Only router can remove liquidity.">
-                          {selectComponent}
-                        </Tooltip> :
-                        selectComponent
-                    )
+                    return a === 'remove' && disabled ?
+                      <Tooltip key={i} content="Only router can remove liquidity.">
+                        {selectComponent}
+                      </Tooltip> :
+                      selectComponent
                   })}
                 </div>
                 <div className="flex items-center space-x-2">

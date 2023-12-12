@@ -62,18 +62,6 @@ export default () => {
     [asPath],
   )
 
-  // useEffect(
-  //   () => {
-  //     if (fetchTrigger !== undefined) {
-  //       const qs = new URLSearchParams()
-  //       Object.entries({ ...filters }).filter(([k, v]) => v).forEach(([k, v]) => { qs.append(k, v) })
-  //       const qs_string = qs.toString()
-  //       router.push(`${pathname}${qs_string ? `?${qs_string}` : ''}`)
-  //     }
-  //   },
-  //   [fetchTrigger],
-  // )
-
   useEffect(
     () => {
       const trigger = is_interval => {

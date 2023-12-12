@@ -9,8 +9,6 @@ import VolumeTotal from './volume/total'
 import Volume from './volume'
 import TransfersTotal from './transfers/total'
 import Transfers from './transfers'
-import FeeTotal from './fee/total'
-import Fee from './fee'
 import SelectTimeframe from '../select/timeframe'
 import { getDailyTransferMetrics, getDailyTransferVolume } from '../../lib/api/metrics'
 import { getChainData, getAssetData, getContractData, TIMEFRAMES } from '../../lib/object'
@@ -200,7 +198,7 @@ export default () => {
     [chains_data, assets_data, sdk, timeframe],
   )
 
-  const { volumes, transfers, fees } = { ...data }
+  const { volumes, transfers } = { ...data }
 
   return (
     <div className="grid lg:grid-cols-4 gap-4 mx-auto px-4">
@@ -227,14 +225,6 @@ export default () => {
           transfers={transfers}
         />
       </div>
-      {/*<FeeTotal data={data} />
-      <div className="lg:col-span-3">
-        <Fee
-          timeframe={timeframe}
-          stacked={true}
-          fees={fees}
-        />
-      </div>*/}
     </div>
   )
 }

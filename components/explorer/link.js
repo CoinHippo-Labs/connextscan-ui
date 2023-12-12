@@ -18,15 +18,7 @@ export default (
     className = 'rounded-full opacity-60 hover:opacity-100',
   },
 ) => {
-  const {
-    url,
-    name,
-    address_path,
-    contract_path,
-    contract_0_path,
-    transaction_path,
-    icon,
-  } = { ...explorer }
+  const { url, name, address_path, contract_path, contract_0_path, transaction_path, icon } = { ...explorer }
 
   let path
   let field
