@@ -6,8 +6,9 @@
     "name": "Ethereum",
     "short_name": "ETH",
     "rpcs": [
+      "https://eth.llamarpc.com",
       "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
-      "https://eth.meowrpc.com"
+      "https://1rpc.io/eth"
     ],
     "native_token": {
       "name": "Ethereum",
@@ -39,7 +40,8 @@
     "short_name": "BNB",
     "rpcs": [
       "https://binance.llamarpc.com",
-      "https://bsc.blockpi.network/v1/rpc/public"
+      "https://bsc.blockpi.network/v1/rpc/public",
+      "https://1rpc.io/bnb"
     ],
     "native_token": {
       "name": "BNB",
@@ -69,9 +71,10 @@
     "name": "Polygon",
     "short_name": "POLY",
     "rpcs": [
+      "https://polygon.llamarpc.com",
       "https://polygon-mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
-      "https://polygon.meowrpc.com",
-      "https://polygon.blockpi.network/v1/rpc/public"
+      "https://polygon.blockpi.network/v1/rpc/public",
+      "https://polygon-pokt.nodies.app"
     ],
     "native_token": {
       "name": "Polygon",
@@ -101,8 +104,10 @@
     "name": "Optimism",
     "short_name": "OP",
     "rpcs": [
-      "https://optimism-mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
-      "https://optimism.blockpi.network/v1/rpc/public"
+      "https://optimism.llamarpc.com",
+      "https://optimism.blockpi.network/v1/rpc/public",
+      "https://1rpc.io/op",
+      "https://optimism-mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
     ],
     "native_token": {
       "name": "Ethereum",
@@ -133,8 +138,10 @@
     "name": "Arbitrum",
     "short_name": "ARB",
     "rpcs": [
-      "https://arbitrum-mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
-      "https://arbitrum.llamarpc.com"
+      "https://arbitrum.llamarpc.com",
+      "https://arbitrum.blockpi.network/v1/rpc/public",
+      "https://1rpc.io/arb",
+      "https://arbitrum-mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
     ],
     "native_token": {
       "name": "Ethereum",
@@ -165,7 +172,10 @@
     "name": "Gnosis",
     "short_name": "GNO",
     "rpcs": [
+      "https://gnosis-pokt.nodies.app",
+      "https://gnosis.drpc.org",
       "https://gnosis.blockpi.network/v1/rpc/public",
+      "https://1rpc.io/gnosis",
       "https://gnosis-mainnet.public.blastapi.io"
     ],
     "native_token": {
@@ -197,8 +207,8 @@
     "name": "Linea",
     "short_name": "LINEA",
     "rpcs": [
-      "https://linea.blockpi.network/v1/rpc/public",
       "https://linea.drpc.org",
+      "https://linea.blockpi.network/v1/rpc/public",
       "https://1rpc.io/linea",
       "https://rpc.linea.build"
     ],
