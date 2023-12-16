@@ -73,8 +73,7 @@
     "rpcs": [
       "https://polygon.llamarpc.com",
       "https://polygon-mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
-      "https://polygon.blockpi.network/v1/rpc/public",
-      "https://polygon-pokt.nodies.app"
+      "https://polygon.blockpi.network/v1/rpc/public"
     ],
     "native_token": {
       "name": "Polygon",
@@ -172,7 +171,6 @@
     "name": "Gnosis",
     "short_name": "GNO",
     "rpcs": [
-      "https://gnosis-pokt.nodies.app",
       "https://gnosis.drpc.org",
       "https://gnosis.blockpi.network/v1/rpc/public",
       "https://1rpc.io/gnosis",
