@@ -977,7 +977,7 @@
         "contract_address": "0x0D505C03d30e65f6e9b4Ef88855a47a89e4b7676",
         "chain_id": 1,
         "decimals": 18,
-        "symbol": "NEXT",
+        "symbol": "ZOOMER",
         "xERC20": "0x425F81E2fe53256B9a7AEA91949dA2210bd049bE",
         "lockbox": "0xB3bC2AaabB4C27890dBB491550eac3843A946625",
         "lockbox_adapter": "0x45BF3c737e57B059a5855280CA1ADb8e9606AC68"
