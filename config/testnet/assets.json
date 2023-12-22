@@ -37,6 +37,12 @@
         "symbol": "TEST"
       },
       {
+        "contract_address": "0x5f921E4DE609472632CEFc72a3846eCcfbed4ed8",
+        "chain_id": 1442,
+        "decimals": 18,
+        "symbol": "TEST"
+      },
+      {
         "contract_address": "0x7C1412e456ad60B8ee458c4eb3A9852C3e389353",
         "chain_id": 280,
         "decimals": 18,
