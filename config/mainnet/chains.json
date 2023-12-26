@@ -6,8 +6,8 @@
     "name": "Ethereum",
     "short_name": "ETH",
     "rpcs": [
-      "https://eth.llamarpc.com",
       "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+      "https://ethereum.publicnode.com",
       "https://1rpc.io/eth"
     ],
     "native_token": {
@@ -39,9 +39,9 @@
     "name": "BNB Chain",
     "short_name": "BNB",
     "rpcs": [
-      "https://binance.llamarpc.com",
+      "https://bsc-dataseed.bnbchain.org",
       "https://bsc.blockpi.network/v1/rpc/public",
-      "https://1rpc.io/bnb"
+      "https://bsc.publicnode.com"
     ],
     "native_token": {
       "name": "BNB",
@@ -71,7 +71,7 @@
     "name": "Polygon",
     "short_name": "POLY",
     "rpcs": [
-      "https://polygon.llamarpc.com",
+      "https://polygon-rpc.com",
       "https://polygon-mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
       "https://polygon.blockpi.network/v1/rpc/public"
     ],
@@ -103,10 +103,8 @@
     "name": "Optimism",
     "short_name": "OP",
     "rpcs": [
-      "https://optimism.llamarpc.com",
-      "https://optimism.blockpi.network/v1/rpc/public",
-      "https://1rpc.io/op",
-      "https://optimism-mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
+      "https://optimism-mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+      "https://optimism.publicnode.com"
     ],
     "native_token": {
       "name": "Ethereum",
@@ -137,10 +135,8 @@
     "name": "Arbitrum",
     "short_name": "ARB",
     "rpcs": [
-      "https://arbitrum.llamarpc.com",
-      "https://arbitrum.blockpi.network/v1/rpc/public",
-      "https://1rpc.io/arb",
-      "https://arbitrum-mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
+      "https://arbitrum-mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+      "https://arbitrum-one.publicnode.com"
     ],
     "native_token": {
       "name": "Ethereum",
@@ -171,9 +167,8 @@
     "name": "Gnosis",
     "short_name": "GNO",
     "rpcs": [
-      "https://gnosis.drpc.org",
+      "https://gnosis.publicnode.com",
       "https://gnosis.blockpi.network/v1/rpc/public",
-      "https://1rpc.io/gnosis",
       "https://gnosis-mainnet.public.blastapi.io"
     ],
     "native_token": {
@@ -205,10 +200,9 @@
     "name": "Linea",
     "short_name": "LINEA",
     "rpcs": [
-      "https://linea.drpc.org",
       "https://linea.blockpi.network/v1/rpc/public",
-      "https://1rpc.io/linea",
-      "https://rpc.linea.build"
+      "https://rpc.linea.build",
+      "https://1rpc.io/linea"
     ],
     "native_token": {
       "name": "Ethereum",
