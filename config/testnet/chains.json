@@ -154,7 +154,8 @@
     "color": "#8247e5",
     "unwrapper_contract": "",
     "coingecko_id": "polygon",
-    "gas_coingecko_id": "ethereum"
+    "gas_coingecko_id": "ethereum",
+    "disabled": true
   },
   {
     "id": "zksync",
