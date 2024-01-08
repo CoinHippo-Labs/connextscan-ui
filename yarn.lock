@@ -208,10 +208,10 @@
     secp256k1 "4.0.3"
     sinon-chai "3.7.0"
 
-"@connext/sdk-core@2.2.0-alpha.3":
-  version "2.2.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@connext/sdk-core/-/sdk-core-2.2.0-alpha.3.tgz#0875f0e0516fd7dde0ea4f9eae6dbd972e5e71d3"
-  integrity sha512-bM+Rs8fSk1jkMt7jnnSa80li21nrWcLV49lSHHgR4ohu53AHgDPVDxvj9Kz65YqWZ9OlnTjhuPuC3jJ+rUqOBA==
+"@connext/sdk-core@2.2.2-alpha.0":
+  version "2.2.2-alpha.0"
+  resolved "https://registry.yarnpkg.com/@connext/sdk-core/-/sdk-core-2.2.2-alpha.0.tgz#270dac329f6f87534b88edeedf5c84bb25a2ffcb"
+  integrity sha512-rDxyAphILl8lWS1FXoF2ElXVyCjPk7pk6psFbydvw0zTQl6j4YnRK9SU3SAnGe1JPkYdTN0lJx3DsytxbQieew==
   dependencies:
     "@connext/nxtp-txservice" "2.2.0-alpha.2"
     "@connext/nxtp-utils" "2.2.0-alpha.2"
