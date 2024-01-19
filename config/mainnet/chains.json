@@ -225,5 +225,34 @@
     "group": "evm",
     "coingecko_id" : "linea",
     "gas_coingecko_id" : "ethereum"
-  }
+  },
+  {
+    "id": "nura",
+    "chain_id": 2024,
+    "name": "Nusantara",
+    "short_name": "NURA",
+    "rpcs": [
+      "https://rpc.nurascan.com"
+    ],
+    "native_token": {
+      "name": "Nusantara",
+      "symbol": "NURA",
+      "decimals": 18
+    },
+    "explorer": {
+      "name": "nurascan",
+      "url": "https://nurascan.com",
+      "icon": "/logos/explorers/nura.png",
+      "block_path": "/block/{block}",
+      "address_path": "/address/{address}",
+      "contract_path": "/token/{address}",
+      "contract_0_path": "/address/{address}",
+      "transaction_path": "/tx/{tx}"
+    },
+    "image": "/logos/chains/nura.png",
+    "color": "#e8b30b",
+    "unwrapper_contract": "0x4f5888A782b1708EB3b6Fc6364B283D9aAd9A1e3",
+    "group": "evm",
+    "coingecko_id" : "nusantara"
+  },
 ]
