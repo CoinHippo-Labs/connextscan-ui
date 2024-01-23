@@ -5,6 +5,7 @@
     "name": "Connext",
     "image": "/logos/assets/next.png",
     "is_xERC20": true,
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0xFE67A4450907459c3e1FFf623aA927dD4e28c67a",
@@ -242,6 +243,7 @@
     "name": "Dai",
     "image": "/logos/assets/dai.png",
     "is_stablecoin": true,
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
@@ -439,6 +441,7 @@
     "name": "DappRadar",
     "image": "/logos/assets/radar.png",
     "is_xERC20": true,
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0x44709a920fCcF795fbC57BAA433cc3dd53C44DbE",
@@ -470,6 +473,7 @@
     "name": "Alchemix",
     "image": "/logos/assets/alcx.png",
     "is_xERC20": true,
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0xdbdb4d16eda451d0503b854cf79d55697f90c8df",
@@ -502,6 +506,7 @@
     "image": "/logos/assets/alusd.png",
     "is_alchemix": true,
     "is_stablecoin": true,
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0xBC6DA0FE9aD5f3b0d58160288917AA56653660E9",
@@ -542,6 +547,7 @@
     "name": "Alchemix ETH",
     "image": "/logos/assets/aleth.png",
     "is_alchemix": true,
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0x0100546F2cD4C9D97f798fFC9755E47865FF7Ee6",
@@ -581,6 +587,7 @@
     "symbol": "KP3R",
     "name": "Keep3rV1",
     "image": "/logos/assets/kp3r.png",
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0x1cEB5cB57C4D4E2b2433641b95Dd330A33185A44",
@@ -649,6 +656,7 @@
     "symbol": "KLP",
     "name": "Keep3rLP",
     "image": "/logos/assets/kp3r.png",
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0x3f6740b5898c5D3650ec6eAce9a649Ac791e44D7",
@@ -718,6 +726,7 @@
     "name": "Xocolatl MXN Stablecoin",
     "image": "/logos/assets/xoc.png",
     "is_stablecoin": true,
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0xa411c9Aa00E020e4f88Bc19996d29c5B7ADB4ACf",
@@ -749,6 +758,7 @@
     "symbol": "P8",
     "name": "P8",
     "image": "/logos/assets/p8.png",
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0x772fCe4B8E88BD19e86dC92428d242704aC480a0",
@@ -766,6 +776,7 @@
     "name": "Fraction",
     "image": "/logos/assets/fraction.png",
     "is_xERC20": true,
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0x2bF2ba13735160624a0fEaE98f6aC8F70885eA61",
@@ -805,6 +816,7 @@
     "name": "Grumpy Cat",
     "image": "/logos/assets/grumpycat.png",
     "is_xERC20": true,
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0xd8e2d95c8614f28169757cd6445a71c291dec5bf",
@@ -844,6 +856,7 @@
     "name": "PlanetIX",
     "image": "/logos/assets/planetix.png",
     "is_xERC20": true,
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0xE06Bd4F5aAc8D0aA337D13eC88dB6defC6eAEefE",
@@ -878,6 +891,7 @@
     "name": "Aurox Token",
     "image": "/logos/assets/aurox.png",
     "is_xERC20": true,
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0xc6DdDB5bc6E61e0841C54f3e723Ae1f3A807260b",
@@ -906,6 +920,7 @@
     "name": "Space Token",
     "image": "/logos/assets/spacetoken.png",
     "is_xERC20": true,
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0x9e1170c12fddd3b00fec42ddf4c942565d9be577",
@@ -950,6 +965,7 @@
     "name": "LIT Call Option Token",
     "image": "/logos/assets/olit.png",
     "is_xERC20": true,
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0x627fee87d0D9D2c55098A06ac805Db8F98B158Aa",
@@ -974,6 +990,7 @@
     "name": "Zoomer",
     "image": "/logos/assets/zoomer.png",
     "is_xERC20": true,
+    "allow_paying_gas": true,
     "contracts": [
       {
         "contract_address": "0x0D505C03d30e65f6e9b4Ef88855a47a89e4b7676",
