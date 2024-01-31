@@ -257,6 +257,6 @@
     "unwrapper_contract": "0x8Ef3E1300857FDF616dfE2fcBced4ac6a61Fe774",
     "group": "evm",
     "coingecko_id" : "metis",
-    "gas_coingecko_id" : "metis"
+    "gas_coingecko_id" : "metis-token"
   }
 ]
