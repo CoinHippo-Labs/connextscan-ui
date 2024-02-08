@@ -87,12 +87,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@connext/nxtp-txservice@npm:2.3.0-alpha.0":
-  version: 2.3.0-alpha.0
-  resolution: "@connext/nxtp-txservice@npm:2.3.0-alpha.0"
+"@connext/nxtp-txservice@npm:2.3.0-alpha.1":
+  version: 2.3.0-alpha.1
+  resolution: "@connext/nxtp-txservice@npm:2.3.0-alpha.1"
   dependencies:
     "@connext/nxtp-utils": 2.3.0-alpha.0
-    "@connext/smart-contracts": 2.3.0-alpha.0
+    "@connext/smart-contracts": 2.3.0-alpha.1
     "@sinclair/typebox": 0.25.21
     ajv: 8.12.0
     ajv-formats: 2.1.1
@@ -100,7 +100,7 @@ __metadata:
     evt: 2.4.13
     interval-promise: 1.4.0
     p-queue: 6.6.2
-  checksum: 40e86e16330334a2afdee8aaba1745452c2a946bcf73d06281d51b4be3c89b59e35b67b50cb0d5af17b46076aafefa7aff51ae3d4c86660100cc438ab5d6b42b
+  checksum: bae8e59670cb12a18d5097b03166869c70f1dc4111fcd000b233b22f8d64ead8c7d07155e2d70f7d7d3d9545848c2666db165d77fb797e0cc178b183a1efb42d
   languageName: node
   linkType: hard
 
@@ -128,27 +128,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@connext/sdk-core@npm:2.3.0-alpha.0":
-  version: 2.3.0-alpha.0
-  resolution: "@connext/sdk-core@npm:2.3.0-alpha.0"
+"@connext/sdk-core@npm:2.3.0-alpha.1":
+  version: 2.3.0-alpha.1
+  resolution: "@connext/sdk-core@npm:2.3.0-alpha.1"
   dependencies:
-    "@connext/nxtp-txservice": 2.3.0-alpha.0
+    "@connext/nxtp-txservice": 2.3.0-alpha.1
     "@connext/nxtp-utils": 2.3.0-alpha.0
     "@sinclair/typebox": 0.25.21
     ethers: 5.7.2
     isomorphic-fetch: 3.0.0
     memoizee: 0.4.15
     typedoc: 0.23.25
-  checksum: 72d64292d69b0c2f4b7830779490150b22d9f4c18d32a0c69bdbb7c22a51c6b16582defa52f5d2d5eddd5c2fa02a39de8b6359f813ea2ed7619b39d31da562c8
+  checksum: cb2546ee79ad6d01bfb98ef4e15701077ce336057dfce1621b90cde6c9e9855b501668f78945faff6630f02d5d9d0bb934d85014f9e016ebead0a5945ad73981
   languageName: node
   linkType: hard
 
-"@connext/smart-contracts@npm:2.3.0-alpha.0":
-  version: 2.3.0-alpha.0
-  resolution: "@connext/smart-contracts@npm:2.3.0-alpha.0"
+"@connext/smart-contracts@npm:2.3.0-alpha.1":
+  version: 2.3.0-alpha.1
+  resolution: "@connext/smart-contracts@npm:2.3.0-alpha.1"
   dependencies:
     "@eth-optimism/sdk": 2.1.0
-  checksum: efa02a0772f84fbc0b6736edda4051bff28603f16bee7cbc2cdda322575398b7c6fe18ee5de7b71f67425d87e4815ca3e2e43ce9a7d7966671fed4ccdcd753d4
+  checksum: 70f1971d90f0d4d4a3e4b7086cabbedf11d410e9ac05e1938cd8dd1ab89369d8f61f0e47b4141ef81f6c6914b674a8107e5969b919530b02cf9874c08319c36d
   languageName: node
   linkType: hard
 
@@ -4275,7 +4275,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "connextscan-ui@workspace:."
   dependencies:
-    "@connext/sdk-core": 2.3.0-alpha.0
+    "@connext/sdk-core": 2.3.0-alpha.1
     "@material-tailwind/react": ^2.1.5
     "@redux-devtools/extension": ^3.3.0
     "@tanstack/react-query": ^4.36.1
