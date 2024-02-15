@@ -417,7 +417,7 @@
         "decimals": 9,
         "symbol": "ESX",
         "xERC20": "0x07d086Cc91BD3aad22C6ff76AFF6aefe15763258",
-        "lockbox": "0xEFA4aFB78F250128e10F748bdA9aBB64f1e9F978",
+        "lockbox": "0x68f5BdB59be175be190BeA8FC1c8793c073c1a71",
         "lockbox_adapter": "0x3eEb23a1799C20644835A36e0AD6eC1D3464c009"
       },
       {
@@ -427,6 +427,7 @@
         "symbol": "ESX"
       }
     ],
-    "color": "#000000"
+    "color": "#000000",
+    "group": "other_tokens"
   }
 ]

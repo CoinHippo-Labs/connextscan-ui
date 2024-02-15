@@ -6,6 +6,7 @@ import { providers } from 'ethers'
 import { hashMessage, parseAbiItem, verifyMessage } from 'viem'
 
 import blocked_addresses from '../../config/blocked_addresses.json'
+import { getChainData } from '../../lib/object'
 import { find } from '../../lib/utils'
 import { WALLET_DATA, WALLET_RESET } from '../../reducers/types'
 
@@ -22,11 +23,11 @@ const publicClientToProvider = publicClient => {
   return new providers.JsonRpcProvider(transport.url, network)
 }
 
-const walletClientToSigner = walletClient => {
+const walletClientToSigner = (walletClient, _chain) => {
   const { account, chain, transport } = { ...walletClient }
   const network = {
-    chainId: chain.id,
-    name: chain.name,
+    chainId: _chain?.id || chain.id,
+    name: _chain?.name || chain.name,
     ensAddress: chain.contracts?.ensRegistry?.address,
   }
   const provider = new providers.Web3Provider(transport, network)
@@ -45,7 +46,8 @@ export default (
   },
 ) => {
   const dispatch = useDispatch()
-  const { wallet } = useSelector(state => ({ wallet: state.wallet }), shallowEqual)
+  const { chains, wallet } = useSelector(state => ({ chains: state.chains, wallet: state.wallet }), shallowEqual)
+  const { chains_data } = { ...chains }
   const { wallet_data } = { ...wallet }
   const { chain_id, provider } = { ...wallet_data }
 
@@ -126,9 +128,9 @@ export default (
                   type: WALLET_DATA,
                   value: {
                     chain_id: connectChainId,
-                    provider: _provider,
+                    provider: publicClientToProvider(_provider),
                     ethereum_provider: window?.ethereum,
-                    signer,
+                    signer: walletClientToSigner(signer, { id: connectChainId, name: getChainData(connectChainId, chains_data)?.name }),
                     address,
                   },
                 })
