@@ -47,13 +47,13 @@
     stream-browserify "^3.0.0"
     util "^0.12.4"
 
-"@connext/nxtp-txservice@2.3.0-alpha.0":
-  version "2.3.0-alpha.0"
-  resolved "https://registry.yarnpkg.com/@connext/nxtp-txservice/-/nxtp-txservice-2.3.0-alpha.0.tgz#912cd23f32eb39c36c6551068862441a0140f73d"
-  integrity sha512-cF8WmHw2OlOfOX5fNOwDR0xFt2IC1Z7FGxIb+5eduq7IArMu0xeiWYzb94l8gOSrSN7HAK7mznl6XPSgrROeUg==
+"@connext/nxtp-txservice@2.3.0-alpha.1":
+  version "2.3.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/@connext/nxtp-txservice/-/nxtp-txservice-2.3.0-alpha.1.tgz#26dc385856211c090f80d3f3205a0503fdf881c1"
+  integrity sha512-8LzTBNW49NYAeOCxG17Agz1Fei0d933vO88HAH6jsS27fDVysobGY6LMWD4hbzrMXAvaMHiA/kLFRr5WP54KLQ==
   dependencies:
     "@connext/nxtp-utils" "2.3.0-alpha.0"
-    "@connext/smart-contracts" "2.3.0-alpha.0"
+    "@connext/smart-contracts" "2.3.0-alpha.1"
     "@sinclair/typebox" "0.25.21"
     ajv "8.12.0"
     ajv-formats "2.1.1"
@@ -84,12 +84,12 @@
     secp256k1 "4.0.3"
     sinon-chai "3.7.0"
 
-"@connext/sdk-core@2.3.0-alpha.0":
-  version "2.3.0-alpha.0"
-  resolved "https://registry.yarnpkg.com/@connext/sdk-core/-/sdk-core-2.3.0-alpha.0.tgz#40f965b039c3ec29900459143d6ee176618062ba"
-  integrity sha512-c/4LS15DZyCGPDgiWF1ButYQJVQLRbC13cYljrpwOq5BEjg0l1P84XrVWUImmc0nDSUQrVfClYsSrFXL7NZDcw==
+"@connext/sdk-core@2.3.0-alpha.1":
+  version "2.3.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/@connext/sdk-core/-/sdk-core-2.3.0-alpha.1.tgz#48bc8533cdd6c7b94425003713ccf4a5beba2da1"
+  integrity sha512-bxYnWoESmAxvV3G+vUJrfpAO4XVyz9G6GMtVW4nLICj5Yp0S1bhsdodMPldUJ9leGLCTTqyac6UhJHgWiCEY3Q==
   dependencies:
-    "@connext/nxtp-txservice" "2.3.0-alpha.0"
+    "@connext/nxtp-txservice" "2.3.0-alpha.1"
     "@connext/nxtp-utils" "2.3.0-alpha.0"
     "@sinclair/typebox" "0.25.21"
     ethers "5.7.2"
@@ -97,10 +97,10 @@
     memoizee "0.4.15"
     typedoc "0.23.25"
 
-"@connext/smart-contracts@2.3.0-alpha.0":
-  version "2.3.0-alpha.0"
-  resolved "https://registry.yarnpkg.com/@connext/smart-contracts/-/smart-contracts-2.3.0-alpha.0.tgz#c12bc35d6d31cf3a48858b88036450054b7dc19f"
-  integrity sha512-UvRA1/wwWNbLH3FbwlDZAe4vWaHaU8RwctB3n7ilPHYVL0CDDbAUCHxCVnkLekzSGJaHO4u/MiGMuScL8D0v/g==
+"@connext/smart-contracts@2.3.0-alpha.1":
+  version "2.3.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/@connext/smart-contracts/-/smart-contracts-2.3.0-alpha.1.tgz#9b001722d0444a935893484f6413c7804b8b4bd1"
+  integrity sha512-6PpWUo1BxU7TUzMIOHomJaMQzpYC+3M9aWOU9FXxrINCqLssI4FLi2+NJ24dzSTvAZFxHKgD7505RyDB3ox9Ew==
   dependencies:
     "@eth-optimism/sdk" "2.1.0"
 
