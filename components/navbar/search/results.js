@@ -113,7 +113,7 @@ export default ({ inputSearch, onSelect }) => {
   )
 
   return (
-    <div className="max-h-96 overflow-y-scroll disable-scrollbars">
+    <div className="max-h-96 overflow-y-scroll">
       {data_sorted.map((d, i) => {
         const { name, image, group, path } = { ...d }
 
