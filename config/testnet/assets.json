@@ -246,8 +246,7 @@
         "symbol": "TKN"
       }
     ],
-    "color": "#000000",
-    "group": "other_tokens"
+    "color": "#000000"
   },
   {
     "id": "ixt",
@@ -268,8 +267,7 @@
         "symbol": "IXT"
       }
     ],
-    "color": "#ff6647",
-    "group": "other_tokens"
+    "color": "#ff6647"
   },
   {
     "id": "p8",
@@ -284,8 +282,7 @@
         "symbol": "P8"
       }
     ],
-    "color": "#8200FF",
-    "group": "other_tokens"
+    "color": "#8200FF"
   },
   {
     "id": "btrst",
@@ -306,8 +303,7 @@
         "symbol": "BTRST"
       }
     ],
-    "color": "#141414",
-    "group": "other_tokens"
+    "color": "#141414"
   },
   {
     "id": "xeure",
@@ -334,8 +330,7 @@
         "symbol": "xEURe"
       }
     ],
-    "color": "#141414",
-    "group": "other_tokens"
+    "color": "#141414"
   },
   {
     "id": "workshoptoken",
@@ -356,8 +351,7 @@
         "symbol": "WorkshopToken"
       }
     ],
-    "color": "#000000",
-    "group": "other_tokens"
+    "color": "#000000"
   },
   {
     "id": "gastly-lp-geth",
@@ -427,7 +421,6 @@
         "symbol": "ESX"
       }
     ],
-    "color": "#000000",
-    "group": "other_tokens"
+    "color": "#000000"
   }
 ]
