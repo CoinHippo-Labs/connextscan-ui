@@ -63,68 +63,6 @@
     "coingecko_id" : "binancecoin"
   },
   {
-    "id": "polygon",
-    "chain_id": 137,
-    "domain_id": "1886350457",
-    "name": "Polygon",
-    "short_name": "POLY",
-    "rpcs": [
-      "https://polygon-rpc.com",
-      "https://polygon-mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
-      "https://polygon.blockpi.network/v1/rpc/public"
-    ],
-    "native_token": {
-      "name": "Polygon",
-      "symbol": "MATIC",
-      "decimals": 18
-    },
-    "explorer": {
-      "name": "Polygonscan",
-      "url": "https://polygonscan.com",
-      "icon": "/logos/explorers/polygonscan.png",
-      "block_path": "/block/{block}",
-      "address_path": "/address/{address}",
-      "contract_path": "/token/{address}",
-      "contract_0_path": "/address/{address}",
-      "transaction_path": "/tx/{tx}"
-    },
-    "image": "/logos/chains/polygon.png",
-    "color": "#8247e5",
-    "unwrapper_contract": "0x7E8F8B2dA3dc5Ad9c9Dfd1A832331A039d4f3f74",
-    "coingecko_id" : "matic-network"
-  },
-  {
-    "id": "optimism",
-    "chain_id": 10,
-    "domain_id": "1869640809",
-    "name": "Optimism",
-    "short_name": "OP",
-    "rpcs": [
-      "https://optimism-mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
-      "https://optimism.publicnode.com"
-    ],
-    "native_token": {
-      "name": "Ethereum",
-      "symbol": "oETH",
-      "decimals": 18
-    },
-    "explorer": {
-      "name": "Etherscan",
-      "url": "https://optimistic.etherscan.io",
-      "icon": "/logos/explorers/optimism.png",
-      "block_path": "/block/{block}",
-      "address_path": "/address/{address}",
-      "contract_path": "/token/{address}",
-      "contract_0_path": "/address/{address}",
-      "transaction_path": "/tx/{tx}"
-    },
-    "image": "/logos/chains/optimism.png",
-    "color": "#dc2626",
-    "unwrapper_contract": "0x7Fe09d217d646a6213e51b237670Bc326188cB93",
-    "coingecko_id" : "optimism",
-    "gas_coingecko_id" : "ethereum"
-  },
-  {
     "id": "arbitrum",
     "chain_id": 42161,
     "domain_id": "1634886255",
@@ -154,6 +92,37 @@
     "unwrapper_contract": "0x429b9eb01362b2799131EfCC44319689b662999D",
     "coingecko_id" : "arbitrum",
     "gas_coingecko_id" : "ethereum"
+  },
+  {
+    "id": "polygon",
+    "chain_id": 137,
+    "domain_id": "1886350457",
+    "name": "Polygon",
+    "short_name": "POLY",
+    "rpcs": [
+      "https://polygon-rpc.com",
+      "https://polygon-mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+      "https://polygon.blockpi.network/v1/rpc/public"
+    ],
+    "native_token": {
+      "name": "Polygon",
+      "symbol": "MATIC",
+      "decimals": 18
+    },
+    "explorer": {
+      "name": "Polygonscan",
+      "url": "https://polygonscan.com",
+      "icon": "/logos/explorers/polygonscan.png",
+      "block_path": "/block/{block}",
+      "address_path": "/address/{address}",
+      "contract_path": "/token/{address}",
+      "contract_0_path": "/address/{address}",
+      "transaction_path": "/tx/{tx}"
+    },
+    "image": "/logos/chains/polygon.png",
+    "color": "#8247e5",
+    "unwrapper_contract": "0x7E8F8B2dA3dc5Ad9c9Dfd1A832331A039d4f3f74",
+    "coingecko_id" : "matic-network"
   },
   {
     "id": "gnosis",
@@ -186,6 +155,37 @@
     "unwrapper_contract": "0x642c27a96dFFB6f21443A89b789a3194Ff8399fa",
     "coingecko_id" : "gnosis",
     "gas_coingecko_id" : "xdai"
+  },
+  {
+    "id": "optimism",
+    "chain_id": 10,
+    "domain_id": "1869640809",
+    "name": "Optimism",
+    "short_name": "OP",
+    "rpcs": [
+      "https://optimism-mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+      "https://optimism.publicnode.com"
+    ],
+    "native_token": {
+      "name": "Ethereum",
+      "symbol": "oETH",
+      "decimals": 18
+    },
+    "explorer": {
+      "name": "Etherscan",
+      "url": "https://optimistic.etherscan.io",
+      "icon": "/logos/explorers/optimism.png",
+      "block_path": "/block/{block}",
+      "address_path": "/address/{address}",
+      "contract_path": "/token/{address}",
+      "contract_0_path": "/address/{address}",
+      "transaction_path": "/tx/{tx}"
+    },
+    "image": "/logos/chains/optimism.png",
+    "color": "#dc2626",
+    "unwrapper_contract": "0x7Fe09d217d646a6213e51b237670Bc326188cB93",
+    "coingecko_id" : "optimism",
+    "gas_coingecko_id" : "ethereum"
   },
   {
     "id": "linea",
