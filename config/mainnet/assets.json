@@ -1104,5 +1104,38 @@
     ],
     "color": "#2675c8",
     "preset": true
+  },
+  {
+    "id": "goat",
+    "symbol": "GOAT",
+    "name": "Goat Trading",
+    "image": "/logos/assets/goatlogo.png",
+    "contracts": [
+      {
+        "contract_address": "0x6Ae2A128cD07d672164cA9f2712Ea737d198Dd41",
+        "chain_id": 1,
+        "decimals": 18,
+        "symbol": "GOAT",
+        "xERC20": "0x9C060a031c3925207F24FE719e23EBf548e9b07b",
+        "lockbox": "0x4485f829f8ADb31aD94aaF3D63e721f339b4B148",
+        "lockbox_adapter": "0x45BF3c737e57B059a5855280CA1ADb8e9606AC68"
+      },
+      {
+        "contract_address": "0x9C060a031c3925207F24FE719e23EBf548e9b07b",
+        "chain_id": 56,
+        "decimals": 18
+      },
+      {
+        "contract_address": "0x9C060a031c3925207F24FE719e23EBf548e9b07b",
+        "chain_id": 42161,
+        "decimals": 18
+      },
+      {
+        "contract_address": "0x9C060a031c3925207F24FE719e23EBf548e9b07b",
+        "chain_id": 8453,
+        "decimals": 18
+      }
+    ],
+    "color": "#000000"
   }
 ]
