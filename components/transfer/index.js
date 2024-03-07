@@ -370,6 +370,12 @@ export default () => {
                       <Spinner width={32} height={32} />
                     </div>
                   }
+                  {xcall_timestamp && moment().diff(moment(xcall_timestamp * 1000), 'seconds') >= 600 && (
+                    <div className="flex flex-col items-center space-y-1">
+                      <span>This transfer was not filled by routers.</span>
+                      <span>{`Estimated Time: <= `}{destination_chain_data?.id === 'ethereum' ? 5 : 12} Hours</span>
+                    </div>
+                  )}
                   <TimeSpent
                     fromTime={xcall_timestamp}
                     toTime={execute_timestamp}
