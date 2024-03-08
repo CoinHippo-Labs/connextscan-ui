@@ -373,7 +373,7 @@ export default () => {
                   {xcall_timestamp && moment().diff(moment(xcall_timestamp * 1000), 'seconds') >= 600 && (
                     <div className="flex flex-col items-center space-y-1">
                       <span>This transfer was not filled by routers.</span>
-                      <span>{`Estimated Time: <= `}{destination_chain_data?.id === 'ethereum' ? 5 : 12} Hours</span>
+                      <span>{`Estimated Time: < `}{destination_chain_data?.id === 'ethereum' ? 12 : 5} Hours</span>
                     </div>
                   )}
                   <TimeSpent
