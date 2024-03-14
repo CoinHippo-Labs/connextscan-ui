@@ -372,7 +372,7 @@ export default () => {
                   }
                   {xcall_timestamp && (errored || pending) && moment().diff(moment(xcall_timestamp * 1000), 'seconds') >= 600 && (
                     <div className="flex flex-col items-center space-y-1">
-                      <span>{`Estimated Time: < `}{destination_chain_data?.id === 'ethereum' ? 12 : 2} Hours</span>
+                      <span>{`Estimated Time: `}{destination_chain_data?.id === 'ethereum' ? 12 : 3-5} Hours</span>
                     </div>
                   )}
                   <TimeSpent
