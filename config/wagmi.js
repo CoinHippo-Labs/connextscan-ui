@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react'
-import { mainnet, goerli, bsc, bscTestnet, polygon, polygonMumbai, avalanche, avalancheFuji, optimism, optimismGoerli, arbitrum, arbitrumGoerli, fantom, fantomTestnet, moonbeam, moonbaseAlpha, gnosis, linea, lineaTestnet, polygonZkEvm, polygonZkEvmTestnet, zkSync, zkSyncTestnet, metis, metisGoerli, base, modeTestnet } from 'wagmi/chains'
+import { mainnet, goerli, bsc, bscTestnet, polygon, polygonMumbai, avalanche, avalancheFuji, optimism, optimismGoerli, arbitrum, arbitrumGoerli, fantom, fantomTestnet, moonbeam, moonbaseAlpha, gnosis, linea, lineaTestnet, polygonZkEvm, polygonZkEvmTestnet, zkSync, zkSyncTestnet, metis, metisGoerli, base, modeTestnet, sepolia, arbitrumSepolia, optimismSepolia } from 'wagmi/chains'
 import { defineChain } from 'viem'
 
 export const WALLETCONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
@@ -29,36 +29,12 @@ export const mode = defineChain({
 
 export const EVM_CHAIN_CONFIGS = process.env.NEXT_PUBLIC_NETWORK === 'mainnet' ?
   [
-    { _id: 'ethereum', ...mainnet },
-    { _id: 'binance', ...bsc },
-    { _id: 'polygon', ...polygon },
-    { _id: 'avalanche', ...avalanche },
-    { _id: 'optimism', ...optimism },
-    { _id: 'arbitrum', ...arbitrum },
-    { _id: 'fantom', ...fantom },
-    { _id: 'moonbeam', ...moonbeam },
-    { _id: 'gnosis', ...gnosis },
-    { _id: 'linea', ...linea },
-    { _id: 'polygon-zkevm', ...polygonZkEvm },
-    { _id: 'zksync', ...zkSync },
-    { _id: 'metis', ...metis },
-    { _id: 'base', ...base },
-    { _id: 'mode', ...mode }
+    { _id: 'ethereum', ...mainnet }
   ] :
   [
-    { _id: 'goerli', ...goerli },
-    { _id: 'binance', ...bscTestnet },
-    { _id: 'polygon', ...polygonMumbai },
-    { _id: 'avalanche', ...avalancheFuji },
-    { _id: 'optimism', ...optimismGoerli },
-    { _id: 'arbitrum', ...arbitrumGoerli },
-    { _id: 'fantom', ...fantomTestnet },
-    { _id: 'moonbeam', ...moonbaseAlpha },
-    { _id: 'linea', ...lineaTestnet },
-    { _id: 'polygon-zkevm', ...polygonZkEvmTestnet },
-    { _id: 'zksync', ...zkSyncTestnet },
-    { _id: 'x1', id: 195, network: 'x1', name: 'X1', nativeCurrency: { name: 'OKB', symbol: 'OKB', decimals: 18 }, rpcUrls: { default: { http: ['https://x1testrpc.okx.com'] }, public: { http: ['https://x1testrpc.okx.com'] }, infura: { http: ['https://x1testrpc.okx.com'] } }, blockExplorers: { default: { name: 'X1', url: 'https://www.oklink.com/x1-test' } } },
-    { _id: 'modeTestnet', ...modeTestnet}
+    { _id: 'sepolia', ...sepolia },
+    { _id: 'optimismSepolia', ...optimismSepolia },
+    { _id: 'arbitrumSepolia', ...arbitrumSepolia }
   ]
 
 export const queryClient = new QueryClient()
