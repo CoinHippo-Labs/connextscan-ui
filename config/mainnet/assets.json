@@ -1187,5 +1187,54 @@
       }
     ],
     "color": "#000000"
+  },
+  {
+    "id": "Quid",
+    "symbol": "QUID",
+    "name": "LondonStockExchangeDAO",
+    "image": "/logos/assets/quid.png",
+    "is_xERC20": true,
+    "contracts": [
+      {
+        "contract_address": "0x79a810d6fDb37f125cC8312639BB50Ff365D5355",
+        "chain_id": 1,
+        "decimals": 18,
+        "symbol": "QUID",
+        "xERC20": "0x7A460CDA90ee8ED87F17864106E1d31c9C8875B5",
+        "lockbox": "0x0b558385f8Fd0cdb04Daa94cD547f95162cBC1cC",
+        "lockbox_adapter": "0x45bf3c737e57b059a5855280ca1adb8e9606ac68"
+      },
+      {
+        "contract_address": "0xF0EB88b8c83347092eF321aE5d1d54c88Ee89219",
+        "chain_id": 56,
+        "decimals": 18
+      },
+      {
+        "contract_address": "0x4a8ECc48a6fa684E8C60604A6016ca35DD18293f",
+        "chain_id": 137,
+        "decimals": 18
+      },
+      {
+        "contract_address": "0xF0EB88b8c83347092eF321aE5d1d54c88Ee89219",
+        "chain_id": 10,
+        "decimals": 18
+      },
+      {
+        "contract_address": "0xF0EB88b8c83347092eF321aE5d1d54c88Ee89219",
+        "chain_id": 42161,
+        "decimals": 18
+      },
+      {
+        "contract_address": "0x4a8ECc48a6fa684E8C60604A6016ca35DD18293f",
+        "chain_id": 100,
+        "decimals": 18
+      },
+      {
+        "contract_address": "0x4E280E8A2446983901910A7689db9c57d5883F72",
+        "chain_id": 34443,
+        "decimals": 18
+      }
+    ],
+    "color": "#4243d0"
   }
 ]
