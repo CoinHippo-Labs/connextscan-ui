@@ -435,7 +435,7 @@
         "chain_id": 11155111,
         "decimals": 18,
         "symbol": "SWPR",
-        "xERC20": "0x202426c15a18a0e0fE3294415E66421891E2EB7C",
+        "xERC20": "0x535c70c9Bac2631CbFD769D3Ac07338233c5Df66",
         "lockbox": "0x0b276A32d366923D8Bbe02293B3e3536A41C823B",
         "lockbox_adapter": "0xcF021fCFB9bd72E5aA7ab390cFA4fCfDF895c7Cf"
       },
