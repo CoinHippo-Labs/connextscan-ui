@@ -607,6 +607,12 @@
         "chain_id": 10,
         "decimals": 18,
         "symbol": "alUSD"
+      },
+      {
+        "contract_address": "0x303241e2B3b4aeD0bb0F8623e7442368FED8Faf3",
+        "chain_id": 1088,
+        "decimals": 18,
+        "symbol": "alUSD"
       }
     ],
     "color": "#000000"
@@ -637,6 +643,12 @@
       {
         "contract_address": "0x3E29D3A9316dAB217754d13b28646B76607c5f04",
         "chain_id": 10,
+        "decimals": 18,
+        "symbol": "alETH"
+      },
+      {
+        "contract_address": "0x0E17934B9735D479B2388347fAeF0F4e58b9cc06",
+        "chain_id": 1088,
         "decimals": 18,
         "symbol": "alETH"
       }
