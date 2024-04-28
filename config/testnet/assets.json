@@ -422,5 +422,26 @@
       }
     ],
     "color": "#000000"
+  },
+  {
+    "id": "ethix",
+    "symbol": "ETHIX",
+    "name": "Ethix",
+    "image": "/logos/assets/ethix.png",
+    "is_xERC20": true,
+    "contracts": [
+      {
+        "contract_address": "0xF63eeAb5ce6C49654708442EA1Afb7B56693b734",
+        "chain_id": 11155111,
+        "decimals": 18,
+        "symbol": "ETHIX"
+      },
+      {
+        "contract_address": "0xFd09911130e6930Bf87F2B0554c44F400bD80D3e",
+        "chain_id": 11155420,
+        "decimals": 18,
+        "symbol": "ETHIX"
+      }
+    ]
   }
 ]
