@@ -1187,5 +1187,41 @@
       }
     ],
     "color": "#000000"
+  },
+  {
+    "id": "zgeth",
+    "symbol": "zgETH",
+    "name": "Zerog Staked ETH",
+    "image": "/logos/assets/zgeth.png",
+    "is_xERC20": true,
+    "contracts": [
+      {
+        "contract_address": "0x17fdeB2fbB8089fea8a7BDb847E49ce67cF863df",
+        "chain_id": 1,
+        "decimals": 18,
+        "symbol": "zgETH",
+        "xERC20": "0x0e2504dB1ffb0C3f692128f3919CbCAa11c10e8f",
+        "lockbox": "0x742B5Cb1a6a10E568a79D70EF77b542663ED3e1a",
+        "lockbox_adapter": "0x45bf3c737e57b059a5855280ca1adb8e9606ac68"
+      },
+      {
+        "contract_address": "0xA5E5A6724E99EaBd4CA236633AAb882B7658F287",
+        "chain_id": 42161,
+        "decimals": 18,
+        "symbol": "zgETH"
+      },
+      {
+        "contract_address": "0x4B9D5F4e95f6Fe93B4607BFdB43CB6b32cE47aa0",
+        "chain_id": 8453,
+        "decimals": 18,
+        "symbol": "zgETH"
+      },
+      {
+        "contract_address": "0x4B9D5F4e95f6Fe93B4607BFdB43CB6b32cE47aa0",
+        "chain_id": 10,
+        "decimals": 18,
+        "symbol": "zgETH"
+      }
+    ]
   }
 ]
